@@ -1,0 +1,409 @@
+package com.rmp.ui.signup
+
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemColors
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.ColorFilter
+import com.rmp.R
+import com.rmp.ui.LocalNavController
+import com.rmp.ui.RmpDestinations
+import com.rmp.ui.components.AccentButton
+import com.rmp.ui.components.AppScreen
+import com.rmp.ui.components.DropDown
+import com.rmp.ui.components.Header
+import com.rmp.ui.components.ScreenStepVisualizer
+import com.rmp.ui.components.SecondaryButton
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonColors
+import androidx.compose.ui.text.input.KeyboardType
+
+@Composable
+fun WeightSelection(
+    current: WeightTarget,
+    onTargetSelect: (WeightTarget) -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(120.dp)
+    ) {
+        for (it in WeightTarget.entries) {
+            val selected = it == current
+
+            val animatedColor by animateColorAsState(
+                targetValue = if (selected) ButtonDefaults.buttonColors().contentColor else ButtonDefaults.buttonColors().containerColor,
+                label = "color",
+                animationSpec = tween(100)
+            )
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .clickable { onTargetSelect(it) }
+                    .padding(10.dp)
+            ) {
+                NavigationRailItem(
+                    selected = selected,
+                    onClick = { onTargetSelect(it) },
+                    icon = {
+                        Image(
+                            painter = painterResource(it.imageResource),
+                            contentDescription = it.name,
+                            contentScale = ContentScale.Inside,
+                            colorFilter = ColorFilter.tint(animatedColor),
+                            modifier = Modifier
+                                .width(80.dp)
+                                .height(34.dp)
+                        )
+                    },
+                    label = {
+                        Text(text = stringResource(it.labelResource))
+                    },
+                    colors = NavigationRailItemColors(
+                        selectedIconColor = ButtonDefaults.buttonColors().contentColor,
+                        selectedTextColor = ButtonDefaults.buttonColors().containerColor,
+                        selectedIndicatorColor = ButtonDefaults.buttonColors().containerColor,
+                        unselectedIconColor = ButtonDefaults.buttonColors().disabledContentColor,
+                        unselectedTextColor = ButtonDefaults.buttonColors().containerColor,
+                        disabledIconColor = ButtonDefaults.buttonColors().disabledContentColor,
+                        disabledTextColor = ButtonDefaults.buttonColors().disabledContentColor
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SexSelection(
+    current: Boolean,
+    onSexSelect: (Boolean) -> Unit,
+) {
+    Row {
+        listOf(true, false).forEach {
+            val selected = current == it
+
+            val bg by animateColorAsState(
+                targetValue = if (selected) ButtonDefaults.buttonColors().containerColor else Color.Transparent,
+                animationSpec = tween(300)
+            )
+
+            val color by animateColorAsState(
+                targetValue = if (selected) ButtonDefaults.buttonColors().contentColor else ButtonDefaults.buttonColors().containerColor,
+                animationSpec = tween(300)
+            )
+
+            Button(
+                colors = ButtonColors(
+                    containerColor = bg,
+                    contentColor = color,
+                    disabledContainerColor = ButtonDefaults.buttonColors().disabledContainerColor,
+                    disabledContentColor = ButtonDefaults.buttonColors().disabledContentColor
+                ),
+                onClick = { onSexSelect(it) }
+            ) {
+                Text(color = color, text = stringResource(
+                    if (it) R.string.male else R.string.female
+                ))
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun SignupScreen(
+    uiState: SignupUiState,
+    prevState: () -> Unit,
+    nextState: () -> Unit,
+    setWelcome: (String, String, String) -> Unit,
+    setParams: (String, String, ActivityLevel) -> Unit,
+    setTarget: (WeightTarget) -> Unit,
+    setLoginStep: (String, String) -> Unit
+) {
+    val navigator = LocalNavController.current
+    val context = LocalContext.current
+    val pagerState = rememberPagerState { SignupState.entries.size }
+    val animationScope = rememberCoroutineScope()
+
+    val pageData = StateDescription.buildFrom(pagerState.currentPage)
+
+    val nextPage: (state: SignupState, end: Boolean) -> Unit = { it, end ->
+        if (!end && it.n > uiState.step.n) {
+            nextState()
+            animationScope.launch {
+                pagerState.animateScrollToPage(pagerState.currentPage.inc())
+            }
+        }
+
+        if (end) {
+            nextState()
+        }
+    }
+
+    AppScreen {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                userScrollEnabled = false,
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterHorizontally)
+                    .fillMaxHeight(0.8f)
+            ) { page ->
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 30.dp)
+                ) {
+                    Header(
+                        stringResource(pageData.header),
+                        stringResource(pageData.subtitle),
+                        Modifier.align(Alignment.Start),
+                        textAlign = TextAlign.Start,
+                    )
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxHeight(0.6f)
+                    ) {
+                        when (uiState.step) {
+                            SignupState.WELCOME -> {
+                                uiState as SignupUiState.WelcomeState
+
+                                // Set defaults
+                                setWelcome(uiState.name, uiState.sex, uiState.age)
+
+                                OutlinedTextField(
+                                    label = { Text("Имя") },
+                                    value = uiState.name,
+                                    onValueChange = { setWelcome(it, uiState.sex, uiState.age) }
+                                )
+                                SexSelection(uiState.sex == "true") {
+                                    setWelcome(uiState.name, it.toString(), uiState.age)
+                                }
+                                OutlinedTextField(
+                                    label = { Text("Возраст") },
+                                    value = uiState.age,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    onValueChange = {
+                                        if (it.all { c -> c.isDigit() }) {
+                                            setWelcome(uiState.name, uiState.sex, it)
+                                        }
+                                    }
+                                )
+                            }
+                            SignupState.PARAMS -> {
+                                uiState as SignupUiState.ParamsState
+
+                                OutlinedTextField(
+                                    label = { Text("Рост") },
+                                    value = uiState.height,
+                                    trailingIcon = {
+                                        Text("СМ")
+                                    },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    onValueChange = {
+                                        if (it.all { c -> c.isDigit() }) {
+                                            setParams(it, uiState.weight, uiState.activityLevel)
+                                        }
+                                    }
+                                )
+                                OutlinedTextField(
+                                    label = { Text("Вес") },
+                                    trailingIcon = {
+                                        Text("КГ")
+                                    },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    value = uiState.weight,
+                                    onValueChange = {
+                                        if (it.all { c -> c.isDigit() }) {
+                                            setParams(uiState.height, it, uiState.activityLevel)
+                                        }
+                                    }
+                                )
+
+
+                                val entryByLabel = ActivityLevel.entries.associateBy {
+                                    stringResource(it.labelResource)
+                                }
+
+                                DropDown(
+                                    items = ActivityLevel.entries.map { stringResource(it.labelResource) },
+                                    label = "Уровень активности",
+                                    value = stringResource(uiState.activityLevel.labelResource)
+                                ) {
+                                    setParams(uiState.height, uiState.weight, entryByLabel[it]!!)
+                                }
+                            }
+                            SignupState.TARGET -> {
+                                uiState as SignupUiState.TargetState
+
+                                // Set default value
+                                setTarget(uiState.weightTarget)
+
+                                WeightSelection(uiState.weightTarget) {
+                                    setTarget(it)
+                                }
+                            }
+                            SignupState.LOGIN_DATA -> {
+                                uiState as SignupUiState.LoginDataState
+
+                                OutlinedTextField(
+                                    label = { Text("Email") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                                    value = uiState.email,
+                                    onValueChange = { setLoginStep(it, uiState.pass) }
+                                )
+                                OutlinedTextField(
+                                    label = { Text("Пароль") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                    value = uiState.pass,
+                                    onValueChange = { setLoginStep(uiState.email, it) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Column(
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(150.dp)
+            ) {
+                ScreenStepVisualizer(
+                    SignupState.entries.size, pagerState.currentPage,
+                    Modifier.padding(bottom = 30.dp)
+                )
+
+                AccentButton(stringResource(R.string.next)) {
+                    Log.d("tag", "next triggered")
+                    when (uiState.step) {
+                        SignupState.WELCOME -> {
+                            val state = try {
+                                uiState as SignupUiState.WelcomeState
+                            } catch (_: Exception) { null } ?: return@AccentButton
+
+                            if (validateWelcome(state)) {
+                                nextPage(SignupState.PARAMS, false)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Ошибка, проверьте, что все поля заполнены!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            return@AccentButton
+                        }
+                        SignupState.PARAMS -> {
+                            val state = try {
+                                uiState as SignupUiState.ParamsState
+                            } catch (_: Exception) { null } ?: return@AccentButton
+
+                            if (validateParams(state)) {
+                                nextPage(SignupState.TARGET, false)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Ошибка, проверьте, что все поля заполнены!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            return@AccentButton
+                        }
+                        SignupState.TARGET -> {
+                            val state = try {
+                                uiState as SignupUiState.TargetState
+                            } catch (_: Exception) { null } ?: return@AccentButton
+
+                            if (validateTarget(state)) {
+                                nextPage(SignupState.LOGIN_DATA, false)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Ошибка, проверьте, что все поля заполнены!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            return@AccentButton
+                        }
+                        SignupState.LOGIN_DATA -> {
+                            val state = try {
+                                uiState as SignupUiState.TargetState
+                            } catch (_: Exception) { null } ?: return@AccentButton
+
+                            if (validateTarget(state)) {
+                                nextPage(SignupState.LOGIN_DATA, true)
+
+                                Toast.makeText(
+                                    context,
+                                    "Мать на месте (Данные сохранены)",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Ошибка, проверьте, что все поля заполнены!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+
+                            return@AccentButton
+                        }
+                    }
+                }
+
+                SecondaryButton(stringResource(R.string.prev)) {
+                    prevState()
+                    animationScope.launch {
+                        pagerState.animateScrollToPage(pagerState.currentPage.dec())
+                    }
+                }
+            }
+        }
+    }
+}

@@ -62,9 +62,6 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {}
     }
 
-    /**
-     * Factory for HomeViewModel that takes PostsRepository as a dependency
-     */
     companion object {
         fun provideFactory(): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

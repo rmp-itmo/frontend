@@ -6,8 +6,36 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
+    <string name="menu">Menu</string>
+    <string name="next">Далее</string>
+    <string name="prev">Назад</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
+
+    <!-- Hello screen -->
+    <string name="go_to_sign_up">Создать аккаунт</string>
+    <string name="go_to_login">Войти</string>
+    <!-- Steps -->
+    <string name="step_1">Следи за калориями и выпитой водой</string>
+    <string name="step_2">Управляй расписанием своих тренировок</string>
+    <string name="step_3">Делись опытом с другими </string>
+
+
+    <!-- SignUp screen -->
+    <string name="signup_header">Создание аккаунта</string>
+    <string name="signup_step_1">Привет! Давай познакомимся</string>
+    <string name="signup_step_2">Приятно познакомиться! Теперь введи свои данные, мы подберем тебе индивидуальный план тренировок и питания.</string>
+    <string name="signup_step_3">Теперь давай определимся с целью.</string>
+    <string name="signup_step_4">Последний шаг, введи данные для входа и добро пожаловать в здоровую жизнь!</string>
+    <string name="weight_lose">Похудение</string>
+    <string name="weight_same">Поддержка</string>
+    <string name="weight_gain">Набор веса</string>
+    <string name="activity_low">Низкий</string>
+    <string name="activity_medium">Средний</string>
+    <string name="activity_high">Высокий</string>
+    <string name="male">Мужской</string>
+    <string name="female">Женский</string>
+
 </resources>
