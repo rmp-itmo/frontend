@@ -150,7 +150,7 @@ fun SexSelection(
 fun SignupScreen(
     uiState: SignupUiState,
     prevState: () -> Unit,
-    nextState: () -> Unit,
+    nextState: suspend () -> Unit,
     setWelcome: (String, String, String) -> Unit,
     setParams: (String, String, ActivityLevel) -> Unit,
     setTarget: (WeightTarget) -> Unit,
@@ -160,19 +160,28 @@ fun SignupScreen(
     val context = LocalContext.current
     val pagerState = rememberPagerState { SignupState.entries.size }
     val animationScope = rememberCoroutineScope()
+    val apiScope = rememberCoroutineScope()
 
     val pageData = StateDescription.buildFrom(pagerState.currentPage)
 
     val nextPage: (state: SignupState, end: Boolean) -> Unit = { it, end ->
         if (!end && it.n > uiState.step.n) {
-            nextState()
+            apiScope.launch {
+                nextState()
+            }
             animationScope.launch {
                 pagerState.animateScrollToPage(pagerState.currentPage.inc())
             }
         }
 
         if (end) {
-            nextState()
+            val apiCall = apiScope.launch {
+                nextState()
+            }
+            animationScope.launch {
+                apiCall.join()
+                pagerState.animateScrollToPage(pagerState.pageCount)
+            }
         }
     }
 
@@ -237,10 +246,10 @@ fun SignupScreen(
                                 uiState as SignupUiState.ParamsState
 
                                 OutlinedTextField(
-                                    label = { Text("Рост") },
+                                    label = { Text(stringResource(R.string.height)) },
                                     value = uiState.height,
                                     trailingIcon = {
-                                        Text("СМ")
+                                        Text(stringResource(R.string.sm))
                                     },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     onValueChange = {
@@ -250,9 +259,9 @@ fun SignupScreen(
                                     }
                                 )
                                 OutlinedTextField(
-                                    label = { Text("Вес") },
+                                    label = { Text(stringResource(R.string.weight)) },
                                     trailingIcon = {
-                                        Text("КГ")
+                                        Text(stringResource(R.string.kg))
                                     },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     value = uiState.weight,
@@ -270,7 +279,7 @@ fun SignupScreen(
 
                                 DropDown(
                                     items = ActivityLevel.entries.map { stringResource(it.labelResource) },
-                                    label = "Уровень активности",
+                                    label = stringResource(R.string.activity_level),
                                     value = stringResource(uiState.activityLevel.labelResource)
                                 ) {
                                     setParams(uiState.height, uiState.weight, entryByLabel[it]!!)
@@ -296,12 +305,13 @@ fun SignupScreen(
                                     onValueChange = { setLoginStep(it, uiState.pass) }
                                 )
                                 OutlinedTextField(
-                                    label = { Text("Пароль") },
+                                    label = { Text(stringResource(R.string.password)) },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                                     value = uiState.pass,
                                     onValueChange = { setLoginStep(uiState.email, it) }
                                 )
                             }
+                            SignupState.SUCCESS -> {}
                         }
                     }
                 }
@@ -319,12 +329,16 @@ fun SignupScreen(
                     Modifier.padding(bottom = 30.dp)
                 )
 
-                AccentButton(stringResource(R.string.next)) {
+                val text = if (uiState.step != SignupState.SUCCESS) R.string.next else R.string.signin
+
+                val errorString = stringResource(R.string.error_check_fields)
+
+                AccentButton(stringResource(text)) {
                     Log.d("tag", "next triggered")
                     when (uiState.step) {
                         SignupState.WELCOME -> {
                             val state = try {
-                                uiState as SignupUiState.WelcomeState
+                                uiState as SignupUiState.ParamsState
                             } catch (_: Exception) { null } ?: return@AccentButton
 
                             if (validateWelcome(state)) {
@@ -332,7 +346,7 @@ fun SignupScreen(
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "Ошибка, проверьте, что все поля заполнены!",
+                                    errorString,
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
@@ -340,7 +354,7 @@ fun SignupScreen(
                         }
                         SignupState.PARAMS -> {
                             val state = try {
-                                uiState as SignupUiState.ParamsState
+                                uiState as SignupUiState.TargetState
                             } catch (_: Exception) { null } ?: return@AccentButton
 
                             if (validateParams(state)) {
@@ -348,7 +362,7 @@ fun SignupScreen(
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "Ошибка, проверьте, что все поля заполнены!",
+                                    errorString,
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
@@ -356,7 +370,7 @@ fun SignupScreen(
                         }
                         SignupState.TARGET -> {
                             val state = try {
-                                uiState as SignupUiState.TargetState
+                                uiState as SignupUiState.LoginDataState
                             } catch (_: Exception) { null } ?: return@AccentButton
 
                             if (validateTarget(state)) {
@@ -364,7 +378,7 @@ fun SignupScreen(
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "Ошибка, проверьте, что все поля заполнены!",
+                                    errorString,
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
@@ -372,27 +386,24 @@ fun SignupScreen(
                         }
                         SignupState.LOGIN_DATA -> {
                             val state = try {
-                                uiState as SignupUiState.TargetState
+                                uiState as SignupUiState.LoginDataState
                             } catch (_: Exception) { null } ?: return@AccentButton
 
-                            if (validateTarget(state)) {
+                            if (validateLoginData(state)) {
                                 nextPage(SignupState.LOGIN_DATA, true)
-
-                                Toast.makeText(
-                                    context,
-                                    "Мать на месте (Данные сохранены)",
-                                    Toast.LENGTH_LONG
-                                ).show()
-
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "Ошибка, проверьте, что все поля заполнены!",
+                                    errorString,
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
 
                             return@AccentButton
+                        }
+
+                        SignupState.SUCCESS -> {
+                            navigator.navigate(RmpDestinations.LOGIN_ROUTE)
                         }
                     }
                 }

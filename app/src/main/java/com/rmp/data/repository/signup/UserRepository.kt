@@ -15,6 +15,6 @@ data class CreateUserDto(
     val goalType: Int,
 )
 
-interface SignupRepo {
+interface UserRepository {
     suspend fun createUser(createUserDto: CreateUserDto): Boolean
 }

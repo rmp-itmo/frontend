@@ -3,7 +3,6 @@ package com.rmp.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -17,7 +16,6 @@ import com.rmp.ui.signup.ActivityLevel
 import com.rmp.ui.signup.SignupRoute
 import com.rmp.ui.signup.SignupViewModel
 import com.rmp.ui.signup.WeightTarget
-import kotlinx.coroutines.launch
 
 val LocalNavController = compositionLocalOf<NavHostController> { error("NavController not found") }
 
@@ -30,7 +28,6 @@ fun RmpNavGraph(
     openDrawer: () -> Unit = {},
     startDestination: String = RmpDestinations.HOME_ROUTE,
 ) {
-    val apiContext = rememberCoroutineScope()
 
     CompositionLocalProvider(LocalNavController provides navController) {
         NavHost(
@@ -54,7 +51,7 @@ fun RmpNavGraph(
                 route = RmpDestinations.SIGN_UP_ROUTE,
             ) { _ ->
                 val signupViewModel: SignupViewModel = viewModel(
-                    factory = SignupViewModel.factory()
+                    factory = SignupViewModel.factory(appContainer.userRepository)
                 )
                 SignupRoute(
                     signupViewModel = signupViewModel,
@@ -62,9 +59,7 @@ fun RmpNavGraph(
                         signupViewModel.prevState()
                     },
                     nextState = {
-                        apiContext.launch {
-                            signupViewModel.nextState()
-                        }
+                        signupViewModel.nextState()
                     },
                     setWelcome = { name: String, sex: String, age: String ->
                         signupViewModel.setWelcome(name, sex, age)

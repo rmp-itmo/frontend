@@ -8,6 +8,7 @@
     <string name="action_settings">Settings</string>
     <string name="menu">Menu</string>
     <string name="next">Далее</string>
+    <string name="signin">Войти</string>
     <string name="prev">Назад</string>
 
     <string name="menu_home">Home</string>
@@ -29,6 +30,7 @@
     <string name="signup_step_2">Приятно познакомиться! Теперь введи свои данные, мы подберем тебе индивидуальный план тренировок и питания.</string>
     <string name="signup_step_3">Теперь давай определимся с целью.</string>
     <string name="signup_step_4">Последний шаг, введи данные для входа и добро пожаловать в здоровую жизнь!</string>
+    <string name="signup_step_5">Аккаунт успешно создан. Для начала использования - войдите в аккаунт.</string>
     <string name="weight_lose">Похудение</string>
     <string name="weight_same">Поддержка</string>
     <string name="weight_gain">Набор веса</string>
@@ -37,5 +39,15 @@
     <string name="activity_high">Высокий</string>
     <string name="male">Мужской</string>
     <string name="female">Женский</string>
+    <string name="name">Имя</string>
+    <string name="age">Возраст</string>
+    <string name="height">Рост</string>
+    <string name="weight">Вес</string>
+    <string name="sm">СМ</string>
+    <string name="kg">КГ</string>
+    <string name="password">Пароль</string>
+    <string name="activity_level">Уровень активности</string>
+    <string name="error_check_fields">Ошибка, проверьте, что все поля заполнены!</string>
+    <string name="error_user_creation">Ошибка создания пользователя!</string>
 
 </resources>

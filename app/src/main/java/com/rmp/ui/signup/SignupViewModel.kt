@@ -5,18 +5,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rmp.R
+import com.rmp.data.ErrorMessage
 import com.rmp.data.repository.signup.CreateUserDto
-import com.rmp.data.repository.signup.SignupRepo
+import com.rmp.data.repository.signup.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.math.sign
 
 enum class SignupState(val n: Int) {
-    WELCOME(0), PARAMS(1), TARGET(2), LOGIN_DATA(3);
+    WELCOME(0), PARAMS(1), TARGET(2), LOGIN_DATA(3), SUCCESS(4);
 
     fun prev(): SignupState {
         return when (this) {
@@ -24,6 +24,7 @@ enum class SignupState(val n: Int) {
             TARGET -> PARAMS
             PARAMS -> WELCOME
             WELCOME -> WELCOME
+            SUCCESS -> SUCCESS
         }
     }
 
@@ -33,6 +34,7 @@ enum class SignupState(val n: Int) {
             PARAMS -> TARGET
             TARGET -> LOGIN_DATA
             LOGIN_DATA -> LOGIN_DATA
+            SUCCESS -> SUCCESS
         }
     }
 }
@@ -66,6 +68,11 @@ data class StateDescription(
                     R.string.signup_step_4,
                 )
 
+                SignupState.SUCCESS.n -> StateDescription(
+                    R.string.signup_header,
+                    R.string.signup_step_5,
+                )
+
                 else -> StateDescription(
                     R.string.signup_header,
                     R.string.signup_step_1,
@@ -94,47 +101,52 @@ enum class WeightTarget(val id: Int, val imageResource: Int, val labelResource: 
 
 sealed interface SignupUiState {
     val step: SignupState
+    val errors: MutableList<ErrorMessage>
 
     open class WelcomeState(
         override val step: SignupState,
-        var name: String = "",
+        override val errors: MutableList<ErrorMessage> = mutableListOf(),
+        var name: String = "123",
         var sex: String = "true",
-        var age: String = ""
+        var age: String = "123"
     ): SignupUiState
 
     open class ParamsState(
         step: SignupState,
-        name: String = "",
+        errors: MutableList<ErrorMessage> = mutableListOf(),
+        name: String = "123",
         sex: String = "true",
-        age: String = "",
-        var height: String = "",
-        var weight: String = "",
+        age: String = "123",
+        var height: String = "123",
+        var weight: String = "123",
         var activityLevel: ActivityLevel = ActivityLevel.MIDDLE
-    ): WelcomeState(step, name, sex, age)
+    ): WelcomeState(step, errors, name, sex, age)
 
     open class TargetState(
         step: SignupState,
-        name: String = "",
+        errors: MutableList<ErrorMessage> = mutableListOf(),
+        name: String = "123",
         sex: String = "true",
-        age: String = "",
-        height: String = "",
-        weight: String = "",
+        age: String = "123",
+        height: String = "123",
+        weight: String = "123",
         activityLevel: ActivityLevel = ActivityLevel.MIDDLE,
         var weightTarget: WeightTarget = WeightTarget.GAIN
-    ): ParamsState(step, name, sex, age, height, weight, activityLevel)
+    ): ParamsState(step, errors, name, sex, age, height, weight, activityLevel)
 
     open class LoginDataState(
         step: SignupState,
-        name: String = "",
+        errors: MutableList<ErrorMessage> = mutableListOf(),
+        name: String = "123",
         sex: String = "true",
-        age: String = "",
-        height: String = "",
-        weight: String = "",
+        age: String = "123",
+        height: String = "123",
+        weight: String = "123",
         activityLevel: ActivityLevel = ActivityLevel.MIDDLE,
         weightTarget: WeightTarget = WeightTarget.STAY,
-        var email: String = "",
-        var pass: String = "",
-    ): TargetState(step, name, sex, age, height, weight, activityLevel, weightTarget)
+        var email: String = "123",
+        var pass: String = "123",
+    ): TargetState(step, errors, name, sex, age, height, weight, activityLevel, weightTarget)
 }
 
 fun validateLoginData(uiState: SignupUiState.LoginDataState): Boolean =
@@ -155,37 +167,38 @@ fun validateWelcome(uiState: SignupUiState.WelcomeState): Boolean {
 
 private data class SignupViewModelState(
     val step: SignupState = SignupState.WELCOME,
-    val name: String = "",
+    val name: String = "123",
     val sex: String = "true",
-    val age: String = "",
-    val height: String = "",
-    val weight: String = "",
+    val age: String = "123",
+    val height: String = "123",
+    val weight: String = "123",
     val activityLevel: ActivityLevel? = null,
     val weightTarget: WeightTarget? = null,
-    val email: String = "",
-    val pass: String = "",
+    val email: String = "123",
+    val pass: String = "123",
+    val errors: List<ErrorMessage> = emptyList()
 ) {
     fun toUiState(): SignupUiState =
         if (weightTarget != null && activityLevel != null)
             SignupUiState.LoginDataState(
-                step, name, sex, age, height, weight, activityLevel, weightTarget, email, pass
+                step, errors.toMutableList(), name, sex, age, height, weight, activityLevel, weightTarget, email, pass
             )
         else if (height != "" && weight != "" && activityLevel != null)
             SignupUiState.TargetState(
-                step, name, sex, age, height, weight, activityLevel, WeightTarget.STAY
+                step, errors.toMutableList(), name, sex, age, height, weight, activityLevel, WeightTarget.STAY
             )
         else if (name != "")
             SignupUiState.ParamsState(
-                step, name, sex, age, height, weight, activityLevel ?: ActivityLevel.MIDDLE
+                step, errors.toMutableList(), name, sex, age, height, weight, activityLevel ?: ActivityLevel.MIDDLE
             )
         else
             SignupUiState.WelcomeState(
-                step, name, sex, age
+                step, errors.toMutableList(), name, sex, age
             )
 
 }
 
-class SignupViewModel(private val signupRepo: SignupRepo): ViewModel() {
+class SignupViewModel(private val userRepository: UserRepository): ViewModel() {
     private val viewModelState = MutableStateFlow(
         SignupViewModelState()
     )
@@ -204,10 +217,10 @@ class SignupViewModel(private val signupRepo: SignupRepo): ViewModel() {
     }
 
     companion object {
-        fun factory(): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        fun factory(userRepository: UserRepository): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return SignupViewModel() as T
+                return SignupViewModel(userRepository) as T
             }
         }
     }
@@ -222,7 +235,7 @@ class SignupViewModel(private val signupRepo: SignupRepo): ViewModel() {
         viewModelState.update {
             val next = it.step.next()
             if (next == it.step) {
-                signupRepo.createUser(CreateUserDto(
+                val result = userRepository.createUser(CreateUserDto(
                     it.name,
                     it.email,
                     it.pass,
@@ -233,9 +246,15 @@ class SignupViewModel(private val signupRepo: SignupRepo): ViewModel() {
                     it.activityLevel!!.id,
                     it.weightTarget!!.id
                 ))
-                return
+                if (result) {
+                    Log.d("tag", "Пользователь успешно создан")
+                    it.copy(step = SignupState.SUCCESS)
+                } else {
+                    it.copy(errors = it.errors + ErrorMessage(null, message = R.string.error_user_creation))
+                }
+            } else {
+                it.copy(step = next)
             }
-            it.copy(step = next)
         }
     }
 
