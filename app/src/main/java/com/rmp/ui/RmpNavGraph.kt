@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import com.rmp.data.AppContainer
 import com.rmp.ui.hello.HelloRoute
 import com.rmp.ui.hello.HelloViewModel
+import com.rmp.ui.login.LoginRoute
+import com.rmp.ui.login.LoginViewModel
 import com.rmp.ui.signup.ActivityLevel
 import com.rmp.ui.signup.SignupRoute
 import com.rmp.ui.signup.SignupViewModel
@@ -78,13 +80,13 @@ fun RmpNavGraph(
             composable(
                 route = RmpDestinations.LOGIN_ROUTE,
             ) { _ ->
-                val helloViewModel: HelloViewModel = viewModel(
-                    factory = HelloViewModel.factory()
+                val loginViewModel: LoginViewModel = viewModel(
+                    factory = LoginViewModel.factory(appContainer.userRepository)
                 )
-                HelloRoute(
-                    helloViewModel = helloViewModel,
-                    goToSignUp = { navController.navigate(RmpDestinations.HOME_ROUTE) },
-                    goToLogin = { navController.navigate(RmpDestinations.HOME_ROUTE) }
+                LoginRoute(
+                    loginViewModel = loginViewModel,
+                    onLoginSuccess = { navController.navigate(RmpDestinations.HOME_ROUTE) }, // Указать реальное местоположение (сейчас такового нет)
+                    onBackClick = { navController.navigate(RmpDestinations.HOME_ROUTE) }
                 )
             }
         }

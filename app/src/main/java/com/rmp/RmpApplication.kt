@@ -15,5 +15,6 @@ class RmpApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainerImpl(this)
+        TokenManager.init(this)
     }
 }

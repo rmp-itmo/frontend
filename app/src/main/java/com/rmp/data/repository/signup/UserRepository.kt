@@ -15,6 +15,13 @@ data class CreateUserDto(
     val goalType: Int,
 )
 
+@Serializable
+data class UserLoginDto(
+    val login: String,
+    val password: String
+)
+
 interface UserRepository {
     suspend fun createUser(createUserDto: CreateUserDto): Boolean
+    suspend fun loginUser(userLoginDto: UserLoginDto): Boolean
 }
