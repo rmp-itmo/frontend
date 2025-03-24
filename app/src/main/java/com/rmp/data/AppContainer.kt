@@ -9,6 +9,7 @@ import com.rmp.data.repository.signup.UserRepository
  */
 interface AppContainer {
     val userRepository: UserRepository
+    val tokens: TokenDto
 }
 
 /**
@@ -20,5 +21,9 @@ class AppContainerImpl(private val applicationContext: Context) : AppContainer {
 
     override val userRepository: UserRepository by lazy {
         UserRepoImpl()
+    }
+
+    override val tokens: TokenDto by lazy {
+        TokenDto()
     }
 }

@@ -50,4 +50,10 @@
     <string name="error_check_fields">Ошибка, проверьте, что все поля заполнены!</string>
     <string name="error_user_creation">Ошибка создания пользователя!</string>
 
+    <!--  Login Screen  -->
+    <string name="invalid_email">Некорректный email</string>
+    <string name="short_password">Пароль слишком короткий</string>
+    <string name="login">Войти</string>
+    <string name="login_error">Неверный логин или пароль</string>
+
 </resources>

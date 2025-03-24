@@ -55,6 +55,7 @@ rome = "2.1.0"
 room = "2.6.1"
 secrets = "2.0.1"
 # @keep
+security-crypto = "1.1.0-alpha03"
 targetSdk = "33"
 version-catalog-update = "0.8.5"
 uiTextGoogleFonts = "1.7.8"
@@ -110,6 +111,7 @@ androidx-palette = { module = "androidx.palette:palette", version.ref = "android
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "security-crypto" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test" }
 androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-test-espresso" }
 androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-ext-junit" }
