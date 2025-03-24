@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rmp.R
+import com.rmp.data.AppContainer
 import com.rmp.data.repository.signup.UserLoginDto
-import com.rmp.data.repository.signup.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -41,7 +41,7 @@ private class LoginViewModelState(
         isLoginEnabled: Boolean = this.isLoginEnabled
     ) = LoginViewModelState(email, password, emailError, passwordError,  loginError, isLoginEnabled)
 }
-class LoginViewModel(private val userRepository: UserRepository) : ViewModel() {
+class LoginViewModel(private val container: AppContainer) : ViewModel() {
     private val viewModelState = MutableStateFlow(
         LoginViewModelState()
     )
@@ -66,13 +66,15 @@ class LoginViewModel(private val userRepository: UserRepository) : ViewModel() {
 
     fun onLoginClick() {
         viewModelScope.launch {
-            val result = userRepository.loginUser(
+            val (tokens, result) = container.userRepository.loginUser(
                 UserLoginDto(
                     viewModelState.value.email,
                     viewModelState.value.password
                 )
             )
             if (result) {
+                container.tokens.accessToken = tokens.accessToken
+                container.tokens.refreshToken = tokens.refreshToken
                 onLoginSuccess.invoke()
             } else {
                 val errorMessage = R.string.login_error
@@ -93,10 +95,10 @@ class LoginViewModel(private val userRepository: UserRepository) : ViewModel() {
     }
 
     companion object {
-        fun factory(userRepository: UserRepository): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        fun factory(appContainer: AppContainer): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return LoginViewModel(userRepository) as T
+                return LoginViewModel(appContainer) as T
             }
         }
     }

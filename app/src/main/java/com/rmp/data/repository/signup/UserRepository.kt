@@ -1,5 +1,6 @@
 package com.rmp.data.repository.signup
 
+import com.rmp.data.TokenDto
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -23,5 +24,5 @@ data class UserLoginDto(
 
 interface UserRepository {
     suspend fun createUser(createUserDto: CreateUserDto): Boolean
-    suspend fun loginUser(userLoginDto: UserLoginDto): Boolean
+    suspend fun loginUser(userLoginDto: UserLoginDto): Pair<TokenDto, Boolean>
 }

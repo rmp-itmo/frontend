@@ -81,7 +81,7 @@ fun RmpNavGraph(
                 route = RmpDestinations.LOGIN_ROUTE,
             ) { _ ->
                 val loginViewModel: LoginViewModel = viewModel(
-                    factory = LoginViewModel.factory(appContainer.userRepository)
+                    factory = LoginViewModel.factory(appContainer)
                 )
                 LoginRoute(
                     loginViewModel = loginViewModel,
