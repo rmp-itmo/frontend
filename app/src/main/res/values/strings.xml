@@ -22,6 +22,7 @@
     <string name="step_1">Следи за калориями и выпитой водой</string>
     <string name="step_2">Управляй расписанием своих тренировок</string>
     <string name="step_3">Делись опытом с другими </string>
+    <string name="invalid_email">Некорректный email</string>
 
 
     <!-- SignUp screen -->
@@ -45,13 +46,15 @@
     <string name="weight">Вес</string>
     <string name="sm">СМ</string>
     <string name="kg">КГ</string>
+    <string name="sex">Пол</string>
     <string name="password">Пароль</string>
     <string name="activity_level">Уровень активности</string>
-    <string name="error_check_fields">Ошибка, проверьте, что все поля заполнены!</string>
+    <string name="error_check_fields">Ошибка, проверьте, что все поля заполнены корректно!</string>
     <string name="error_user_creation">Ошибка создания пользователя!</string>
 
     <!--  Login Screen  -->
-    <string name="invalid_email">Некорректный email</string>
+    <string name="login_header">Вход</string>
+    <string name="login_subheading">Рады видеть тебя снова! Введи свои данные для входа.</string>
     <string name="short_password">Пароль слишком короткий</string>
     <string name="login">Войти</string>
     <string name="login_error">Неверный логин или пароль</string>

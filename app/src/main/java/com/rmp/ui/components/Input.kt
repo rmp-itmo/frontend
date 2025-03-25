@@ -3,13 +3,23 @@ package com.rmp.ui.components
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,44 +66,44 @@ fun PreviewInput() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropDown(
-    items: List<String>,
+    options: List<String>,
     label: String,
     value: String,
+    modifier: Modifier = Modifier,
     onItemSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var text by remember { mutableStateOf("") }
-    var selectedItem by remember { mutableStateOf("") }
+    val textFieldState = rememberTextFieldState(value)
 
-    Box(
-        modifier = Modifier.clickable {
-            expanded = !expanded
-            Log.d("tag", "Clicked $expanded")
-        }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier
     ) {
         OutlinedTextField(
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+            state = textFieldState,
+            readOnly = true,
+            lineLimits = TextFieldLineLimits.SingleLine,
             label = { Text(label) },
-            value = value,
-            onValueChange = {},
-            enabled = false
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
         )
-
-        DropdownMenu(
+        ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            offset = DpOffset(0.dp, 0.dp)
         ) {
-            items.forEach { item ->
+            options.forEach { option ->
                 DropdownMenuItem(
+                    text = { Text(option, style = MaterialTheme.typography.bodyLarge) },
                     onClick = {
-                        selectedItem = item
-                        text = item
+                        textFieldState.setTextAndPlaceCursorAtEnd(option)
+                        onItemSelected(option)
                         expanded = false
-                        onItemSelected(item)
                     },
-                    text = { Text(item) }
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 )
             }
         }

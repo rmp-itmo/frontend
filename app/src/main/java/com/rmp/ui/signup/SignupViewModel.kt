@@ -8,6 +8,7 @@ import com.rmp.R
 import com.rmp.data.ErrorMessage
 import com.rmp.data.repository.signup.CreateUserDto
 import com.rmp.data.repository.signup.UserRepository
+import com.rmp.ui.login.isValidEmail
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -144,13 +145,13 @@ sealed interface SignupUiState {
         weight: String = "123",
         activityLevel: ActivityLevel = ActivityLevel.MIDDLE,
         weightTarget: WeightTarget = WeightTarget.STAY,
-        var email: String = "123",
+        var email: String = "123@test.test",
         var pass: String = "123",
     ): TargetState(step, errors, name, sex, age, height, weight, activityLevel, weightTarget)
 }
 
 fun validateLoginData(uiState: SignupUiState.LoginDataState): Boolean =
-    uiState.email != "" && uiState.pass != ""
+    uiState.email != "" && uiState.pass != "" && android.util.Patterns.EMAIL_ADDRESS.matcher(uiState.email).matches()
 
 fun validateTarget(uiState: SignupUiState.TargetState): Boolean = true
 
@@ -174,7 +175,7 @@ private data class SignupViewModelState(
     val weight: String = "123",
     val activityLevel: ActivityLevel? = null,
     val weightTarget: WeightTarget? = null,
-    val email: String = "123",
+    val email: String = "123@test.test",
     val pass: String = "123",
     val errors: List<ErrorMessage> = emptyList()
 ) {
@@ -227,11 +228,12 @@ class SignupViewModel(private val userRepository: UserRepository): ViewModel() {
 
     fun prevState() {
         viewModelState.update {
-            it.copy(step = it.step.prev())
+            it.copy(step = it.step.prev(), errors = emptyList())
         }
     }
 
-    suspend fun nextState() {
+    suspend fun nextState(): Boolean {
+        var anyErrors = false
         viewModelState.update {
             val next = it.step.next()
             if (next == it.step) {
@@ -246,16 +248,19 @@ class SignupViewModel(private val userRepository: UserRepository): ViewModel() {
                     it.activityLevel!!.id,
                     it.weightTarget!!.id
                 ))
+                Log.d("tag", "TRY TO CREATE USER, RESULT = ${result}")
                 if (result) {
                     Log.d("tag", "Пользователь успешно создан")
-                    it.copy(step = SignupState.SUCCESS)
+                    it.copy(step = SignupState.SUCCESS, errors = emptyList())
                 } else {
-                    it.copy(errors = it.errors + ErrorMessage(null, message = R.string.error_user_creation))
+                    anyErrors = true
+                    it.copy(errors = listOf(ErrorMessage(null, message = R.string.error_user_creation)))
                 }
             } else {
                 it.copy(step = next)
             }
         }
+        return !anyErrors
     }
 
     fun setWelcome(name: String, sex: String, age: String) {
@@ -277,7 +282,6 @@ class SignupViewModel(private val userRepository: UserRepository): ViewModel() {
     }
 
     fun setLoginStep(email: String, pass: String) {
-
         viewModelState.update {
             it.copy(email = email, pass = pass)
         }

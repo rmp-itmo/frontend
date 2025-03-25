@@ -103,6 +103,7 @@ class LoginViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 }
+
 fun String.isValidEmail(): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }

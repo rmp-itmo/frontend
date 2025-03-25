@@ -8,7 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun SignupRoute(
     signupViewModel: SignupViewModel,
     prevState: () -> Unit,
-    nextState: suspend () -> Unit,
+    nextState: suspend () -> Boolean,
     setWelcome: (String, String, String) -> Unit,
     setParams: (String, String, ActivityLevel) -> Unit,
     setTarget: (WeightTarget) -> Unit,
@@ -24,7 +24,7 @@ fun SignupRoute(
 fun SignupRoute(
     uiState: SignupUiState,
     prevState: () -> Unit,
-    nextState: suspend () -> Unit,
+    nextState: suspend () -> Boolean,
     setWelcome: (String, String, String) -> Unit,
     setParams: (String, String, ActivityLevel) -> Unit,
     setTarget: (WeightTarget) -> Unit,

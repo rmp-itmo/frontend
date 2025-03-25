@@ -38,34 +38,36 @@ fun RmpApp(
         val isExpandedScreen = widthSizeClass == WindowWidthSizeClass.Expanded
         val sizeAwareDrawerState = rememberSizeAwareDrawerState(isExpandedScreen)
 
-        ModalNavigationDrawer(
-            drawerContent = {
-                AppDrawer(
-                    drawerState = sizeAwareDrawerState,
-                    currentRoute = currentRoute,
-                    navigateToHome = navigationActions.navigateToHome,
-                    closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } }
-                )
-            },
-            drawerState = sizeAwareDrawerState,
-            // Only enable opening the drawer via gestures if the screen is not expanded
-            gesturesEnabled = !isExpandedScreen
-        ) {
-            Row {
-                if (isExpandedScreen) {
-                    AppNavRail(
-                        currentRoute = currentRoute,
-                        navigateToHome = navigationActions.navigateToHome,
-                    )
-                }
-                RmpNavGraph(
-                    appContainer = appContainer,
-                    isExpandedScreen = isExpandedScreen,
-                    navController = navController,
-                    openDrawer = { coroutineScope.launch { sizeAwareDrawerState.open() } },
-                )
-            }
-        }
+
+        RmpNavGraph(
+            appContainer = appContainer,
+            isExpandedScreen = isExpandedScreen,
+            navController = navController,
+            openDrawer = { coroutineScope.launch { sizeAwareDrawerState.open() } },
+        )
+
+//        ModalNavigationDrawer(
+//            drawerContent = {
+//                AppDrawer(
+//                    drawerState = sizeAwareDrawerState,
+//                    currentRoute = currentRoute,
+//                    navigateToHome = navigationActions.navigateToHome,
+//                    closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } }
+//                )
+//            },
+//            drawerState = sizeAwareDrawerState,
+//            // Only enable opening the drawer via gestures if the screen is not expanded
+//            gesturesEnabled = !isExpandedScreen
+//        ) {
+//            Row {
+//                if (isExpandedScreen) {
+//                    AppNavRail(
+//                        currentRoute = currentRoute,
+//                        navigateToHome = navigationActions.navigateToHome,
+//                    )
+//                }
+//            }
+//        }
     }
 }
 

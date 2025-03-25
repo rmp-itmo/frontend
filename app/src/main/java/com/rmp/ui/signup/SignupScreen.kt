@@ -28,7 +28,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,18 +50,31 @@ import com.rmp.ui.components.ScreenStepVisualizer
 import com.rmp.ui.components.SecondaryButton
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.async
 
 @Composable
 fun WeightSelection(
     current: WeightTarget,
     onTargetSelect: (WeightTarget) -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(120.dp)
+    Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+//        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
     ) {
         for (it in WeightTarget.entries) {
             val selected = it == current
@@ -73,6 +88,7 @@ fun WeightSelection(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
+                    .width(160.dp)
                     .clickable { onTargetSelect(it) }
                     .padding(10.dp)
             ) {
@@ -80,15 +96,17 @@ fun WeightSelection(
                     selected = selected,
                     onClick = { onTargetSelect(it) },
                     icon = {
-                        Image(
-                            painter = painterResource(it.imageResource),
-                            contentDescription = it.name,
-                            contentScale = ContentScale.Inside,
-                            colorFilter = ColorFilter.tint(animatedColor),
-                            modifier = Modifier
-                                .width(80.dp)
-                                .height(34.dp)
-                        )
+                        Column {
+                            Image(
+                                painter = painterResource(it.imageResource),
+                                contentDescription = it.name,
+                                contentScale = ContentScale.Inside,
+                                colorFilter = ColorFilter.tint(animatedColor),
+                                modifier = Modifier
+                                    .width(120.dp)
+                                    .height(51.dp)
+                            )
+                        }
                     },
                     label = {
                         Text(text = stringResource(it.labelResource))
@@ -150,7 +168,7 @@ fun SexSelection(
 fun SignupScreen(
     uiState: SignupUiState,
     prevState: () -> Unit,
-    nextState: suspend () -> Unit,
+    nextState: suspend () -> Boolean,
     setWelcome: (String, String, String) -> Unit,
     setParams: (String, String, ActivityLevel) -> Unit,
     setTarget: (WeightTarget) -> Unit,
@@ -161,6 +179,7 @@ fun SignupScreen(
     val pagerState = rememberPagerState { SignupState.entries.size }
     val animationScope = rememberCoroutineScope()
     val apiScope = rememberCoroutineScope()
+    var emailError by remember { mutableStateOf(false) }
 
     val pageData = StateDescription.buildFrom(pagerState.currentPage)
 
@@ -175,12 +194,14 @@ fun SignupScreen(
         }
 
         if (end) {
-            val apiCall = apiScope.launch {
+            val apiCall = apiScope.async {
                 nextState()
             }
             animationScope.launch {
-                apiCall.join()
-                pagerState.animateScrollToPage(pagerState.pageCount)
+                val success = apiCall.await()
+                Log.d("tag", "$success ${uiState.errors}")
+                if (success)
+                    pagerState.animateScrollToPage(pagerState.pageCount)
             }
         }
     }
@@ -188,7 +209,8 @@ fun SignupScreen(
     AppScreen {
         Column(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .imePadding(),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -197,13 +219,14 @@ fun SignupScreen(
                 userScrollEnabled = false,
                 modifier = Modifier
                     .align(alignment = Alignment.CenterHorizontally)
+                    .fillMaxWidth()
                     .fillMaxHeight(0.8f)
             ) { page ->
                 Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 30.dp)
+                        .padding(30.dp)
                 ) {
                     Header(
                         stringResource(pageData.header),
@@ -211,11 +234,20 @@ fun SignupScreen(
                         Modifier.align(Alignment.Start),
                         textAlign = TextAlign.Start,
                     )
+                    Spacer(modifier = Modifier.height(30.dp))
                     Column(
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .fillMaxHeight(0.6f)
+                            .fillMaxWidth()
                     ) {
+                        if (uiState.errors.isNotEmpty()) {
+                            Column {
+                                for (error in uiState.errors) {
+                                    Text(stringResource(error.message), color = MaterialTheme.colorScheme.error)
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                }
+                            }
+                        }
                         when (uiState.step) {
                             SignupState.WELCOME -> {
                                 uiState as SignupUiState.WelcomeState
@@ -226,11 +258,19 @@ fun SignupScreen(
                                 OutlinedTextField(
                                     label = { Text("Имя") },
                                     value = uiState.name,
-                                    onValueChange = { setWelcome(it, uiState.sex, uiState.age) }
+                                    onValueChange = { setWelcome(it, uiState.sex, uiState.age) },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(15.dp))
+                                Text(
+                                    stringResource(R.string.sex),
+                                    fontSize = 13.sp,
+                                    modifier = Modifier.padding(horizontal = 10.dp)
                                 )
                                 SexSelection(uiState.sex == "true") {
                                     setWelcome(uiState.name, it.toString(), uiState.age)
                                 }
+                                Spacer(modifier = Modifier.height(15.dp))
                                 OutlinedTextField(
                                     label = { Text("Возраст") },
                                     value = uiState.age,
@@ -239,11 +279,14 @@ fun SignupScreen(
                                         if (it.all { c -> c.isDigit() }) {
                                             setWelcome(uiState.name, uiState.sex, it)
                                         }
-                                    }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             SignupState.PARAMS -> {
                                 uiState as SignupUiState.ParamsState
+
+                                setParams(uiState.height, uiState.weight, uiState.activityLevel)
 
                                 OutlinedTextField(
                                     label = { Text(stringResource(R.string.height)) },
@@ -256,8 +299,12 @@ fun SignupScreen(
                                         if (it.all { c -> c.isDigit() }) {
                                             setParams(it, uiState.weight, uiState.activityLevel)
                                         }
-                                    }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
                                 )
+
+                                Spacer(modifier = Modifier.height(15.dp))
+
                                 OutlinedTextField(
                                     label = { Text(stringResource(R.string.weight)) },
                                     trailingIcon = {
@@ -269,7 +316,8 @@ fun SignupScreen(
                                         if (it.all { c -> c.isDigit() }) {
                                             setParams(uiState.height, it, uiState.activityLevel)
                                         }
-                                    }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
                                 )
 
 
@@ -277,10 +325,13 @@ fun SignupScreen(
                                     stringResource(it.labelResource)
                                 }
 
+                                Spacer(modifier = Modifier.height(15.dp))
+
                                 DropDown(
-                                    items = ActivityLevel.entries.map { stringResource(it.labelResource) },
+                                    options = ActivityLevel.entries.map { stringResource(it.labelResource) },
                                     label = stringResource(R.string.activity_level),
-                                    value = stringResource(uiState.activityLevel.labelResource)
+                                    value = stringResource(uiState.activityLevel.labelResource),
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     setParams(uiState.height, uiState.weight, entryByLabel[it]!!)
                                 }
@@ -298,17 +349,35 @@ fun SignupScreen(
                             SignupState.LOGIN_DATA -> {
                                 uiState as SignupUiState.LoginDataState
 
+                                var passwordHidden by remember { mutableStateOf(true) }
+
                                 OutlinedTextField(
                                     label = { Text("Email") },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                                     value = uiState.email,
-                                    onValueChange = { setLoginStep(it, uiState.pass) }
+                                    isError = emailError,
+                                    supportingText = {
+                                        if (emailError)
+                                            Text(stringResource(R.string.invalid_email), color = MaterialTheme.colorScheme.error)
+                                    },
+                                    onValueChange = { emailError = false; setLoginStep(it, uiState.pass) },
+                                    modifier = Modifier.fillMaxWidth()
                                 )
+                                Spacer(modifier = Modifier.height(15.dp))
                                 OutlinedTextField(
                                     label = { Text(stringResource(R.string.password)) },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                    visualTransformation = if (passwordHidden) PasswordVisualTransformation() else VisualTransformation.None,
                                     value = uiState.pass,
-                                    onValueChange = { setLoginStep(uiState.email, it) }
+                                    onValueChange = { setLoginStep(uiState.email, it) },
+                                    trailingIcon = {
+                                        IconButton(onClick = { passwordHidden = !passwordHidden }) {
+                                            val visibilityIcon =
+                                                if (passwordHidden) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                                            Icon(imageVector = visibilityIcon, contentDescription = "")
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             SignupState.SUCCESS -> {}
@@ -392,6 +461,9 @@ fun SignupScreen(
                             if (validateLoginData(state)) {
                                 nextPage(SignupState.LOGIN_DATA, true)
                             } else {
+                                if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) {
+                                    emailError = true
+                                }
                                 Toast.makeText(
                                     context,
                                     errorString,
@@ -407,13 +479,17 @@ fun SignupScreen(
                         }
                     }
                 }
-
-                SecondaryButton(stringResource(R.string.prev)) {
-                    prevState()
-                    animationScope.launch {
-                        pagerState.animateScrollToPage(pagerState.currentPage.dec())
+                if (uiState.step.n <= SignupState.LOGIN_DATA.n)
+                    SecondaryButton(stringResource(R.string.prev)) {
+                        if (uiState.step == SignupState.WELCOME)
+                            navigator.navigate(RmpDestinations.HOME_ROUTE)
+                        else {
+                            prevState()
+                            animationScope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage.dec())
+                            }
+                        }
                     }
-                }
             }
         }
     }

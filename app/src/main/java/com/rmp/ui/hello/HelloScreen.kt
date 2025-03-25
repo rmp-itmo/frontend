@@ -3,11 +3,13 @@ package com.rmp.ui.hello
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,16 +25,17 @@ import com.rmp.ui.components.Header
 import com.rmp.ui.components.ScreenStepVisualizer
 import com.rmp.ui.components.SecondaryButton
 
-@Preview
 @Composable
 private fun HelloStep(
     modifier: Modifier = Modifier,
+    pagerState: PagerState
 ) {
     val steps: List<HelloStepDescription> = HelloScreenStep.entries.map { getStepDescription(it) }
-    val pagerState = rememberPagerState { steps.size }
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxHeight(0.8f)
     ) {
         HorizontalPager(
             state = pagerState,
@@ -55,8 +58,6 @@ private fun HelloStep(
                 )
             }
         }
-
-        ScreenStepVisualizer(steps.size, pagerState.currentPage)
     }
 }
 
@@ -66,6 +67,8 @@ fun HelloScreen(
     goToSignUp: () -> Unit,
     goToLogin: () -> Unit,
 ) {
+    val pagerState = rememberPagerState { HelloScreenStep.entries.size }
+
     AppScreen {
         Column(
             modifier = Modifier
@@ -73,12 +76,13 @@ fun HelloScreen(
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HelloStep()
+            HelloStep(pagerState = pagerState)
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom,
             ) {
+                ScreenStepVisualizer(pagerState.pageCount, pagerState.currentPage, Modifier.padding(bottom = 20.dp))
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
