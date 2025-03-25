@@ -22,14 +22,18 @@ fun HomeRoute(
     homeViewModel: HomeViewModel,
     isExpandedScreen: Boolean,
     openDrawer: () -> Unit,
+    onSignOutClick: () -> Unit
 ) {
     // UiState of the HomeScreen
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val clearTokens = homeViewModel::clearTokens
 
     HomeRoute(
         uiState = uiState,
         isExpandedScreen = isExpandedScreen,
         openDrawer = openDrawer,
+        signOutClick= onSignOutClick,
+        clearTokens= clearTokens
     )
 }
 
@@ -55,6 +59,8 @@ fun HomeRoute(
     uiState: HomeUiState,
     isExpandedScreen: Boolean,
     openDrawer: () -> Unit,
+    signOutClick: () -> Unit,
+    clearTokens: () -> Unit
 ) {
     // Construct the lazy list states for the list and the details outside of deciding which one to
     // show. This allows the associated state to survive beyond that decision, and therefore
@@ -63,9 +69,10 @@ fun HomeRoute(
 
 
     val homeScreenType = getHomeScreenType(isExpandedScreen, uiState)
+
     when (homeScreenType) {
         HomeScreenType.HOME -> {
-            HomeScreen(uiState, openDrawer)
+            HomeScreen(uiState, openDrawer, signOutClick, clearTokens)
         }
     }
 }

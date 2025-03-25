@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import com.rmp.data.AppContainer
 import com.rmp.ui.hello.HelloRoute
 import com.rmp.ui.hello.HelloViewModel
+import com.rmp.ui.home.HomeRoute
+import com.rmp.ui.home.HomeViewModel
 import com.rmp.ui.login.LoginRoute
 import com.rmp.ui.login.LoginViewModel
 import com.rmp.ui.signup.ActivityLevel
@@ -28,7 +30,7 @@ fun RmpNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     openDrawer: () -> Unit = {},
-    startDestination: String = RmpDestinations.HOME_ROUTE,
+    startDestination: String = RmpDestinations.HELLO_ROUTE,
 ) {
 
     CompositionLocalProvider(LocalNavController provides navController) {
@@ -38,7 +40,7 @@ fun RmpNavGraph(
             modifier = modifier
         ) {
             composable(
-                route = RmpDestinations.HOME_ROUTE,
+                route = RmpDestinations.HELLO_ROUTE,
             ) { _ ->
                 val helloViewModel: HelloViewModel = viewModel(
                     factory = HelloViewModel.factory()
@@ -85,8 +87,21 @@ fun RmpNavGraph(
                 )
                 LoginRoute(
                     loginViewModel = loginViewModel,
-                    onLoginSuccess = { navController.navigate(RmpDestinations.HOME_ROUTE) }, // Указать реальное местоположение (сейчас такового нет)
-                    onBackClick = { navController.navigate(RmpDestinations.HOME_ROUTE) }
+                    onLoginSuccess = { navController.navigate(RmpDestinations.HOME_ROUTE) },
+                    onBackClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
+                )
+            }
+            composable(
+                route = RmpDestinations.HOME_ROUTE,
+            ) { _ ->
+                val homeViewModel: HomeViewModel = viewModel(
+                    factory = HomeViewModel.factory(appContainer)
+                )
+                HomeRoute(
+                    homeViewModel = homeViewModel,
+                    isExpandedScreen = false,
+                    openDrawer = { },
+                    onSignOutClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
                 )
             }
         }

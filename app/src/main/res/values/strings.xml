@@ -59,4 +59,7 @@
     <string name="login">Войти</string>
     <string name="login_error">Неверный логин или пароль</string>
 
+    <!--  Home Screen   -->
+    <string name="sign_out">Выйти</string>
+
 </resources>

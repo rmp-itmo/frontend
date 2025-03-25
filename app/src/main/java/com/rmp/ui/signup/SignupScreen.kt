@@ -479,7 +479,7 @@ fun SignupScreen(
                 if (uiState.step.n <= SignupState.LOGIN_DATA.n)
                     SecondaryButton(stringResource(R.string.prev)) {
                         if (uiState.step == SignupState.WELCOME)
-                            navigator.navigate(RmpDestinations.HOME_ROUTE)
+                            navigator.navigate(RmpDestinations.HELLO_ROUTE)
                         else {
                             prevState()
                             animationScope.launch {

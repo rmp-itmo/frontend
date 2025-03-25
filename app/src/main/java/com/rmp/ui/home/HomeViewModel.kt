@@ -3,6 +3,7 @@ package com.rmp.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.rmp.data.AppContainer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -41,7 +42,7 @@ private data class HomeViewModelState(
 /**
  * ViewModel that handles the business logic of the Home screen
  */
-class HomeViewModel : ViewModel() {
+class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     private val viewModelState = MutableStateFlow(
         HomeViewModelState(
@@ -62,11 +63,17 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {}
     }
 
+    fun clearTokens() {
+        viewModelScope.launch {
+            container.database.authTokenDao().clearTokens()
+        }
+    }
+
     companion object {
-        fun provideFactory(): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        fun factory(appContainer: AppContainer): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return HomeViewModel() as T
+                return HomeViewModel(appContainer) as T
             }
         }
     }
