@@ -3,17 +3,15 @@ package com.rmp.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.rmp.R
 import com.rmp.data.AppContainer
-import com.rmp.data.database.AppDatabase
+import com.rmp.data.ErrorMessage
 import com.rmp.data.database.auth.AuthTokenDao
 import com.rmp.data.repository.signup.UserRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -23,6 +21,7 @@ import kotlinx.coroutines.launch
 data class HomeUiState(
     val isLoading: Boolean = false,
     val userName: String = "",
+    val errors: List<ErrorMessage> = emptyList()
 )
 
 /**
@@ -38,7 +37,9 @@ class HomeViewModel(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {}
+        viewModelScope.launch {
+            fetchUserName()
+        }
     }
 
     fun fetchUserName() {
@@ -49,8 +50,14 @@ class HomeViewModel(
 
             val userData = async { userRepository.getMe() }.await()
 
-            _uiState.update {
-                it.copy(userName = userData.name, isLoading = false)
+            if (userData == null) {
+                _uiState.update {
+                    it.copy(isLoading = false, errors = listOf(ErrorMessage(null, R.string.error_load_data)))
+                }
+            } else {
+                _uiState.update {
+                    it.copy(userName = userData.name, isLoading = false)
+                }
             }
         }
     }

@@ -23,6 +23,8 @@
     <string name="step_2">Управляй расписанием своих тренировок</string>
     <string name="step_3">Делись опытом с другими </string>
     <string name="invalid_email">Некорректный email</string>
+    <string name="error_load_data">Ошибка загрузки</string>
+    <string name="error_session_expired">Извините, сессия истекла, пожалуйста авторизуйтесь</string>
 
 
     <!-- SignUp screen -->

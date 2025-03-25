@@ -1,17 +1,18 @@
 package com.rmp.ui
 
-import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.rmp.R
 import com.rmp.data.AppContainer
 import com.rmp.ui.hello.HelloRoute
 import com.rmp.ui.hello.HelloViewModel
@@ -36,9 +37,10 @@ fun RmpNavGraph(
     startDestination: String = RmpDestinations.HELLO_ROUTE,
 ) {
     val ctx = LocalContext.current
+    val err = stringResource(R.string.error_session_expired)
     appLogout = {
         navController.navigate(RmpDestinations.HELLO_ROUTE)
-        Toast.makeText(ctx, "", Toast.LENGTH_LONG).show()
+        Toast.makeText(ctx, err, Toast.LENGTH_LONG).show()
     }
     CompositionLocalProvider(LocalNavController provides navController) {
         NavHost(

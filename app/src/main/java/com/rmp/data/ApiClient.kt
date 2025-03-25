@@ -1,11 +1,13 @@
 package com.rmp.data
 
+import android.util.Log
 import com.rmp.ui.appLogout
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -13,8 +15,12 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.toMap
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 const val baseUrl = "https://api.rmp.dudosyka.ru"
 
@@ -37,22 +43,21 @@ fun <T> Result<T>.successOr(fallback: T): T {
     return (this as? Result.Success<T>)?.data ?: fallback
 }
 
-fun <T> Result<T>.success(): T {
-    return (this as? Result.Success<T>)!!.data
-}
-
 fun Result<*>.isSuccess(): Boolean {
     return this is Result.Success
 }
 
 @Serializable
 class UnauthorizedException: ApiException(401.toString(), "Unauthorized", "Unauthorized")
+class BadResponse: ApiException(0.toString(), "Bad response", "Bad response")
 
 
 object ApiClient {
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
-            json()
+            json(Json {
+                ignoreUnknownKeys = true
+            })
         }
     }
 
@@ -70,10 +75,31 @@ object ApiClient {
 
     suspend fun execute(method: Method, url: String, builder: HttpRequestBuilder.() -> Unit): HttpResponse =
         when (method) {
-            Method.GET -> client.get("$baseUrl/$url")
-            Method.POST -> client.post("$baseUrl/$url", builder)
-            Method.DELETE -> client.delete("$baseUrl/$url", builder)
-            Method.PATCH -> client.patch("$baseUrl/$url", builder)
+            Method.GET -> {
+                Log.d("API", "GET $url")
+                client.get("$baseUrl/$url", builder)
+            }
+            Method.POST -> {
+                Log.d("API", "POST $url")
+                client.post("$baseUrl/$url", builder)
+            }
+            Method.DELETE -> {
+                Log.d("API", "DELETE $url")
+                client.delete("$baseUrl/$url", builder)
+            }
+            Method.PATCH -> {
+                Log.d("API", "PATCH $url")
+                client.patch("$baseUrl/$url", builder)
+            }
+        }
+
+    suspend inline fun <reified T> response(resp: HttpResponse): Result<T> =
+        try {
+            Result.Success(resp.body())
+        } catch (e: Exception) {
+            Log.d("API", "Deserialization failed! ${resp.bodyAsText()}")
+            Log.d("API", e.message.toString())
+            Result.Error(BadResponse())
         }
 
     suspend inline fun <reified T> unauthorizedRequest(method: Method, url: String, data: Any? = null): Result<T> {
@@ -84,7 +110,8 @@ object ApiClient {
             }
         }
         val resp = execute(method, url, builder)
-        return if (resp.status.value == 200) Result.Success(resp.body()) else Result.Error(resp.body())
+        return if (resp.status.value == 200) response(resp)
+        else Result.Error(resp.body())
     }
 
     suspend inline fun <reified T> refreshAndTryAgain(method: Method, url: String, data: Any? = null): Result<T> {
@@ -96,30 +123,42 @@ object ApiClient {
         }
 
         val builder: HttpRequestBuilder.() -> Unit = {
+            bearerAuth(authorizationData.refreshToken)
             headers {
                 set("Content-Type", "application/json")
-                set("Authorization", "Bearer ${authorizationData.refreshToken}")
             }
         }
-        val refreshed = execute(Method.POST, "refresh", builder)
+
+        val refreshed = execute(Method.POST, "auth/refresh", builder)
+
+        Log.d("API", "Refresh req headers: ${refreshed.request.headers.toMap()}")
+
         if (refreshed.status.value != 200)
             return Result.Error(UnauthorizedException())
 
         val tokenDto = refreshed.body<TokenDto>()
 
+        Log.d("API", "Refreshed: $tokenDto")
+
         updateAuthorizationData(tokenDto)
 
+        Log.d("API", "Retry request $method $url [token=${tokenDto.accessToken}]")
         val resp = execute(method, url) {
             setBody(data)
             headers {
                 set("Content-Type", "application/json")
-                set("Authorization", "Bearer ${tokenDto.accessToken}")
             }
+            bearerAuth(tokenDto.accessToken)
         }
-        if (resp.status.value == 401)
-            return Result.Error(UnauthorizedException())
 
-        return Result.Success(resp.body())
+        Log.d("API", "Retry request headers: ${resp.request.headers.toMap()}")
+
+        if (resp.status.value == 401) {
+            Log.d("API", "Unauthorized auto retry")
+            return Result.Error(UnauthorizedException())
+        }
+
+        return response(resp)
     }
 
     suspend inline fun <reified T> authorizedRequest(method: Method, url: String, data: Any? = null): Result<T> {
@@ -132,15 +171,16 @@ object ApiClient {
 
         val builder: HttpRequestBuilder.() -> Unit = {
             setBody(data)
+            bearerAuth(authorizationData.accessToken)
             headers {
                 set("Content-Type", "application/json")
-                set("Authorization", "Bearer ${authorizationData.accessToken}")
             }
         }
         val resp = execute(method, url, builder)
         if (resp.status.value == 401) {
+            Log.d("API", "Request failed due to unauthorized [token=${authorizationData.accessToken}]")
             return refreshAndTryAgain(method, url, data)
         }
-        return Result.Success(resp.body())
+        return response(resp)
     }
 }

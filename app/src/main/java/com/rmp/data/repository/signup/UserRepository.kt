@@ -26,17 +26,16 @@ data class UserLoginDto(
 data class UserDto(
     val name: String,
     val email: String,
-    val password: String,
     val isMale: Boolean,
     val age: Int,
     val height: Double,
     val weight: Double,
-    val activityType: Int,
-    val goalType: Int,
+    val activityType: String,
+    val goalType: String,
 )
 
 interface UserRepository {
     suspend fun createUser(createUserDto: CreateUserDto): Boolean
     suspend fun loginUser(userLoginDto: UserLoginDto): TokenDto?
-    suspend fun getMe(): UserDto
+    suspend fun getMe(): UserDto?
 }
