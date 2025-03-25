@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.rmp.data.database.auth.AuthToken
 import com.rmp.data.database.auth.AuthTokenDao
-import com.rmp.data.database.migrations.MIGRATION_1_2
 
-@Database(entities = [AuthToken::class], version = 2, exportSchema = false)
+@Database(entities = [AuthToken::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun authTokenDao(): AuthTokenDao
 
@@ -22,7 +22,12 @@ abstract class AppDatabase : RoomDatabase() {
                     applicationContext.applicationContext,
                     AppDatabase::class.java,
                     "auth_database"
-                ).addMigrations(MIGRATION_1_2)
+                ).addCallback(object : Callback() {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        super.onCreate(db)
+                        db.execSQL("INSERT INTO auth_token (id, accessToken, refreshToken) VALUES (1, '', '')")
+                    }
+                })
                  .build()
                 INSTANCE = instance
                 instance
