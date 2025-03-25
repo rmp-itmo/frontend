@@ -43,7 +43,7 @@ fun AppDrawer(
         NavigationDrawerItem(
             label = { Text(stringResource(id = R.string.menu_home)) },
             icon = { Icon(Icons.Filled.Home, null) },
-            selected = currentRoute == RmpDestinations.HOME_ROUTE,
+            selected = currentRoute == RmpDestinations.HELLO_ROUTE,
             onClick = { navigateToHome(); closeDrawer() },
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
@@ -74,7 +74,7 @@ fun PreviewAppDrawer() {
     RmpTheme {
         AppDrawer(
             drawerState = rememberDrawerState(initialValue = DrawerValue.Open),
-            currentRoute = RmpDestinations.HOME_ROUTE,
+            currentRoute = RmpDestinations.HELLO_ROUTE,
             navigateToHome = {},
             closeDrawer = { }
         )

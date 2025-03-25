@@ -8,6 +8,9 @@ import androidx.navigation.NavHostController
  */
 object RmpDestinations {
     const val HOME_ROUTE = "home"
+    const val HELLO_ROUTE = "hello"
+    const val SIGN_UP_ROUTE = "signup"
+    const val LOGIN_ROUTE = "login"
 }
 
 /**

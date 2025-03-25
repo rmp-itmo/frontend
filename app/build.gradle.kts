@@ -2,7 +2,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -66,12 +68,19 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.ui.text.google.fonts)
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.serialization.json)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.foundation.layout)
@@ -87,6 +96,13 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
+
+    implementation(libs.androidx.security.crypto)
+
+    // Database
+    implementation(libs.androidx.room.runtime.v250)
+    implementation(libs.androidx.room.ktx.v250)
+    ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.glance)
     implementation(libs.androidx.glance.appwidget)

@@ -4,8 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import com.rmp.RmpApplication
 
 /*
@@ -56,7 +54,6 @@ class MainActivity : AppCompatActivity() {
 
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -64,8 +61,7 @@ class MainActivity : ComponentActivity() {
         val appContainer = (application as RmpApplication).container
 
         setContent {
-            val widthSizeClass = calculateWindowSizeClass(this).widthSizeClass
-            RmpApp(appContainer, widthSizeClass)
+            RmpApp(appContainer)
         }
     }
 }
