@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.NavigationRailItem
@@ -73,7 +72,6 @@ fun WeightSelection(
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
-//        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
         for (it in WeightTarget.entries) {
@@ -88,7 +86,7 @@ fun WeightSelection(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .width(160.dp)
+                    .weight(1f)
                     .clickable { onTargetSelect(it) }
                     .padding(10.dp)
             ) {
@@ -103,8 +101,7 @@ fun WeightSelection(
                                 contentScale = ContentScale.Inside,
                                 colorFilter = ColorFilter.tint(animatedColor),
                                 modifier = Modifier
-                                    .width(120.dp)
-                                    .height(51.dp)
+                                    .fillMaxWidth(0.8f)
                             )
                         }
                     },
