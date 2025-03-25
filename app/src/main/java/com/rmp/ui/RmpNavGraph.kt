@@ -1,9 +1,12 @@
 package com.rmp.ui
 
+import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -23,16 +26,20 @@ import com.rmp.ui.signup.WeightTarget
 
 val LocalNavController = compositionLocalOf<NavHostController> { error("NavController not found") }
 
+var appLogout: () -> Unit = {}
+
 @Composable
 fun RmpNavGraph(
     appContainer: AppContainer,
-    isExpandedScreen: Boolean,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    openDrawer: () -> Unit = {},
     startDestination: String = RmpDestinations.HELLO_ROUTE,
 ) {
-
+    val ctx = LocalContext.current
+    appLogout = {
+        navController.navigate(RmpDestinations.HELLO_ROUTE)
+        Toast.makeText(ctx, "", Toast.LENGTH_LONG).show()
+    }
     CompositionLocalProvider(LocalNavController provides navController) {
         NavHost(
             navController = navController,
@@ -99,8 +106,6 @@ fun RmpNavGraph(
                 )
                 HomeRoute(
                     homeViewModel = homeViewModel,
-                    isExpandedScreen = false,
-                    openDrawer = { },
                     onSignOutClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
                 )
             }

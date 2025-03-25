@@ -22,7 +22,21 @@ data class UserLoginDto(
     val password: String
 )
 
+@Serializable
+data class UserDto(
+    val name: String,
+    val email: String,
+    val password: String,
+    val isMale: Boolean,
+    val age: Int,
+    val height: Double,
+    val weight: Double,
+    val activityType: Int,
+    val goalType: Int,
+)
+
 interface UserRepository {
     suspend fun createUser(createUserDto: CreateUserDto): Boolean
-    suspend fun loginUser(userLoginDto: UserLoginDto): Pair<TokenDto, Boolean>
+    suspend fun loginUser(userLoginDto: UserLoginDto): TokenDto?
+    suspend fun getMe(): UserDto
 }

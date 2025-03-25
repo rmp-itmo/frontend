@@ -13,6 +13,8 @@ interface AppContainer {
     val database: AppDatabase
 }
 
+public var ApplicationDatabase: AppDatabase? = null
+
 /**
  * Implementation for the Dependency Injection container at the application level.
  *

@@ -66,18 +66,19 @@ class LoginViewModel(private val container: AppContainer) : ViewModel() {
 
     fun onLoginClick() {
         viewModelScope.launch {
-            val (tokens, result) = container.userRepository.loginUser(
+            val tokens = container.userRepository.loginUser(
                 UserLoginDto(
                     viewModelState.value.email,
                     viewModelState.value.password
                 )
             )
-            if (result) {
+
+            if (tokens != null) {
                 container.database.authTokenDao().saveTokens(
-                    accessToken = tokens.accessToken!!,
-                    refreshToken = tokens.refreshToken!!
+                    accessToken = tokens.accessToken,
+                    refreshToken = tokens.refreshToken
                 )
-                onLoginSuccess.invoke()
+                onLoginSuccess()
             } else {
                 val errorMessage = R.string.login_error
                 updateState(viewModelState.value.copy(loginError = errorMessage))
