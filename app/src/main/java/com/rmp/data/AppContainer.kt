@@ -1,6 +1,7 @@
 package com.rmp.data
 
 import android.content.Context
+import com.rmp.data.database.AppDatabase
 import com.rmp.data.repository.signup.UserRepoImpl
 import com.rmp.data.repository.signup.UserRepository
 
@@ -9,7 +10,7 @@ import com.rmp.data.repository.signup.UserRepository
  */
 interface AppContainer {
     val userRepository: UserRepository
-    val tokens: TokenDto
+    val database: AppDatabase
 }
 
 /**
@@ -17,13 +18,13 @@ interface AppContainer {
  *
  * Variables are initialized lazily and the same instance is shared across the whole app.
  */
-class AppContainerImpl(private val applicationContext: Context) : AppContainer {
+class AppContainerImpl(private val applicationContext: Context, database: AppDatabase) : AppContainer {
 
     override val userRepository: UserRepository by lazy {
         UserRepoImpl()
     }
 
-    override val tokens: TokenDto by lazy {
-        TokenDto()
+    override val database: AppDatabase by lazy {
+        database
     }
 }

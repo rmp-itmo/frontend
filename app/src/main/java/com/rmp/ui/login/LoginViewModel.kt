@@ -73,8 +73,10 @@ class LoginViewModel(private val container: AppContainer) : ViewModel() {
                 )
             )
             if (result) {
-                container.tokens.accessToken = tokens.accessToken
-                container.tokens.refreshToken = tokens.refreshToken
+                container.database.authTokenDao().saveTokens(
+                    accessToken = tokens.accessToken!!,
+                    refreshToken = tokens.refreshToken!!
+                )
                 onLoginSuccess.invoke()
             } else {
                 val errorMessage = R.string.login_error

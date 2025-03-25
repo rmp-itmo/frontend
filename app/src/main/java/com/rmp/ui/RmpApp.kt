@@ -16,6 +16,7 @@ import com.rmp.data.AppContainer
 import com.rmp.ui.components.AppNavRail
 import com.rmp.ui.theme.RmpTheme
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 @Composable
@@ -33,13 +34,22 @@ fun RmpApp(
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute =
-            navBackStackEntry?.destination?.route ?: RmpDestinations.HOME_ROUTE
+            navBackStackEntry?.destination?.route ?: RmpDestinations.HELLO_ROUTE
 
         val isExpandedScreen = widthSizeClass == WindowWidthSizeClass.Expanded
         val sizeAwareDrawerState = rememberSizeAwareDrawerState(isExpandedScreen)
 
 
+        val start = runBlocking {
+            if (appContainer.database.authTokenDao().getTokens().accessToken == "") {
+                RmpDestinations.HELLO_ROUTE
+            } else {
+                RmpDestinations.HOME_ROUTE // Заменить на нужный экран. См LoginViewModel.
+            }
+        }
+
         RmpNavGraph(
+            startDestination = start,
             appContainer = appContainer,
             isExpandedScreen = isExpandedScreen,
             navController = navController,
