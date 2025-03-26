@@ -29,9 +29,9 @@ open class AnyResponse
 
 @Serializable
 open class ApiException(
-    val httpStatusCode: String,
-    val httpStatusMessage: String,
-    override val message: String,
+    val code: Int = 0,
+    val status: String = "",
+    override val message: String = "",
 ): Exception()
 
 sealed class Result<out R> {
@@ -48,8 +48,8 @@ fun Result<*>.isSuccess(): Boolean {
 }
 
 @Serializable
-class UnauthorizedException: ApiException(401.toString(), "Unauthorized", "Unauthorized")
-class BadResponse: ApiException(0.toString(), "Bad response", "Bad response")
+class UnauthorizedException: ApiException(401, "Unauthorized", "Unauthorized")
+class BadResponse: ApiException(0, "Bad response", "Bad response")
 
 
 object ApiClient {
