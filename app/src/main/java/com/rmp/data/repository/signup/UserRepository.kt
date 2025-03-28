@@ -14,6 +14,7 @@ data class CreateUserDto(
     val weight: Double,
     val activityType: Int,
     val goalType: Int,
+    var registrationDate: Int = 0
 )
 
 @Serializable
