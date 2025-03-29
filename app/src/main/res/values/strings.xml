@@ -64,4 +64,7 @@
     <!--  Home Screen   -->
     <string name="sign_out">Выйти</string>
 
+    <!-- Settings Screen  -->
+    <string name="invalid_height">Некорректный рост. Укажите значение от 50 до 250 см.</string>
+    <string name="settings_header">Настройки</string>
 </resources>
