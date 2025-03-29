@@ -24,8 +24,8 @@ fun HomeRoute(
 
     HomeRoute(
         uiState = uiState,
-        signOutClick= onSignOutClick,
-        clearTokens= clearTokens
+        signOutClick = onSignOutClick,
+        clearTokens = clearTokens
     )
 }
 

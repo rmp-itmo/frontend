@@ -18,9 +18,19 @@ import kotlinx.coroutines.launch
 /**
  * An internal representation of the Home route state, in a raw form
  */
+data class HealthData(
+    val calories: Pair<Int, Int> = 1800 to 2000,
+    val water: Pair<Float, Float> = 1.2f to 2f,
+    val steps: Pair<Int, Int> = 4300 to 8000,
+    val sleep: String = "5 - 32 минуты",
+    val nutrition: String = "1678 мол",
+    val workouts: String = "Достижения"
+)
+
 data class HomeUiState(
     val isLoading: Boolean = false,
     val userName: String = "",
+    val healthData: HealthData = HealthData(),
     val errors: List<ErrorMessage> = emptyList()
 )
 
@@ -32,17 +42,16 @@ class HomeViewModel(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    // UI state exposed to the UI
     private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            fetchUserName()
+            fetchUserData()
         }
     }
 
-    fun fetchUserName() {
+    fun fetchUserData() {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(isLoading = true)
@@ -52,11 +61,18 @@ class HomeViewModel(
 
             if (userData == null) {
                 _uiState.update {
-                    it.copy(isLoading = false, errors = listOf(ErrorMessage(null, R.string.error_load_data)))
+                    it.copy(
+                        isLoading = false,
+                        errors = listOf(ErrorMessage(null, R.string.error_load_data))
+                    )
                 }
             } else {
                 _uiState.update {
-                    it.copy(userName = userData.name, isLoading = false)
+                    it.copy(
+                        userName = userData.name,
+                        healthData = HealthData(), // Здесь можно загружать реальные данные
+                        isLoading = false
+                    )
                 }
             }
         }
