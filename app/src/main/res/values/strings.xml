@@ -63,5 +63,21 @@
 
     <!--  Home Screen   -->
     <string name="sign_out">Выйти</string>
+    <string name="error">Ошибка</string>
+    <string name="sleep">Сон</string>
+    <string name="heart">Сердце</string>
+    <string name="nutrition">Питание</string>
+    <string name="workout">Тренировки</string>
+    <string name="achievements">Достижения</string>
+    <string name="health">Здоровье</string>
+    <string name="calories">Калории</string>
+    <string name="water">Вода</string>
+    <string name="steps">Шаги</string>
+    <string name="glass_water">Стакан воды</string>
+    <string name="settings">Настройки</string>
+    <string name="feed">Лента</string>
+    <string name="heart_min">уд мин</string>
+    <string name="nutrition_unit">ккал</string>
+    <string name="no_data">Нет данных</string>
 
 </resources>

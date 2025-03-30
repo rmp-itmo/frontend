@@ -11,6 +11,14 @@ object RmpDestinations {
     const val HELLO_ROUTE = "hello"
     const val SIGN_UP_ROUTE = "signup"
     const val LOGIN_ROUTE = "login"
+    const val SLEEP_ROUTE = "sleep"
+    const val HEART_ROUTE = "heart"
+    const val NUTRITION_ROUTE = "nutrition"
+    const val WATER_ROUTE = "water"
+    const val TRAIN_ROUTE = "train"
+    const val ACHIEVEMENT_ROUTE = "achievement"
+    const val SETTINGS_ROUTE = "settings"
+    const val FEED_ROUTE = "feed"
 }
 
 /**
