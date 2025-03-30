@@ -21,8 +21,9 @@ class SettingsViewModel : ViewModel() {
         updateState(_uiState.value.copy(gender = newGender))
     }
 
-    fun updateBirthDate(newBirthDate: String) {
-        updateState(_uiState.value.copy(birthDate = newBirthDate))
+    fun updateAge(newAge: String) {
+        val error = if (newAge.toIntOrNull() != null && newAge.toInt() in 7..150) null else R.string.invalid_height
+        updateState(_uiState.value.copy(age = newAge))
     }
 
     fun updateHeight(newHeight: String) {
@@ -54,7 +55,7 @@ class SettingsViewModel : ViewModel() {
     private fun generateNickname() {
         val name = _uiState.value.name.value.ifBlank { "User" }
         val id = (1000..9999).random()
-        updateState(_uiState.value.copy(nickname = "$name#$id"))
+        updateState(_uiState.value.copy(nickname = _uiState.value.nickname.copy(value = "$name#$id")))
     }
 
     private fun updateState(newState: SettingsUiState) {

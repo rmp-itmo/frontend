@@ -21,12 +21,12 @@ enum class Goal {
 data class SettingsUiState(
     val name: SettingsField = SettingsField(hint = "Введите имя"),
     val gender: Gender = Gender.MALE,  // Используем enum Gender
-    val birthDate: String = "",        // Формат: "дд.мм.гггг"
+    val age: String = "",        // Число
     val height: SettingsField = SettingsField(hint = "Введите рост (см)"),
     val weight: SettingsField = SettingsField(hint = "Введите вес (кг)"),
     val activityLevel: ActivityLevel = ActivityLevel.MODERATE,  // Используем enum ActivityLevel
     val goal: Goal = Goal.MAINTAIN_WEIGHT,  // Используем enum Goal
     val email: SettingsField = SettingsField(hint = "Введите email"),
     val password: SettingsField = SettingsField(hint = "Введите пароль"),
-    val nickname: String = ""  // Никнейм по умолчанию: Имя#id (генерируется)
+    val nickname: SettingsField = SettingsField(hint = "Придумайте себе никнейм")  // Никнейм по умолчанию: Имя#id (генерируется)
 )

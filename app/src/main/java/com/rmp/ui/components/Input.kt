@@ -36,22 +36,30 @@ import com.rmp.ui.theme.RmpTheme
 fun LabelledInput(
     value: String,
     label: String,
+    modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
+    isError: Boolean = false,
+    errorMessage: String? = null,
     onInputChange: (String) -> Unit
 ) {
-    if (leadingIcon != null)
-        OutlinedTextField(
-            leadingIcon = { Icon(leadingIcon, label) },
-            label = { Text(label) },
-            value = value,
-            onValueChange = onInputChange
-        )
-    else
-        OutlinedTextField(
-            label = { Text(label) },
-            value = value,
-            onValueChange = onInputChange
-        )
+    OutlinedTextField(
+        value = value,
+        onValueChange = onInputChange,
+        label = { Text(label) },
+        leadingIcon = if (leadingIcon != null) {
+            { Icon(leadingIcon, contentDescription = label) }
+        } else null,
+        isError = isError,
+        supportingText = {
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error)
+            }
+        },
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+    )
 }
 
 @Preview("Preview text input")

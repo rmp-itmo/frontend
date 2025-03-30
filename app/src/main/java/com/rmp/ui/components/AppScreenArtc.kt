@@ -74,7 +74,7 @@ fun AppScreenArct(
                     },
                     scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState),
                     // Сдвигаем повыше, иного способа не нашел
-                    modifier = Modifier.offset(y = (-30).dp),
+                    //modifier = Modifier.offset(y = (-30).dp),
                 )},
         content = { padding ->
             Box(

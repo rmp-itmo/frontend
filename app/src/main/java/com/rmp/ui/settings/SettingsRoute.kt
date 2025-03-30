@@ -14,7 +14,7 @@ fun SettingsRoute(
         uiState = uiState,
         onNameChange = settingsViewModel::updateName,
         onGenderChange = settingsViewModel::updateGender,
-        onBirthDateChange = settingsViewModel::updateBirthDate,
+        onAgeChange = settingsViewModel::updateAge,
         onHeightChange = settingsViewModel::updateHeight,
         onWeightChange = settingsViewModel::updateWeight,
         onActivityLevelChange = settingsViewModel::updateActivityLevel,

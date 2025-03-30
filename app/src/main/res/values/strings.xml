@@ -67,4 +67,5 @@
     <!-- Settings Screen  -->
     <string name="invalid_height">Некорректный рост. Укажите значение от 50 до 250 см.</string>
     <string name="settings_header">Настройки</string>
+    <string name="error_invalid_height">Введен ошибочный рост</string>
 </resources>
