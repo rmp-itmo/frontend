@@ -89,7 +89,7 @@ fun HomeScreen(
                         )
                         ImageCard(
                             title = (stringResource(R.string.heart)),
-                            value = uiState.healthData.heartRate ?: "",
+                            value = if (uiState.healthData.heartRate != "") uiState.healthData.heartRate +  " " + stringResource(R.string.heart_min) else "",
                             imageRes = R.drawable.ic_heart,
                             modifier = Modifier.weight(1f),
                             onClick = { navigator.navigate(RmpDestinations.HEART_ROUTE) }

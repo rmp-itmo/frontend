@@ -82,7 +82,7 @@ class HomeViewModel(
                             //steps = 123 to 2399,
                             steps = userStatSummaryData.stepsCurrent to userStatSummaryData.stepsTarget,
                             sleep = "%s ч %s мин".format(userStatSummaryData.sleepHours, userStatSummaryData.sleepMinutes),
-                            heartRate = if (userStatSummaryData.heartRate != null && userStatSummaryData.heartRate > 0) userStatSummaryData.heartRate.toString() else " ",
+                            heartRate = if (userStatSummaryData.heartRate != null && userStatSummaryData.heartRate > 0) userStatSummaryData.heartRate.toString() else "",
                             nutrition = userStatSummaryData.caloriesCurrent.roundToInt().toString()
                         ),
                         isLoading = false
