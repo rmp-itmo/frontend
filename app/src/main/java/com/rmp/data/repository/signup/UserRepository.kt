@@ -39,8 +39,8 @@ data class UserDto(
 data class UserStatSummaryDto(
     val caloriesTarget: Double,
     val caloriesCurrent: Double,
-    val waterTarget: Double,
-    val waterCurrent: Double,
+    val waterTarget: Float,
+    val waterCurrent: Float,
     val stepsTarget: Int,
     val stepsCurrent: Int,
     val sleepHours: Int,

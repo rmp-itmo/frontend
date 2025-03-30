@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
 /**
  * An internal representation of the Home route state, in a raw form
@@ -74,12 +75,15 @@ class HomeViewModel(
                 _uiState.update {
                     it.copy(
                         healthData = HealthData(
-                            calories = userStatSummaryData.caloriesCurrent.toInt() to userStatSummaryData.caloriesTarget.toInt(),
-                            water = (userStatSummaryData.glassesOfWater / 4f).toFloat() to 2f,
+                            //calories = 1234 to 2000,
+                            calories = userStatSummaryData.caloriesCurrent.roundToInt() to userStatSummaryData.caloriesTarget.roundToInt(),
+                            //water = 1.2f to 2f,
+                            water = "%.1f".format(userStatSummaryData.waterCurrent).toFloat() to "%.1f".format(userStatSummaryData.waterTarget).toFloat(),
+                            //steps = 123 to 2399,
                             steps = userStatSummaryData.stepsCurrent to userStatSummaryData.stepsTarget,
                             sleep = "%s ч %s мин".format(userStatSummaryData.sleepHours, userStatSummaryData.sleepMinutes),
-                            heartRate = userStatSummaryData.heartRate.toString(),
-                            nutrition = userStatSummaryData.caloriesCurrent.toInt().toString()
+                            heartRate = if (userStatSummaryData.heartRate != null && userStatSummaryData.heartRate > 0) userStatSummaryData.heartRate.toString() else " ",
+                            nutrition = userStatSummaryData.caloriesCurrent.roundToInt().toString()
                         ),
                         isLoading = false
                     )

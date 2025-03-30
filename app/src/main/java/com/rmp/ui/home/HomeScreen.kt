@@ -1,5 +1,7 @@
 package com.rmp.ui.home
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -19,8 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.util.Log
 import com.rmp.R
+import com.rmp.ui.LocalNavController
+import com.rmp.ui.RmpDestinations
 import com.rmp.ui.components.AccentButton
 import com.rmp.ui.components.AppScreen
 import com.rmp.ui.components.SpinningCirclesLoader
@@ -32,18 +36,23 @@ fun HomeScreen(
     onSignOutClick: () -> Unit,
     clearTokens: () -> Unit
 ) {
-    AppScreen(showButtons = true) {
+    val context = LocalContext.current
+    val navigator = LocalNavController.current
+
+    AppScreen(
+        showButtons = true,
+        onSignOutClick = onSignOutClick,
+        clearTokens = clearTokens
+    ) {
         if (uiState.isLoading) {
             SpinningCirclesLoader()
         } else {
             if (uiState.errors.isNotEmpty()) {
-                AccentButton(
-                    text = stringResource(R.string.sign_out),
-                    buttonPressed = {
-                        onSignOutClick()
-                        clearTokens()
-                    },
-                )
+                Toast.makeText(
+                    context,
+                    stringResource(R.string.error),
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@AppScreen
             }
 
@@ -75,13 +84,15 @@ fun HomeScreen(
                             title = (stringResource(R.string.sleep)),
                             value = uiState.healthData.sleep ?: stringResource(R.string.no_data),
                             imageRes = R.drawable.ic_sleep,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { navigator.navigate(RmpDestinations.SLEEP_ROUTE) }
                         )
                         ImageCard(
                             title = (stringResource(R.string.heart)),
-                            value = (if (uiState.healthData.heartRate != null) uiState.healthData.heartRate + " " + stringResource(R.string.heart_min) else stringResource(R.string.no_data)),
+                            value = uiState.healthData.heartRate ?: "",
                             imageRes = R.drawable.ic_heart,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { navigator.navigate(RmpDestinations.HEART_ROUTE) }
                         )
                     }
 
@@ -93,11 +104,13 @@ fun HomeScreen(
                             title = (stringResource(R.string.nutrition)),
                             value = (if (uiState.healthData.nutrition != null) uiState.healthData.nutrition + " " + stringResource(R.string.nutrition_unit) else stringResource(R.string.no_data)),
                             imageRes = R.drawable.ic_nutrition,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { navigator.navigate(RmpDestinations.NUTRITION_ROUTE) }
                         )
                         WaterCard(
                             progress = if (uiState.healthData.water != null) ((uiState.healthData.water.first / uiState.healthData.water.second) * 8).roundToInt() else 0,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { navigator.navigate(RmpDestinations.WATER_ROUTE) }
                         )
                     }
 
@@ -109,26 +122,18 @@ fun HomeScreen(
                             title = (stringResource(R.string.workout)),
                             value = "",
                             imageRes = R.drawable.ic_workout,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { navigator.navigate(RmpDestinations.TRAIN_ROUTE) }
                         )
                         ImageCard(
                             title = (stringResource(R.string.achievements)),
                             value = "",
                             imageRes = R.drawable.ic_achievements,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            onClick = { navigator.navigate(RmpDestinations.ACHIEVEMENT_ROUTE) }
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                AccentButton(
-                    text = stringResource(R.string.sign_out),
-                    buttonPressed = {
-                        onSignOutClick()
-                        clearTokens()
-                    }
-                )
             }
         }
     }
@@ -139,13 +144,14 @@ fun ImageCard(
     title: String,
     value: String,
     imageRes: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = modifier
             .aspectRatio(1f)
             .height(160.dp)
-            .clickable { },
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -188,6 +194,13 @@ fun ImageCard(
                 modifier = Modifier
                     .size(80.dp)
                     .align(Alignment.CenterHorizontally)
+                    .then(
+                        if (imageRes == R.drawable.ic_nutrition) {
+                            Modifier.padding(top = 15.dp)
+                        } else {
+                            Modifier
+                        }
+                    )
             )
         }
     }
@@ -256,23 +269,23 @@ fun HealthCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = (stringResource(R.string.health)),
+                    text = stringResource(R.string.health),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 HealthMetricItem(
-                    name = (stringResource(R.string.calories)),
+                    name = stringResource(R.string.calories),
                     value = calories,
                     color = colorResource(R.color.coral)
                 )
                 HealthMetricItem(
-                    name = (stringResource(R.string.water)),
+                    name = stringResource(R.string.water),
                     value = water,
                     color = colorResource(R.color.marine)
                 )
                 HealthMetricItem(
-                    name = (stringResource(R.string.steps)),
+                    name = stringResource(R.string.steps),
                     value = steps,
                     color = colorResource(R.color.grey)
                 )
@@ -283,25 +296,93 @@ fun HealthCard(
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
-                    progress = { if (uiState.healthData.calories != null) uiState.healthData.calories.first.toFloat() / uiState.healthData.calories.second.toFloat() else 0f},
+                    progress = { 1f },
+                    modifier = Modifier.size(100.dp),
+                    color = colorResource(R.color.coral).copy(alpha = 0.2f),
+                    strokeWidth = 1.dp,
+                    trackColor = Color.Transparent
+                )
+                CircularProgressIndicator(
+                    progress = { 1f },
+                    modifier = Modifier.size(80.dp),
+                    color = colorResource(R.color.marine).copy(alpha = 0.2f),
+                    strokeWidth = 1.dp,
+                    trackColor = Color.Transparent
+                )
+                CircularProgressIndicator(
+                    progress = { 1f },
+                    modifier = Modifier.size(60.dp),
+                    color = colorResource(R.color.grey).copy(alpha = 0.2f),
+                    strokeWidth = 1.dp,
+                    trackColor = Color.Transparent
+                )
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (uiState.healthData.calories?.first == 0) {
+                        Box(
+                            modifier = Modifier
+                                .offset(y = (-45).dp)
+                                .size(8.dp)
+                                .background(colorResource(R.color.coral), CircleShape)
+                        )
+                    }
+
+                    if (uiState.healthData.water?.first == 0f) {
+                        Box(
+                            modifier = Modifier
+                                .offset(y = (-35).dp)
+                                .size(8.dp)
+                                .background(colorResource(R.color.marine), CircleShape)
+                        )
+                    }
+
+                    if (uiState.healthData.steps?.first == 0) {
+                        Box(
+                            modifier = Modifier
+                                .offset(y = (-25).dp)
+                                .size(8.dp)
+                                .background(colorResource(R.color.grey), CircleShape)
+                        )
+                    }
+                }
+
+                CircularProgressIndicator(
+                    progress = {
+                        uiState.healthData.calories?.let {
+                            it.first.toFloat() / it.second.toFloat()
+                        } ?: 0f
+                    },
                     modifier = Modifier.size(100.dp),
                     color = colorResource(R.color.coral),
                     strokeWidth = 8.dp,
-                    trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
+                    trackColor = Color.Transparent
                 )
+
                 CircularProgressIndicator(
-                    progress = { if (uiState.healthData.water != null) uiState.healthData.water.first / uiState.healthData.water.second else 0f },
+                    progress = {
+                        uiState.healthData.water?.let {
+                            it.first / it.second
+                        } ?: 0f
+                    },
                     modifier = Modifier.size(80.dp),
                     color = colorResource(R.color.marine),
                     strokeWidth = 8.dp,
-                    trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
+                    trackColor = Color.Transparent
                 )
+
                 CircularProgressIndicator(
-                    progress = { if (uiState.healthData.steps != null) uiState.healthData.steps.first.toFloat() / uiState.healthData.steps.second.toFloat() else 0f },
+                    progress = {
+                        uiState.healthData.steps?.let {
+                            it.first.toFloat() / it.second.toFloat()
+                        } ?: 0f
+                    },
                     modifier = Modifier.size(60.dp),
                     color = colorResource(R.color.grey),
                     strokeWidth = 8.dp,
-                    trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
+                    trackColor = Color.Transparent
                 )
             }
         }
@@ -342,11 +423,16 @@ fun HealthMetricItem(
 }
 
 @Composable
-fun WaterCard(progress: Int, modifier: Modifier = Modifier) {
+fun WaterCard(
+    progress: Int,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Card(
         modifier = modifier
             .aspectRatio(1f)
-            .height(160.dp),
+            .height(160.dp)
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -354,7 +440,6 @@ fun WaterCard(progress: Int, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-                .clickable {  }
         ) {
             Text(
                 text = (stringResource(R.string.water)),
@@ -366,7 +451,7 @@ fun WaterCard(progress: Int, modifier: Modifier = Modifier) {
                     .wrapContentWidth(Alignment.Start)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -409,11 +494,13 @@ fun WaterGlass(isFilled: Boolean) {
 
 @Composable
 fun SettingButton() {
+    val navigator = LocalNavController.current
+
     IconButton(
-        onClick = { /* Настройки */ },
+        onClick = { navigator.navigate(RmpDestinations.SETTINGS_ROUTE) },
         modifier = Modifier
             .wrapContentSize()
-            .padding(start = 24.dp, top = 16.dp)
+            .padding(end = 8.dp, top = 16.dp)
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_settings),
@@ -425,11 +512,13 @@ fun SettingButton() {
 
 @Composable
 fun FeedButton() {
+    val navigator = LocalNavController.current
+
     IconButton(
-        onClick = { /* Лента */ },
+        onClick = { navigator.navigate(RmpDestinations.FEED_ROUTE) },
         modifier = Modifier
             .wrapContentSize()
-            .padding(end = 24.dp, top = 16.dp)
+            .padding(start = 24.dp, top = 16.dp)
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_feed),
