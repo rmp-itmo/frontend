@@ -1,6 +1,7 @@
 package com.rmp.ui.water
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -21,14 +22,16 @@ import java.util.*
 
 interface WaterUiState {
     val currentAmount: Float
-    val dailyGoal: Int
+    val dailyGoal: Float
     val waterRecords: List<WaterDailyRecord>
     val errorMessage: String?
 }
 
 sealed class WaterHistoryState {
     data object Loading : WaterHistoryState()
-    data object Empty : WaterHistoryState()
+    data class Empty(
+        val dailyGoal: Float
+    ) : WaterHistoryState()
     data class Success(
         val date: LocalDate,
         val totalAmount: Float,
@@ -39,7 +42,7 @@ sealed class WaterHistoryState {
 
 private class WaterViewModelState(
     override val currentAmount: Float = 0f,
-    override val dailyGoal: Int = 2,
+    override val dailyGoal: Float = 2f,
     override val waterRecords: List<WaterDailyRecord> = emptyList(),
     override val errorMessage: String? = null
 ) : WaterUiState {
@@ -47,7 +50,7 @@ private class WaterViewModelState(
 
     fun copy(
         currentAmount: Float = this.currentAmount,
-        dailyGoal: Int = this.dailyGoal,
+        dailyGoal: Float = this.dailyGoal,
         waterRecords: List<WaterDailyRecord> = this.waterRecords,
         errorMessage: String? = this.errorMessage
     ) = WaterViewModelState(currentAmount, dailyGoal, waterRecords, errorMessage)
@@ -79,17 +82,18 @@ class WaterViewModel(private val container: AppContainer) : ViewModel() {
                 val dateInt = date.format(DateTimeFormatter.BASIC_ISO_DATE).toInt()
                 val response = container.waterRepository.getDailyWaterStats(WaterStatRequest(dateInt))
 
-                if (response != null && response.records.isNotEmpty()) {
-                    val totalAmount = response.records.sumOf { it.volume.toDouble() }.toFloat()
+                if (response != null && response.water.isNotEmpty()) {
+                    val totalAmount = response.water.sumOf { it.volume.toDouble() }.toFloat()
                     _historyState.value = WaterHistoryState.Success(
                         date = date,
                         totalAmount = totalAmount,
-                        records = response.records.map {
+                        records = response.water.map {
                             WaterDailyRecord(it.date, it.time, (it.volume * 1000))
                         }
                     )
                 } else {
-                    _historyState.value = WaterHistoryState.Empty
+
+                    _historyState.value = WaterHistoryState.Empty(response?.waterTarget?.toFloat() ?: 2f)
                 }
             } catch (e: Exception) {
                 _historyState.value = WaterHistoryState.Error("Ошибка загрузки: ${e.message}")
@@ -106,10 +110,11 @@ class WaterViewModel(private val container: AppContainer) : ViewModel() {
                     WaterStatRequest(currentDate)
                 )
 
-                response?.let { stats ->
-                    val totalAmount = stats.records.sumOf { it.volume.toDouble() }.toFloat()
+                Log.d("water-target-log", "${response?.waterTarget}")
 
-                    val records = stats.records.map { record ->
+                response?.let { stats ->
+                    val totalAmount = stats.water.sumOf { it.volume.toDouble() }.toFloat()
+                    val records = stats.water.map { record ->
                         WaterDailyRecord(
                             date = record.date,
                             time = record.time,
@@ -119,6 +124,7 @@ class WaterViewModel(private val container: AppContainer) : ViewModel() {
 
                     updateState(
                         viewModelState.value.copy(
+                            dailyGoal = response.waterTarget.toFloat(),
                             currentAmount = totalAmount,
                             waterRecords = records,
                             errorMessage = null

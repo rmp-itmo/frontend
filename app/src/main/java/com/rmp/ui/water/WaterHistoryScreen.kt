@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun WaterHistoryScreen(
     viewModel: WaterViewModel,
+    dailyGoal: Float,
     onBackClick: () -> Unit
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
@@ -53,7 +54,9 @@ fun WaterHistoryScreen(
                 Text(
                     text = when (historyState) {
                         is WaterHistoryState.Success ->
-                            "%.1f л / 2 л".format((historyState as WaterHistoryState.Success).totalAmount)
+                            "%.1f л / %.1f л".format((historyState as WaterHistoryState.Success).totalAmount, dailyGoal)
+                        is WaterHistoryState.Empty ->
+                            "0.0 л / %.1f л".format(dailyGoal)
                         else -> "0.0 л / 2 л"
                     },
                     fontSize = 16.sp

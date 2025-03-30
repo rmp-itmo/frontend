@@ -1,6 +1,5 @@
 package com.rmp.data.repository.water
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,19 +17,14 @@ data class WaterStatRequest(
 
 @Serializable
 data class WaterStatResponse(
-    @SerialName("water")
-    val records: List<WaterDailyRecord>
+    val waterTarget: Double,
+    val water: List<WaterDailyRecord>
 )
 
 @Serializable
 data class WaterDailyRecord(
-    @SerialName("date")
     val date: Int,
-
-    @SerialName("time")
     val time: String,
-
-    @SerialName("volume")
     val volume: Float
 )
 

@@ -18,6 +18,7 @@ fun WaterRoute(
     if (showHistory) {
         WaterHistoryScreen(
             viewModel = waterViewModel,
+            uiState.dailyGoal,
             onBackClick = { showHistory = false }
         )
     } else {

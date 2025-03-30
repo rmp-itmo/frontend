@@ -58,7 +58,7 @@ fun WaterScreen(
 @Composable
 private fun WaterHeader(
     currentAmount: Float,
-    dailyGoal: Int,
+    dailyGoal: Float,
     onBackClick: () -> Unit,
     onCalendarClick: () -> Unit
 ) {
@@ -81,7 +81,7 @@ private fun WaterHeader(
         )
 
         Text(
-            text = "%.1f л / %d л".format(currentAmount, dailyGoal),
+            text = "%.1f л / %.1f л".format(currentAmount, dailyGoal),
             fontSize = 16.sp
         )
 
