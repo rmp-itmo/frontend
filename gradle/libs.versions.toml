@@ -62,6 +62,7 @@ security-crypto = "1.1.0-alpha03"
 targetSdk = "33"
 version-catalog-update = "0.8.5"
 uiTextGoogleFonts = "1.7.8"
+media3CommonKtx = "1.6.0"
 
 [libraries]
 accompanist-adaptive = { module = "com.google.accompanist:accompanist-adaptive", version.ref = "accompanist" }
@@ -171,6 +172,7 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-cl
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-client" }
 ktor-client-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-client" }
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
+androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

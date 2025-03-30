@@ -35,8 +35,28 @@ data class UserDto(
     val goalType: String,
 )
 
+@Serializable
+data class UserStatSummaryDto(
+    val caloriesTarget: Double,
+    val caloriesCurrent: Double,
+    val waterTarget: Double,
+    val waterCurrent: Double,
+    val stepsTarget: Int,
+    val stepsCurrent: Int,
+    val sleepHours: Int,
+    val sleepMinutes: Int,
+    val heartRate: Int?,
+    val glassesOfWater: Double
+)
+
+@Serializable
+data class DateDto(
+    val date: String
+)
+
 interface UserRepository {
     suspend fun createUser(createUserDto: CreateUserDto): Boolean
     suspend fun loginUser(userLoginDto: UserLoginDto): TokenDto?
     suspend fun getMe(): UserDto?
+    suspend fun getMeStatSummary(date: DateDto): UserStatSummaryDto?
 }
