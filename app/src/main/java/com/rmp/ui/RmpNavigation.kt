@@ -11,6 +11,7 @@ object RmpDestinations {
     const val HELLO_ROUTE = "hello"
     const val SIGN_UP_ROUTE = "signup"
     const val LOGIN_ROUTE = "login"
+    const val WATER_ROUTE = "water"
 }
 
 /**
