@@ -80,4 +80,8 @@
     <string name="nutrition_unit">ккал</string>
     <string name="no_data">Нет данных</string>
 
+    <!--  Water Screen   -->
+    <string name="water">Вода</string>
+    <string name="add_water">Добавить воду</string>
+
 </resources>
