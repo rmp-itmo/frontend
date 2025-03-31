@@ -98,8 +98,19 @@ fun RmpNavGraph(
                 )
                 LoginRoute(
                     loginViewModel = loginViewModel,
-                    onLoginSuccess = { navController.navigate(RmpDestinations.WATER_ROUTE) },
+                    onLoginSuccess = { navController.navigate(RmpDestinations.HOME_ROUTE) },
                     onBackClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
+                )
+            }
+            composable(
+                route = RmpDestinations.HOME_ROUTE,
+            ) { _ ->
+                val homeViewModel: HomeViewModel = viewModel(
+                    factory = HomeViewModel.factory(appContainer)
+                )
+                HomeRoute(
+                    homeViewModel = homeViewModel,
+                    onSignOutClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
                 )
             }
             composable(
@@ -110,7 +121,7 @@ fun RmpNavGraph(
                 )
                 WaterRoute(
                     waterViewModel = waterViewModel,
-                    onBackClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
+                    onBackClick = { navController.navigate(RmpDestinations.HOME_ROUTE) }
                 )
             }
         }

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.rmp.R
 import com.rmp.data.repository.water.WaterDailyRecord
 import com.rmp.ui.components.AppScreen
+import androidx.compose.material3.Text as Text1
 
 @Composable
 fun WaterScreen(
@@ -47,8 +48,31 @@ fun WaterScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            Box(modifier = Modifier.weight(1f)) {
-                WaterCardsList(records = uiState.waterRecords)
+
+            if (uiState.waterRecords.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text1(
+                        text = "Сегодня вы ещё не пили воду.",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text1(
+                        text = "Давайте это исправим!",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            } else {
+                Box(modifier = Modifier.weight(1f)) {
+                    WaterCardsList(records = uiState.waterRecords)
+                }
             }
 
             Box(
@@ -82,10 +106,10 @@ fun WaterVolumeDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Добавить воду") },
+        title = { Text1("Добавить воду") },
         text = {
             Column {
-                Text("Введите объем воды (мл)", modifier = Modifier.padding(bottom = 8.dp))
+                Text1("Введите объем воды (мл)", modifier = Modifier.padding(bottom = 8.dp))
 
                 OutlinedTextField(
                     value = volumeText,
@@ -102,12 +126,12 @@ fun WaterVolumeDialog(
                         keyboardType = KeyboardType.Number
                     ),
                     isError = isError,
-                    label = { Text("Объем в миллилитрах") },
+                    label = { Text1("Объем в миллилитрах") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 if (isError) {
-                    Text(
+                    Text1(
                         text = "Пожалуйста, введите число",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
@@ -128,14 +152,14 @@ fun WaterVolumeDialog(
                 },
                 enabled = volumeText.isNotEmpty() && !isError
             ) {
-                Text("Добавить")
+                Text1("Добавить")
             }
         },
         dismissButton = {
             TextButton(
                 onClick = onDismiss
             ) {
-                Text("Отмена")
+                Text1("Отмена")
             }
         }
     )
@@ -160,13 +184,13 @@ private fun WaterHeader(
             )
         }
 
-        Text(
+        Text1(
             text = "Вода",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
 
-        Text(
+        Text1(
             text = "%.1f л / %.1f л".format(currentAmount, dailyGoal),
             fontSize = 16.sp
         )
@@ -224,7 +248,7 @@ private fun WaterCard(time: String, amount: String) {
                 .padding(12.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(
+            Text1(
                 text = time,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -243,7 +267,7 @@ private fun WaterCard(time: String, amount: String) {
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text(
+                Text1(
                     text = amount,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium

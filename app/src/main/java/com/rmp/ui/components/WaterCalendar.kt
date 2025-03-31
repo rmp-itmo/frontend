@@ -25,7 +25,7 @@ fun WaterCalendar(
 ) {
     val dates = remember {
         List(30) { index ->
-            LocalDate.now().minusDays(15L - index)
+            LocalDate.now().minusDays(7L - index)
         }
     }
 
