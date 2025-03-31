@@ -1,6 +1,5 @@
 package com.rmp.ui.components
 
-import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.DurationBasedAnimationSpec
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
