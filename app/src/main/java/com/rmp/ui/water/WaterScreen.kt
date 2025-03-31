@@ -6,12 +6,18 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rmp.R
@@ -25,6 +31,7 @@ fun WaterScreen(
     onAddWater: (Int) -> Unit,
     onCalendarClick: () -> Unit
 ) {
+    var showVolumeDialog by remember { mutableStateOf(false) }
     AppScreen {
         Column(
             modifier = Modifier
@@ -44,15 +51,94 @@ fun WaterScreen(
                 WaterCardsList(records = uiState.waterRecords)
             }
 
-
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                AddWaterButton(onAddWater = onAddWater)
+                AddWaterButton(
+                    onClick = { showVolumeDialog = true }
+                )
+                if (showVolumeDialog) {
+                    WaterVolumeDialog(
+                        onDismiss = { showVolumeDialog = false },
+                        onVolumeSelected = { volume ->
+                            onAddWater(volume)
+                            showVolumeDialog = false
+                        }
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+fun WaterVolumeDialog(
+    onDismiss: () -> Unit,
+    onVolumeSelected: (Int) -> Unit
+) {
+    var volumeText by remember { mutableStateOf("200") }
+    var isError by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Добавить воду") },
+        text = {
+            Column {
+                Text("Введите объем воды (мл)", modifier = Modifier.padding(bottom = 8.dp))
+
+                OutlinedTextField(
+                    value = volumeText,
+                    onValueChange = { newValue ->
+                        if (newValue.isEmpty() || newValue.toIntOrNull() != null) {
+                            volumeText = newValue
+                            isError = false
+                        } else {
+                            isError = true
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number
+                    ),
+                    isError = isError,
+                    label = { Text("Объем в миллилитрах") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                if (isError) {
+                    Text(
+                        text = "Пожалуйста, введите число",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val volume = volumeText.toIntOrNull()
+                    if (volume != null && volume > 0) {
+                        onVolumeSelected(volume)
+                    } else {
+                        isError = true
+                    }
+                },
+                enabled = volumeText.isNotEmpty() && !isError
+            ) {
+                Text("Добавить")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text("Отмена")
+            }
+        }
+    )
 }
 
 @Composable
@@ -109,9 +195,9 @@ private fun WaterCardsList(records: List<WaterDailyRecord>) {
 }
 
 @Composable
-private fun AddWaterButton(onAddWater: (Int) -> Unit) {
+private fun AddWaterButton(onClick: () -> Unit) {
     IconButton(
-        onClick = { onAddWater(200) },
+        onClick = onClick,
         modifier = Modifier.size(48.dp)
     ) {
         Icon(
