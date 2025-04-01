@@ -20,6 +20,8 @@ import com.rmp.ui.home.HomeRoute
 import com.rmp.ui.home.HomeViewModel
 import com.rmp.ui.login.LoginRoute
 import com.rmp.ui.login.LoginViewModel
+import com.rmp.ui.nutrition.NutritionRoute
+import com.rmp.ui.nutrition.NutritionViewModel
 import com.rmp.ui.signup.ActivityLevel
 import com.rmp.ui.signup.SignupRoute
 import com.rmp.ui.signup.SignupViewModel
@@ -109,6 +111,17 @@ fun RmpNavGraph(
                 HomeRoute(
                     homeViewModel = homeViewModel,
                     onSignOutClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
+                )
+            }
+            composable(
+                route = RmpDestinations.NUTRITION_ROUTE,
+            ) { _ ->
+                val nutritionViewModel: NutritionViewModel = viewModel(
+                    factory = NutritionViewModel.factory(appContainer)
+                )
+                NutritionRoute(
+                    nutritionViewModel = nutritionViewModel,
+                    onBackClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
                 )
             }
         }

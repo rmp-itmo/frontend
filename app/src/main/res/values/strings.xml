@@ -64,4 +64,8 @@
     <!--  Home Screen   -->
     <string name="sign_out">Выйти</string>
 
+    <!-- Nutrition Screen -->
+    <string name="generate_menu">Сгенерировать меню</string>
+    <string name="save_menu">Сохранить меню</string>
+
 </resources>
