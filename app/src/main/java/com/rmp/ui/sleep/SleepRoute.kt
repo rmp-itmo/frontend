@@ -6,22 +6,22 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun SleepRoute(
-    sleepViewModel: SleepViewModel,
-    onBackClick: () -> Unit
+    sleepViewModel: SleepViewModel
 ) {
     val uiState by sleepViewModel.uiState.collectAsStateWithLifecycle()
 
-    SleepRoute(uiState, onBackClick, sleepViewModel::onGoBadTimeChange,
-        sleepViewModel::onWakeUpChange, sleepViewModel::onQualityChange)
+    SleepRoute(uiState, sleepViewModel::onGoBadTimeChange,
+        sleepViewModel::onWakeUpChange, sleepViewModel::onQualityChange,
+        sleepViewModel::saveSleep)
 }
 
 @Composable
 fun SleepRoute(
     uiState: SleepUiState,
-    onBackClick: () -> Unit,
     onGoBadChange: (String) -> Unit,
     onWakeUpChange: (String) -> Unit,
     onQualityChange: (Int) -> Unit,
+    onSaveSleepButton: () -> Unit
 ) {
-    SleepScreen(uiState, onBackClick, onGoBadChange, onWakeUpChange, onQualityChange)
+    SleepScreen(uiState, onGoBadChange, onWakeUpChange, onQualityChange, {}, onSaveSleepButton)
 }

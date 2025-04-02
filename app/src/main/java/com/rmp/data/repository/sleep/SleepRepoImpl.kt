@@ -6,7 +6,7 @@ import com.rmp.data.successOr
 
 class SleepRepoImpl : SleepRepository {
 
-    override suspend fun logSleep(sleep: SleepUploadDro): SleepResponseDto? {
+    override suspend fun logSleep(sleep: SleepUploadDto): SleepResponseDto? {
         val response = ApiClient.authorizedRequest<SleepResponseDto>(
             ApiClient.Method.POST,
             "sleep",

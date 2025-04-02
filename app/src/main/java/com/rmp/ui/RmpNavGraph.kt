@@ -133,9 +133,8 @@ fun RmpNavGraph(
                 val sleepViewModel: SleepViewModel = viewModel(
                     factory = SleepViewModel.factory(appContainer.sleepRepository)
                 )
-                SleepRoute(
+                SleepRoute (
                     sleepViewModel = sleepViewModel,
-                    onBackClick = { navController.navigate(RmpDestinations.HOME_ROUTE) }
                 )
             }
         }

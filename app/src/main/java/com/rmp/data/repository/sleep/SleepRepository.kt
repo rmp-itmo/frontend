@@ -14,7 +14,7 @@ data class SleepResponseDto(
 )
 
 @Serializable
-data class SleepUploadDro(
+data class SleepUploadDto(
     val hours: Int,
     val minutes: Int,
     // YYYYMMDD
@@ -26,9 +26,7 @@ data class SleepUploadDro(
 @Serializable
 data class SleepGetHistoryDto(
     val dateFrom: Int,
-    val dateTo: Int,
-    val hours: Int,
-    val minutes: Int
+    val dateTo: Int
 )
 
 
@@ -41,6 +39,6 @@ data class SleepHistoryResponseDto(
 )
 
 interface SleepRepository {
-    suspend fun logSleep(sleep: SleepUploadDro): SleepResponseDto?
+    suspend fun logSleep(sleep: SleepUploadDto): SleepResponseDto?
     suspend fun getSleepHistory(date: SleepGetHistoryDto): SleepHistoryResponseDto?
 }
