@@ -18,7 +18,7 @@ fun RmpApp(
             if (appContainer.database.authTokenDao().getTokens().accessToken == "") {
                 RmpDestinations.HELLO_ROUTE
             } else {
-                RmpDestinations.NUTRITION_ROUTE // Заменить на нужный экран. См LoginViewModel.
+                RmpDestinations.HOME_ROUTE
             }
         }
 

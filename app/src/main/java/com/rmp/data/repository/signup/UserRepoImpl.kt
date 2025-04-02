@@ -24,4 +24,8 @@ class UserRepoImpl: UserRepository {
     override suspend fun getMe(): UserDto? {
         return ApiClient.authorizedRequest<UserDto>(ApiClient.Method.GET, "users").successOr(null)
     }
+
+    override suspend fun getMeStatSummary(date: DateDto): UserStatSummaryDto? {
+        return ApiClient.authorizedRequest<UserStatSummaryDto>(ApiClient.Method.POST, "users/stat/summary", date).successOr(null)
+    }
 }
