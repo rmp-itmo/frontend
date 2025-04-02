@@ -8,14 +8,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.rmp.R
+import com.rmp.ui.home.BackButton
 import com.rmp.ui.LocalNavController
 import com.rmp.ui.RmpDestinations
 import com.rmp.ui.heart.HomeButton
@@ -47,6 +44,7 @@ import com.rmp.ui.home.SettingButton
 @Composable
 fun AppScreen(
     showTopBar: Boolean = true,
+    showBackButton: Boolean = false,
     showButtons: Boolean = false,
     showButtonHome: Boolean = false,
     openDrawer: () -> Unit = {},
@@ -74,6 +72,7 @@ fun AppScreen(
                 },
                 scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState),
                 navigationIcon = {
+
                     if (showButtons || showButtonHome) {
                         Row(
                             modifier = Modifier.padding(start = 8.dp),
@@ -86,9 +85,17 @@ fun AppScreen(
                             }
                         }
                     }
+                    if (showBackButton) {
+                        Row (
+                            modifier = Modifier.padding(start = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            BackButton()
+                        }
+                    }
                 },
                 actions = {
-                    if (showButtons) {
+                    if (showHomeButtons) {
                         SettingButton()
                         IconButton(
                             onClick = {

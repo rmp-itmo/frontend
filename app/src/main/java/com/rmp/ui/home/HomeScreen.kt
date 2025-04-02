@@ -40,7 +40,7 @@ fun HomeScreen(
     val navigator = LocalNavController.current
 
     AppScreen(
-        showButtons = true,
+        showHomeButtons = true,
         onSignOutClick = onSignOutClick,
         clearTokens = clearTokens
     ) {
@@ -535,5 +535,28 @@ fun FeedButton() {
             contentDescription = (stringResource(R.string.feed)),
             modifier = Modifier.size(32.dp)
         )
+    }
+
+}
+
+@Composable
+fun RowScope.BackButton(
+
+) {
+    val navigator = LocalNavController.current
+    IconButton(
+        onClick = { navigator.navigate(RmpDestinations.HOME_ROUTE) }
+    ) {
+        Column(
+            modifier = Modifier.align(Alignment.CenterVertically)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_grid),
+                contentDescription = (stringResource(R.string.menu)),
+                modifier = Modifier
+                    .size(32.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+        }
     }
 }

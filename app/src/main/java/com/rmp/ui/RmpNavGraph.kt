@@ -28,6 +28,8 @@ import com.rmp.ui.signup.ActivityLevel
 import com.rmp.ui.signup.SignupRoute
 import com.rmp.ui.signup.SignupViewModel
 import com.rmp.ui.signup.WeightTarget
+import com.rmp.ui.sleep.SleepRoute
+import com.rmp.ui.sleep.SleepViewModel
 import com.rmp.ui.water.WaterRoute
 import com.rmp.ui.water.WaterViewModel
 
@@ -147,6 +149,17 @@ fun RmpNavGraph(
                 NutritionRoute(
                     nutritionViewModel = nutritionViewModel,
                     onBackClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
+                )
+            }
+
+            composable(
+                route = RmpDestinations.SLEEP_ROUTE
+            ) { _ ->
+                val sleepViewModel: SleepViewModel = viewModel(
+                    factory = SleepViewModel.factory(appContainer.sleepRepository)
+                )
+                SleepRoute (
+                    sleepViewModel = sleepViewModel,
                 )
             }
         }
