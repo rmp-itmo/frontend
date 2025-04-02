@@ -12,7 +12,6 @@ class DailyHealthWorker(context: Context, params: WorkerParameters) : CoroutineW
         try {
             Log.d("HealthWorker", "Performing daily health sync...")
 
-
             Result.success()
         } catch (e: Exception) {
             Log.e("HealthWorker", "Daily task failed", e)

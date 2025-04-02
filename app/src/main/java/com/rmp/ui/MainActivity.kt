@@ -19,7 +19,6 @@ import com.rmp.services.HealthConnectForegroundService
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 import androidx.core.content.edit
-import androidx.health.connect.client.PermissionController
 
 class MainActivity : ComponentActivity() {
     private val healthConnectPermissions = setOf(
@@ -33,12 +32,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        val appContainer = (application as RmpApplication).container
+
         checkHealthConnectPermissions()
 
         val intent = Intent(this, HealthConnectForegroundService::class.java)
         this.startForegroundService(intent)
-
-        val appContainer = (application as RmpApplication).container
 
         setContent {
             RmpApp(appContainer)
@@ -87,9 +86,21 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             kotlinx.coroutines.delay(500)
+
             val granted = HealthConnectClient.getOrCreate(this@MainActivity)
                 .permissionController.getGrantedPermissions()
+
             Log.d("HealthPermissions", "Permissions after request: $granted")
+
+            if (granted.containsAll(listOf(
+                    "android.permission.health.READ_HEART_RATE",
+                    "android.permission.health.READ_STEPS")
+                )) {
+                Log.d("HealthPermissions", "All permissions granted, starting service")
+                startHealthService()
+            } else {
+                showError("Не все разрешения были предоставлены. Проверьте настройки.")
+            }
         }
     }
 

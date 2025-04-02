@@ -1,5 +1,6 @@
 package com.rmp.ui.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -78,7 +80,8 @@ class HomeViewModel(
                             //calories = 1234 to 2000,
                             calories = userStatSummaryData.caloriesCurrent.roundToInt() to userStatSummaryData.caloriesTarget.roundToInt(),
                             //water = 1.2f to 2f,
-                            water = "%.1f".format(userStatSummaryData.waterCurrent).toFloat() to "%.1f".format(userStatSummaryData.waterTarget).toFloat(),
+                            water = "%.1f".format(Locale.US, userStatSummaryData.waterCurrent).toFloat() to
+                                    "%.1f".format(Locale.US, userStatSummaryData.waterTarget).toFloat(),
                             //steps = 123 to 2399,
                             steps = userStatSummaryData.stepsCurrent to userStatSummaryData.stepsTarget,
                             sleep = "%s ч %s мин".format(userStatSummaryData.sleepHours, userStatSummaryData.sleepMinutes),

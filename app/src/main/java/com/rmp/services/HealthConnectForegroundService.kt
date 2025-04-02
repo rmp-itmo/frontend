@@ -59,7 +59,6 @@ class HealthConnectForegroundService : Service() {
 
         healthConnectClient = HealthConnectClient.getOrCreate(this)
         createNotificationChannel()
-        Log.d("HealthConnect", "Service created")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -67,6 +66,8 @@ class HealthConnectForegroundService : Service() {
             isRunning = true
             startForeground(NOTIFICATION_ID, createNotification())
             startHealthDataCollection()
+
+            Log.d("HealthConnect", "Service started")
         }
         return START_STICKY
     }
