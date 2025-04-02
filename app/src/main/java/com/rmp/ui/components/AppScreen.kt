@@ -34,6 +34,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.rmp.R
 import com.rmp.ui.home.BackButton
+import com.rmp.ui.LocalNavController
+import com.rmp.ui.RmpDestinations
+import com.rmp.ui.heart.HomeButton
 import com.rmp.ui.home.FeedButton
 import com.rmp.ui.home.SettingButton
 
@@ -41,8 +44,9 @@ import com.rmp.ui.home.SettingButton
 @Composable
 fun AppScreen(
     showTopBar: Boolean = true,
-    showHomeButtons: Boolean = false,
     showBackButton: Boolean = false,
+    showButtons: Boolean = false,
+    showButtonHome: Boolean = false,
     openDrawer: () -> Unit = {},
     onSignOutClick: () -> Unit = {},
     clearTokens: () -> Unit = {},
@@ -51,6 +55,7 @@ fun AppScreen(
     val topAppBarState = rememberTopAppBarState()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val navigator = LocalNavController.current
 
     Scaffold(
         topBar = {
@@ -67,12 +72,17 @@ fun AppScreen(
                 },
                 scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState),
                 navigationIcon = {
-                    if (showHomeButtons) {
+
+                    if (showButtons || showButtonHome) {
                         Row(
                             modifier = Modifier.padding(start = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            FeedButton()
+                            if (showButtonHome) {
+                                HomeButton()
+                            } else if (showButtons) {
+                                FeedButton()
+                            }
                         }
                     }
                     if (showBackButton) {

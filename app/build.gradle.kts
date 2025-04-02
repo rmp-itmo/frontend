@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.implementation
 
 plugins {
     alias(libs.plugins.android.application)
@@ -92,6 +93,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.ktx)
@@ -116,6 +118,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.window)
+
+    //health connect
+    implementation(libs.androidx.connect.client)
+    implementation(libs.kotlinx.coroutines.android)
 
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.core)
