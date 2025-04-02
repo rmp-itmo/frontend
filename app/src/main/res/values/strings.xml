@@ -71,7 +71,6 @@
     <string name="achievements">Достижения</string>
     <string name="health">Здоровье</string>
     <string name="calories">Калории</string>
-    <string name="water">Вода</string>
     <string name="steps">Шаги</string>
     <string name="glass_water">Стакан воды</string>
     <string name="settings">Настройки</string>
@@ -98,5 +97,13 @@
     </string>
     <string name="ok">OK</string>
     <string name="learn_more">Подробнее</string>
+
+    <!--  Water Screen   -->
+    <string name="water">Вода</string>
+    <string name="add_water">Добавить воду</string>
+
+    <!-- Nutrition Screen -->
+    <string name="generate_menu">Сгенерировать меню</string>
+    <string name="save_menu">Сохранить меню</string>
 
 </resources>
