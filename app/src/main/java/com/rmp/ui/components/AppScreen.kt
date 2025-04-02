@@ -48,7 +48,9 @@ fun AppScreen(
                         painter = painterResource(R.drawable.healthy_food_icon),
                         contentDescription = "RMP",
                         contentScale = ContentScale.Inside,
-                        modifier = Modifier.width(55.dp).padding(top = 10.dp)
+                        modifier = Modifier
+                            .width(55.dp)
+                            .padding(top = 10.dp)
                     )
                 },
                 scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState),

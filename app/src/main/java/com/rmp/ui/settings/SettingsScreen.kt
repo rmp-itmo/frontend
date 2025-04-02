@@ -25,7 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rmp.R
 import com.rmp.ui.components.AccentImageButton
-import com.rmp.ui.components.AppScreenArct
+import com.rmp.ui.components.AccentImageSecondaryButton
+import com.rmp.ui.components.AppScreenSettings
 import com.rmp.ui.components.Header
 import com.rmp.ui.components.LabelledInput
 import com.rmp.ui.theme.RmpTheme
@@ -33,6 +34,7 @@ import com.rmp.ui.theme.RmpTheme
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
+    onSignOutClick: () -> Unit,
     onNameChange: (String) -> Unit,
     onGenderChange: (Gender) -> Unit,
     onAgeChange: (String) -> Unit,
@@ -44,7 +46,10 @@ fun SettingsScreen(
     onPasswordChange: (String) -> Unit
 ) {
     RmpTheme {
-        AppScreenArct {
+        AppScreenSettings(
+            showTopBar = true,
+            onSignOutClick = onSignOutClick
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -151,23 +156,25 @@ fun SettingsScreen(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(end = 4.dp)
-                                .border(
-                                    width = if (uiState.goal == Goal.LOSE_WEIGHT) 2.dp else 0.dp,
-                                    color = if (uiState.goal == Goal.LOSE_WEIGHT)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        Color.Transparent,
-                                    shape = MaterialTheme.shapes.medium
-                                )
-                                .padding(2.dp)
+                                .padding(end = 1.dp)
+                                .padding(1.dp)
                         ) {
-                            AccentImageButton(
-                                imageRes = R.drawable.weight_lower,
-                                contentDescription = "Похудение",
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                onGoalChange(Goal.LOSE_WEIGHT)
+                            if (uiState.goal == Goal.LOSE_WEIGHT) {
+                                AccentImageButton(
+                                    imageRes = R.drawable.weight_lower,
+                                    contentDescription = "Снижение",
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    onGoalChange(Goal.LOSE_WEIGHT)
+                                }
+                            } else {
+                                AccentImageSecondaryButton(
+                                    imageRes = R.drawable.lose_weight_svg,
+                                    contentDescription = "Снижение",
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    onGoalChange(Goal.LOSE_WEIGHT)
+                                }
                             }
                         }
 
@@ -175,23 +182,25 @@ fun SettingsScreen(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(horizontal = 4.dp)
-                                .border(
-                                    width = if (uiState.goal == Goal.MAINTAIN_WEIGHT) 2.dp else 0.dp,
-                                    color = if (uiState.goal == Goal.MAINTAIN_WEIGHT)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        Color.Transparent,
-                                    shape = MaterialTheme.shapes.medium
-                                )
-                                .padding(2.dp)
+                                .padding(horizontal = 1.dp)
+                                .padding(1.dp)
                         ) {
-                            AccentImageButton(
-                                imageRes = R.drawable.weight_same,
-                                contentDescription = "Поддержка",
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                onGoalChange(Goal.MAINTAIN_WEIGHT)
+                            if (uiState.goal == Goal.MAINTAIN_WEIGHT) {
+                                AccentImageButton(
+                                    imageRes = R.drawable.weight_same,
+                                    contentDescription = "Поддержание",
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    onGoalChange(Goal.MAINTAIN_WEIGHT)
+                                }
+                            } else {
+                                AccentImageSecondaryButton(
+                                    imageRes = R.drawable.weight_same_svg,
+                                    contentDescription = "Поддержание",
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    onGoalChange(Goal.MAINTAIN_WEIGHT)
+                                }
                             }
                         }
 
@@ -199,23 +208,25 @@ fun SettingsScreen(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(start = 4.dp)
-                                .border(
-                                    width = if (uiState.goal == Goal.GAIN_WEIGHT) 2.dp else 0.dp,
-                                    color = if (uiState.goal == Goal.GAIN_WEIGHT)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        Color.Transparent,
-                                    shape = MaterialTheme.shapes.medium
-                                )
-                                .padding(2.dp)
+                                .padding(start = 1.dp)
+                                .padding(1.dp)
                         ) {
-                            AccentImageButton(
-                                imageRes = R.drawable.weight_higher,
-                                contentDescription = "Набор",
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                onGoalChange(Goal.GAIN_WEIGHT)
+                            if (uiState.goal == Goal.GAIN_WEIGHT) {
+                                AccentImageButton(
+                                    imageRes = R.drawable.weight_higher,
+                                    contentDescription = "Набор",
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    onGoalChange(Goal.GAIN_WEIGHT)
+                                }
+                            } else {
+                                AccentImageSecondaryButton(
+                                    imageRes = R.drawable.gain_weight_svg,
+                                    contentDescription = "Набор",
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    onGoalChange(Goal.GAIN_WEIGHT)
+                                }
                             }
                         }
                     }
@@ -274,6 +285,7 @@ fun SettingsScreenPreview() {
         onActivityLevelChange = {},
         onGoalChange = {},
         onEmailChange = {},
-        onPasswordChange = {}
+        onPasswordChange = {},
+        onSignOutClick = {}
     )
 }

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +59,37 @@ fun AccentImageButton(
             text = contentDescription,
             modifier = Modifier.align(Alignment.CenterHorizontally)
                 .scale(0.7f, 0.7f),
+            color = Color(255, 165, 0, 255),
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+@Composable
+fun AccentImageSecondaryButton(
+    imageRes: Int,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    buttonPressed: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+    ) {
+        TextButton(
+            onClick = buttonPressed,
+        ) {
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = contentDescription,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(40.dp)
+            )
+        }
+        Text(
+            text = contentDescription,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+                .scale(0.7f, 0.7f),
+            color = Color(255, 165, 0, 255),
             fontWeight = FontWeight.Bold
         )
     }

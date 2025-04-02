@@ -6,11 +6,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun SettingsRoute(
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
+    onSignOutClick: () -> Unit
 ) {
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-
-    SettingsScreen(
+    SettingsRoute(
         uiState = uiState,
         onNameChange = settingsViewModel::updateName,
         onGenderChange = settingsViewModel::updateGender,
@@ -20,6 +20,35 @@ fun SettingsRoute(
         onActivityLevelChange = settingsViewModel::updateActivityLevel,
         onGoalChange = settingsViewModel::updateGoal,
         onEmailChange = settingsViewModel::updateEmail,
-        onPasswordChange = settingsViewModel::updatePassword
+        onPasswordChange = settingsViewModel::updatePassword,
+        onSignOutClick = onSignOutClick
+    )
+}
+@Composable
+fun SettingsRoute(
+    uiState: SettingsUiState,
+    onNameChange: (String) -> Unit,
+    onGenderChange: (Gender) -> Unit,
+    onAgeChange: (String) -> Unit,
+    onHeightChange: (String) ->Unit,
+    onWeightChange: (String) -> Unit,
+    onActivityLevelChange: (ActivityLevel) ->Unit,
+    onGoalChange: (Goal) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onSignOutClick: () -> Unit
+) {
+    SettingsScreen(
+        uiState = uiState,
+        onNameChange = onNameChange,
+        onGenderChange = onGenderChange,
+        onAgeChange = onAgeChange,
+        onHeightChange = onHeightChange,
+        onWeightChange = onWeightChange,
+        onActivityLevelChange = onActivityLevelChange,
+        onGoalChange = onGoalChange,
+        onEmailChange = onEmailChange,
+        onPasswordChange = onPasswordChange,
+        onSignOutClick = onSignOutClick
     )
 }
