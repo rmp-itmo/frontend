@@ -32,4 +32,43 @@ class NutritionRepoImpl : NutritionRepository {
 
         return response.successOr(null)
     }
+
+    override suspend fun saveGeneratedMenu(date: SaveMenuRequest): SaveMenuResponse? {
+        val response = ApiClient.authorizedRequest<SaveMenuResponse>(
+            ApiClient.Method.POST,
+            "/users/menu",
+            date
+        )
+
+        return response.successOr(null)
+    }
+
+    override suspend fun getMenu(): GetMenuResponse? {
+        val response = ApiClient.authorizedRequest<GetMenuResponse>(
+            ApiClient.Method.GET,
+            "/users/menu"
+        )
+
+        return response.successOr(null)
+    }
+
+    override suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): SwitchDishCheckboxResponse? {
+        val response = ApiClient.authorizedRequest<SwitchDishCheckboxResponse>(
+            ApiClient.Method.POST,
+            "/users/log/dish",
+            date
+        )
+
+        return response.successOr(null)
+    }
+
+    override suspend fun removeMenuItem(menuItemId: Int): RemoveMenuItemResponse? {
+        val response = ApiClient.authorizedRequest<RemoveMenuItemResponse>(
+            ApiClient.Method.DELETE,
+            "/users/menu",
+            menuItemId
+        )
+
+        return response.successOr(null)
+    }
 }

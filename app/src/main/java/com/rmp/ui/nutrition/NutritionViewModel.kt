@@ -6,13 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rmp.data.AppContainer
-import com.rmp.data.repository.nutrition.Meal
 import com.rmp.data.repository.nutrition.GeneratedMenuRequest
+import com.rmp.data.repository.nutrition.GeneratedMenuResponse
+import com.rmp.data.repository.nutrition.GetMeal
 import com.rmp.data.repository.nutrition.IdealParams
 import com.rmp.data.repository.nutrition.MealRequest
 import com.rmp.data.repository.nutrition.NutritionDailyRecord
 import com.rmp.data.repository.nutrition.NutritionStatRequest
 import com.rmp.data.repository.nutrition.Params
+import com.rmp.data.repository.nutrition.SaveMenuMeal
+import com.rmp.data.repository.nutrition.SaveMenuRequest
+import com.rmp.data.repository.nutrition.SwitchDishCheckboxRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -29,7 +33,7 @@ interface NutritionUiState {
     val currentAmount: Float
     val dailyGoal: Float
     val nutritionRecords: List<NutritionDailyRecord>
-    val meals: List<Meal>
+    val meals: List<GetMeal>
     val params: Params
     val idealParams: IdealParams
     val errorMessage: String?
@@ -52,7 +56,7 @@ private class NutritionViewModelState(
     override val currentAmount: Float = 0f,
     override val dailyGoal: Float = 2000f,
     override val nutritionRecords: List<NutritionDailyRecord> = emptyList(),
-    override val meals: List<Meal> = emptyList(),
+    override val meals: List<GetMeal> = emptyList(),
     override val params: Params = Params(),
     override val idealParams: IdealParams = IdealParams(),
     override val errorMessage: String? = null
@@ -63,7 +67,7 @@ private class NutritionViewModelState(
         currentAmount: Float = this.currentAmount,
         dailyGoal: Float = this.dailyGoal,
         nutritionRecords: List<NutritionDailyRecord> = this.nutritionRecords,
-        meals: List<Meal> = this.meals,
+        meals: List<GetMeal> = this.meals,
         params: Params = this.params,
         idealParams: IdealParams = this.idealParams,
         errorMessage: String? = this.errorMessage
@@ -155,36 +159,79 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    fun addNutritionRecord(amount: Int) {
+    fun switchDishCheckbox(mealId: Int, dishId: Int, menuItemId: Int, check: Boolean) {
         viewModelScope.launch {
             try {
-                val currentDate = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
-                val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-                val volumeInLiters = amount / 1000.0
+                val date = SwitchDishCheckboxRequest(menuItemId, check)
 
-                val response = container.nutritionRepository.logNutrition(
-                    NutritionDailyRecord(
-                        date = currentDate.toInt(),
-                        time = currentTime,
-                        volume = volumeInLiters.toFloat()
-                    )
+                Log.d("SwitchDishCheckbox", SwitchDishCheckboxRequest(
+                    menuItemId,
+                    check
+                ).toString()
                 )
 
+                val response = container.nutritionRepository.switchDishCheckbox(date)
+
                 if (response != null) {
+                    val updatedMeals = viewModelState.value.meals.toMutableList()
+                    val meal = updatedMeals[mealId]
+                    val updatedMeal = meal.copy(
+                        dishes = meal.dishes.toMutableList().apply {
+                            val updatedDish = this[dishId].copy(checked = check)
+                            this[dishId] = updatedDish
+                        }
+                    )
+                    updatedMeals[mealId] = updatedMeal
                     updateState(
                         viewModelState.value.copy(
-                            currentAmount = (viewModelState.value.currentAmount + amount/1000f),
-                            nutritionRecords = viewModelState.value.nutritionRecords +
-                                    NutritionDailyRecord(currentDate.toInt(), currentTime,
-                                        amount.toFloat()
-                                    ),
+                            meals = updatedMeals,
+                            currentAmount = response.calories,
                             errorMessage = null
                         )
                     )
                 } else {
                     updateState(
                         viewModelState.value.copy(
-                            errorMessage = "Failed to log nutrition"
+                            errorMessage = "Bad menu item switch"
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                updateState(
+                    viewModelState.value.copy(
+                        errorMessage = "Network error"
+                    )
+                )
+            }
+        }
+    }
+
+    fun removeMenuItem(mealId: Int, dishId: Int, menuItemId: Int) {
+        viewModelScope.launch {
+            try {
+                val response = container.nutritionRepository.removeMenuItem(menuItemId)
+
+                if (response != null) {
+                    val updatedMeals = viewModelState.value.meals.toMutableList()
+                    val meal = updatedMeals[mealId]
+                    val updatedMeal = meal.copy(
+                        dishes = meal.dishes.toMutableList().apply {
+                            removeAt(dishId)
+                        }
+                    )
+                    updatedMeals[mealId] = updatedMeal
+
+                    updateState(
+                        viewModelState.value.copy(
+                            meals = updatedMeals,
+                            currentAmount = response.calories,
+                            errorMessage = null
+                        )
+                    )
+                } else {
+                    updateState(
+                        viewModelState.value.copy(
+                            errorMessage = "Вad menu item removal"
                         )
                     )
                 }
@@ -207,6 +254,12 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
                     MealRequest(name = "Ужин", size = 0.3, type = 3)
                 )
 
+                Log.d("GeneratedMenuRequest", GeneratedMenuRequest(
+                    calories,
+                    meals
+                ).toString()
+                )
+
                 val response = container.nutritionRepository.getGeneratedMenu(
                     GeneratedMenuRequest(
                         calories,
@@ -216,19 +269,97 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
 
                 if (response != null) {
                     Log.d("GenerateMenu", response.toString())
-                    updateState(
-                        viewModelState.value.copy(
-                            meals = response.meals,
-                            params = response.params,
-                            idealParams = response.idealParams,
-                            errorMessage = null
-                        )
-                    )
-
+                    saveGeneratedMenu(response)
                 } else {
                     updateState(
                         viewModelState.value.copy(
                             errorMessage = "Failed to generate menu"
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                updateState(
+                    viewModelState.value.copy(
+                        errorMessage = "Network error"
+                    )
+                )
+            }
+        }
+    }
+
+    private fun saveGeneratedMenu(generatedMenu: GeneratedMenuResponse) {
+        viewModelScope.launch {
+            try {
+                val true_meals: List<SaveMenuMeal> = generatedMenu.meals.map { meal ->
+                    SaveMenuMeal(
+                        name = meal.name,
+                        dishes = meal.dishes.map { dish -> dish.id }
+                    )
+                }
+
+                val meals: List<SaveMenuMeal> = listOf(
+                    SaveMenuMeal(name = "Завтрак", dishes = listOf(12, 25)),
+                    SaveMenuMeal(name = "Обед", dishes = listOf(63, 99)),
+                    SaveMenuMeal(name = "Ужин", dishes = listOf(119, 152)),
+                )
+
+                Log.d("SaveMenuRequest", SaveMenuRequest(
+                    true_meals,
+                    generatedMenu.params
+                ).toString()
+                )
+
+                Log.d("SaveMenuRequest", SaveMenuRequest(
+                    meals,
+                    generatedMenu.params
+                ).toString()
+                )
+
+                val response = container.nutritionRepository.saveGeneratedMenu(
+                    SaveMenuRequest(
+                        meals,
+                        generatedMenu.params
+                    )
+                )
+
+                if (response != null) {
+                    Log.d("SaveMenu", response.toString())
+                    getMenu()
+                } else {
+                    updateState(
+                        viewModelState.value.copy(
+                            errorMessage = "Failed to save menu"
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                updateState(
+                    viewModelState.value.copy(
+                        errorMessage = "Network error"
+                    )
+                )
+            }
+        }
+    }
+
+    private fun getMenu() {
+        viewModelScope.launch {
+            try {
+                val response = container.nutritionRepository.getMenu()
+
+                if (response != null) {
+                    Log.d("GetMenu", response.toString())
+                    updateState(
+                        viewModelState.value.copy(
+                            meals = response.meals,
+                            params = response.params,
+                            errorMessage = null
+                        )
+                    )
+                } else {
+                    updateState(
+                        viewModelState.value.copy(
+                            errorMessage = "Failed to get menu"
                         )
                     )
                 }

@@ -1,5 +1,6 @@
 package com.rmp.data.repository.nutrition
 
+import com.rmp.ui.signup.StateDescription
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -29,6 +30,71 @@ data class NutritionDailyRecord(
 )
 
 @Serializable
+data class SwitchDishCheckboxRequest(
+    val menuItemId: Int,
+    val check: Boolean
+)
+
+@Serializable
+data class SwitchDishCheckboxResponse(
+    val calories: Float
+)
+
+@Serializable
+data class RemoveMenuItemResponse(
+    val calories: Float,
+)
+
+@Serializable
+data class SaveMenuRequest(
+    val meals: List<SaveMenuMeal>,
+    val params: Params
+)
+
+@Serializable
+data class SaveMenuMeal(
+    val name: String,
+    val dishes: List<Int>
+)
+
+@Serializable
+data class SaveMenuResponse(
+    val success: Boolean,
+    val data: String
+)
+
+@Serializable
+data class GetMenuResponse(
+    val meals: List<GetMeal>,
+    val params: Params
+)
+
+@Serializable
+data class GetMeal(
+    val mealId: Long,
+    val name: String,
+    val dishes: List<GetDish>,
+    val params: Params
+)
+
+@Serializable
+data class GetDish(
+    val id: Int,
+    val name: String,
+    val description: String,
+    val imageUrl: String?,
+    val portionsCount: Int,
+    val calories: Double,
+    val protein: Double,
+    val fat: Double,
+    val carbohydrates: Double,
+    val timeToCook: Int,
+    val typeId: Int,
+    val menuItemId: Int,
+    val checked: Boolean
+)
+
+@Serializable
 data class GeneratedMenuRequest(
     val calories: Int,
     val meals: List<MealRequest>
@@ -43,24 +109,24 @@ data class MealRequest(
 
 @Serializable
 data class GeneratedMenuResponse(
-    val meals: List<Meal>,
+    val meals: List<GeneratedMeal>,
     val params: Params,
     val idealParams: IdealParams
 )
 
 @Serializable
-data class Meal(
+data class GeneratedMeal(
     val name: String,
-    val dishes: List<Dish>,
+    val dishes: List<GeneratedDish>,
     val params: Params,
     val idealParams: Params
 )
 
 @Serializable
-data class Dish(
+data class GeneratedDish(
     val id: Int,
     val name: String,
-    val logo: String,
+    val logo: String?,
     val calories: Double,
     val protein: Double,
     val fat: Double,
@@ -88,15 +154,12 @@ data class IdealParams(
     val maxCarbohydrates: Double = 0.0
 )
 
-data class NutritionItem(
-    val mainText: String,
-    val value1: String,
-    val value2: String,
-    val value3: String
-)
-
 interface NutritionRepository {
     suspend fun logNutrition(nutritionLog: NutritionDailyRecord): NutritionLogResponse?
     suspend fun getDailyNutritionStats(date: NutritionStatRequest): NutritionStatResponse?
     suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenuResponse?
+    suspend fun saveGeneratedMenu(date: SaveMenuRequest): SaveMenuResponse?
+    suspend fun getMenu(): GetMenuResponse?
+    suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): SwitchDishCheckboxResponse?
+    suspend fun removeMenuItem(menuItemId: Int): RemoveMenuItemResponse?
 }

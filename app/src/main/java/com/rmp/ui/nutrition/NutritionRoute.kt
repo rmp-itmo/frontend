@@ -1,6 +1,5 @@
 package com.rmp.ui.nutrition
 
-import android.util.Log //TODO временно, потом убрать
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +26,8 @@ fun NutritionRoute(
         NutritionScreen(
             uiState = uiState,
             onBackClick = onBackClick,
-            onSaveMenu = { Log.d("SaveMenu", "Сохранить меню!!!!!!") },
-            onAddNutrition = { amount -> nutritionViewModel.addNutritionRecord(amount) },
+            onSwitchDishCheckbox = nutritionViewModel::switchDishCheckbox,
+            onRemoveItem = nutritionViewModel::removeMenuItem,
             onCalendarClick = { showHistory = true },
             firstEntrance = firstEntrance,
             onGenerateMenu = {
