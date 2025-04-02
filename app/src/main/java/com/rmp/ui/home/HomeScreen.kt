@@ -40,7 +40,7 @@ fun HomeScreen(
     val navigator = LocalNavController.current
 
     AppScreen(
-        showHomeButtons = true,
+        showButtonHome = true,
         onSignOutClick = onSignOutClick,
         clearTokens = clearTokens
     ) {

@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import com.rmp.R
 import com.rmp.ui.home.BackButton
 import com.rmp.ui.LocalNavController
-import com.rmp.ui.RmpDestinations
 import com.rmp.ui.heart.HomeButton
 import com.rmp.ui.home.FeedButton
 import com.rmp.ui.home.SettingButton
@@ -95,7 +94,7 @@ fun AppScreen(
                     }
                 },
                 actions = {
-                    if (showHomeButtons) {
+                    if (showButtonHome) {
                         SettingButton()
                         IconButton(
                             onClick = {
