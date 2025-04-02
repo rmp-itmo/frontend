@@ -2,6 +2,8 @@ package com.rmp.data
 
 import android.content.Context
 import com.rmp.data.database.AppDatabase
+import com.rmp.data.repository.heart.HeartRepoImpl
+import com.rmp.data.repository.heart.HeartRepository
 import com.rmp.data.repository.signup.UserRepoImpl
 import com.rmp.data.repository.signup.UserRepository
 
@@ -11,6 +13,7 @@ import com.rmp.data.repository.signup.UserRepository
 interface AppContainer {
     val userRepository: UserRepository
     val database: AppDatabase
+    val heartRepository: HeartRepository
 }
 
 public var ApplicationDatabase: AppDatabase? = null
@@ -28,5 +31,9 @@ class AppContainerImpl(private val applicationContext: Context, database: AppDat
 
     override val database: AppDatabase by lazy {
         database
+    }
+
+    override val heartRepository: HeartRepository by lazy {
+        HeartRepoImpl()
     }
 }

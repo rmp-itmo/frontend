@@ -4,12 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import com.rmp.data.AppContainer
 import com.rmp.ui.theme.RmpTheme
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 
 
 @Composable
 fun RmpApp(
-    appContainer: AppContainer,
+    appContainer: AppContainer
 ) {
     RmpTheme {
         val navController = rememberNavController()

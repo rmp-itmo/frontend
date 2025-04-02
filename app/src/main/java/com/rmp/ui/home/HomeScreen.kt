@@ -1,16 +1,17 @@
 package com.rmp.ui.home
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -25,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import com.rmp.R
 import com.rmp.ui.LocalNavController
 import com.rmp.ui.RmpDestinations
-import com.rmp.ui.components.AccentButton
 import com.rmp.ui.components.AppScreen
 import com.rmp.ui.components.SpinningCirclesLoader
 import kotlin.math.roundToInt
@@ -147,11 +147,15 @@ fun ImageCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val shape = RoundedCornerShape(20.dp)
+
     Card(
         modifier = modifier
             .aspectRatio(1f)
             .height(160.dp)
+            .clip(shape)
             .clickable { onClick() },
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -260,6 +264,7 @@ fun HealthCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -428,11 +433,15 @@ fun WaterCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val shape = RoundedCornerShape(20.dp)
+
     Card(
         modifier = modifier
             .aspectRatio(1f)
             .height(160.dp)
+            .clip(shape)
             .clickable { onClick() },
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -442,7 +451,7 @@ fun WaterCard(
                 .padding(16.dp)
         ) {
             Text(
-                text = (stringResource(R.string.water)),
+                text = stringResource(R.string.water),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -476,6 +485,7 @@ fun WaterCard(
         }
     }
 }
+
 
 @Composable
 fun WaterGlass(isFilled: Boolean) {

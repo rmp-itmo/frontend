@@ -8,7 +8,6 @@ import com.rmp.R
 import com.rmp.data.ErrorMessage
 import com.rmp.data.repository.signup.CreateUserDto
 import com.rmp.data.repository.signup.UserRepository
-import com.rmp.ui.login.isValidEmail
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
