@@ -14,6 +14,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.rmp.R
 import com.rmp.data.AppContainer
+import com.rmp.ui.heart.HeartRoute
+import com.rmp.ui.heart.HeartViewModel
 import com.rmp.ui.hello.HelloRoute
 import com.rmp.ui.hello.HelloViewModel
 import com.rmp.ui.home.HomeRoute
@@ -116,6 +118,16 @@ fun RmpNavGraph(
                 )
             }
             composable(
+                route = RmpDestinations.HEART_ROUTE,
+            ) { _ ->
+                val heartViewModel: HeartViewModel = viewModel(
+                    factory = HeartViewModel.factory(appContainer)
+                )
+                HeartRoute(
+                    heartViewModel = heartViewModel
+                )
+            }
+            composable(
                 route = RmpDestinations.WATER_ROUTE,
             ) { _ ->
                 val waterViewModel: WaterViewModel = viewModel(
@@ -126,7 +138,7 @@ fun RmpNavGraph(
                     onBackClick = { navController.navigate(RmpDestinations.HOME_ROUTE) }
                 ) 
             }
-           composable(
+            composable(
                 route = RmpDestinations.NUTRITION_ROUTE,
             ) { _ ->
                 val nutritionViewModel: NutritionViewModel = viewModel(
