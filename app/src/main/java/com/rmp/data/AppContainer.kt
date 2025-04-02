@@ -2,6 +2,8 @@ package com.rmp.data
 
 import android.content.Context
 import com.rmp.data.database.AppDatabase
+import com.rmp.data.repository.nutrition.NutritionRepoImpl
+import com.rmp.data.repository.nutrition.NutritionRepository
 import com.rmp.data.repository.signup.UserRepoImpl
 import com.rmp.data.repository.signup.UserRepository
 import com.rmp.data.repository.water.WaterRepoImpl
@@ -14,6 +16,7 @@ interface AppContainer {
     val userRepository: UserRepository
     val database: AppDatabase
     val waterRepository: WaterRepository
+    val nutritionRepository: NutritionRepository
 }
 
 public var ApplicationDatabase: AppDatabase? = null
@@ -34,5 +37,8 @@ class AppContainerImpl(private val applicationContext: Context, database: AppDat
     }
     override val waterRepository: WaterRepository by lazy {
         WaterRepoImpl()
+
+    override val nutritionRepository: NutritionRepository by lazy {
+        NutritionRepoImpl()
     }
 }
