@@ -26,6 +26,8 @@ import com.rmp.ui.signup.ActivityLevel
 import com.rmp.ui.signup.SignupRoute
 import com.rmp.ui.signup.SignupViewModel
 import com.rmp.ui.signup.WeightTarget
+import com.rmp.ui.water.WaterRoute
+import com.rmp.ui.water.WaterViewModel
 
 val LocalNavController = compositionLocalOf<NavHostController> { error("NavController not found") }
 
@@ -114,6 +116,17 @@ fun RmpNavGraph(
                 )
             }
             composable(
+                route = RmpDestinations.WATER_ROUTE,
+            ) { _ ->
+                val waterViewModel: WaterViewModel = viewModel(
+                    factory = WaterViewModel.factory(appContainer)
+                )
+                WaterRoute(
+                    waterViewModel = waterViewModel,
+                    onBackClick = { navController.navigate(RmpDestinations.HOME_ROUTE) }
+                ) 
+            }
+           composable(
                 route = RmpDestinations.NUTRITION_ROUTE,
             ) { _ ->
                 val nutritionViewModel: NutritionViewModel = viewModel(
