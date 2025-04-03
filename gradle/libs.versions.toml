@@ -4,6 +4,8 @@
 #####
 [versions]
 accompanist = "0.37.0"
+accompanistSwiperefresh = "0.31.1-alpha"
+accompanistSwiperefreshVersion = "0.32.0"
 androidGradlePlugin = "8.9.1"
 androidx-activity-compose = "1.10.0"
 androidx-appcompat = "1.7.0"
@@ -70,6 +72,8 @@ workRuntimeKtx = "2.10.0"
 [libraries]
 accompanist-adaptive = { module = "com.google.accompanist:accompanist-adaptive", version.ref = "accompanist" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
+accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
+accompanist-swiperefresh-v0320 = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefreshVersion" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidx-activity-compose" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }

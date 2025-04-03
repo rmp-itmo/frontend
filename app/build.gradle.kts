@@ -123,6 +123,9 @@ dependencies {
     implementation(libs.androidx.connect.client)
     implementation(libs.kotlinx.coroutines.android)
 
+
+    implementation(libs.accompanist.swiperefresh.v0320)
+
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.runner)

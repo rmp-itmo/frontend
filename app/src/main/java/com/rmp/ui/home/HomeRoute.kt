@@ -20,12 +20,14 @@ fun HomeRoute(
 
     HomeRoute(
         uiState = uiState,
+        onRefresh = homeViewModel::fetchUserStatSummary
     )
 }
 
 @Composable
 fun HomeRoute(
     uiState: HomeUiState,
+    onRefresh: () -> Unit,
 ) {
-    HomeScreen(uiState)
+    HomeScreen(uiState, onRefresh)
 }

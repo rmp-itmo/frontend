@@ -55,7 +55,7 @@ class HomeViewModel(
         }
     }
 
-    private fun fetchUserStatSummary() {
+    fun fetchUserStatSummary() {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(isLoading = true)

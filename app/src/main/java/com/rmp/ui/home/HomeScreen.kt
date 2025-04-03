@@ -5,13 +5,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -23,11 +26,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rmp.R
 import com.rmp.ui.LocalNavController
 import com.rmp.ui.RmpDestinations
 import com.rmp.ui.components.AppScreen
-import com.rmp.ui.components.SpinningCirclesLoader
 import com.rmp.ui.components.buttons.FeedButton
 import com.rmp.ui.components.buttons.SettingButton
 import kotlin.math.roundToInt
@@ -35,30 +39,26 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    onRefresh: () -> Unit,
+
 ) {
-    val context = LocalContext.current
     val navigator = LocalNavController.current
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isLoading)
 
-    AppScreen(
-        leftComposable = { SettingButton() },
-        rightComposable = { FeedButton() }
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = onRefresh,
+        modifier = Modifier.fillMaxSize()
     ) {
-        if (uiState.isLoading) {
-            SpinningCirclesLoader()
-        } else {
-            if (uiState.errors.isNotEmpty()) {
-                Toast.makeText(
-                    context,
-                    stringResource(R.string.error),
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@AppScreen
-            }
-
+        AppScreen(
+            leftComposable = { SettingButton() },
+            rightComposable = { FeedButton() }
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -70,7 +70,6 @@ fun HomeScreen(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -79,31 +78,32 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        ImageCard(
-                            title = (stringResource(R.string.sleep)),
-                            value = uiState.healthData.sleep ?: stringResource(R.string.no_data),
+                        HomeItemCard(
+                            title = R.string.sleep,
+                            value = uiState.healthData.sleep
+                                ?: stringResource(R.string.no_data),
                             imageRes = R.drawable.ic_sleep,
-                            modifier = Modifier.weight(1f),
                             onClick = { navigator.navigate(RmpDestinations.SLEEP_ROUTE) }
                         )
-                        ImageCard(
-                            title = (stringResource(R.string.heart)),
-                            value = if (uiState.healthData.heartRate != "") uiState.healthData.heartRate +  " " + stringResource(R.string.heart_min) else "",
+                        HomeItemCard(
+                            title = R.string.heart,
+                            value = if (uiState.healthData.heartRate != "") uiState.healthData.heartRate + " " + stringResource(
+                                R.string.heart_min
+                            ) else "",
                             imageRes = R.drawable.ic_heart,
-                            modifier = Modifier.weight(1f),
                             onClick = { navigator.navigate(RmpDestinations.HEART_ROUTE) }
                         )
                     }
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        ImageCard(
-                            title = (stringResource(R.string.nutrition)),
-                            value = (if (uiState.healthData.nutrition != null) uiState.healthData.nutrition + " " + stringResource(R.string.nutrition_unit) else stringResource(R.string.no_data)),
+                        HomeItemCard(
+                            title = R.string.nutrition,
+                            value = (if (uiState.healthData.nutrition != null) uiState.healthData.nutrition + " " + stringResource(
+                                R.string.nutrition_unit
+                            ) else stringResource(R.string.no_data)),
                             imageRes = R.drawable.ic_nutrition,
-                            modifier = Modifier.weight(1f),
                             onClick = { navigator.navigate(RmpDestinations.NUTRITION_ROUTE) }
                         )
                         WaterCard(
@@ -112,23 +112,18 @@ fun HomeScreen(
                             onClick = { navigator.navigate(RmpDestinations.WATER_ROUTE) }
                         )
                     }
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        ImageCard(
-                            title = (stringResource(R.string.workout)),
-                            value = "",
+                        HomeItemCard(
+                            title = R.string.workout,
                             imageRes = R.drawable.ic_workout,
-                            modifier = Modifier.weight(1f),
                             onClick = { navigator.navigate(RmpDestinations.TRAIN_ROUTE) }
                         )
-                        ImageCard(
-                            title = (stringResource(R.string.achievements)),
-                            value = "",
+                        HomeItemCard(
+                            title = R.string.achievements,
                             imageRes = R.drawable.ic_achievements,
-                            modifier = Modifier.weight(1f),
                             onClick = { navigator.navigate(RmpDestinations.ACHIEVEMENT_ROUTE) }
                         )
                     }
@@ -434,7 +429,7 @@ fun WaterCard(
 ) {
     val shape = RoundedCornerShape(20.dp)
 
-    Card(
+    ElevatedCard (
         modifier = modifier
             .aspectRatio(1f)
             .height(160.dp)
@@ -499,4 +494,20 @@ fun WaterGlass(isFilled: Boolean) {
             modifier = Modifier.size(30.dp)
         )
     }
+}
+
+@Composable
+fun RowScope.HomeItemCard(
+    value: String = "",
+    imageRes: Int,
+    onClick: () -> Unit,
+    title: Int
+) {
+    ImageCard(
+        title = (stringResource(title)),
+        value = value,
+        imageRes = imageRes,
+        modifier = Modifier.weight(1f).shadow(4.dp, RoundedCornerShape(20.dp)),
+        onClick = onClick
+    )
 }
