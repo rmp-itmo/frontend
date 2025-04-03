@@ -33,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rmp.ui.LocalNavController
 import com.rmp.ui.RmpDestinations
+import com.rmp.ui.components.buttons.BackButton
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -45,8 +46,7 @@ fun HeartScreen(
     val uiState by heartViewModel.uiState.collectAsStateWithLifecycle()
 
     AppScreen(
-        showButtons = false,
-        showButtonHome = true
+        leftComposable = { BackButton() }
     ) {
         Column(
             modifier = Modifier
@@ -72,7 +72,7 @@ fun HeartScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             var lastHeartValue = 0F
-            if (!uiState.heartData.chartPoints.isEmpty()) {
+            if (uiState.heartData.chartPoints.isNotEmpty()) {
                 lastHeartValue = uiState.heartData.chartPoints.last().second
             }
             HeartRateChart(lastHeartValue.roundToInt(), uiState.heartData.chartPoints)
@@ -386,23 +386,5 @@ private fun HeartStatItem(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun HomeButton() {
-    val navigator = LocalNavController.current
-
-    IconButton(
-        onClick = { navigator.navigate(RmpDestinations.HOME_ROUTE) },
-        modifier = Modifier
-            .wrapContentSize()
-            .padding(start = 24.dp, top = 16.dp)
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_home),
-            contentDescription = (stringResource(R.string.home)),
-            modifier = Modifier.size(22.dp)
-        )
     }
 }

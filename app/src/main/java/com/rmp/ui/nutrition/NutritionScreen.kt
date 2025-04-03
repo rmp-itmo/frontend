@@ -20,18 +20,22 @@ import com.rmp.data.repository.nutrition.Dish
 import com.rmp.data.repository.nutrition.Meal
 import com.rmp.ui.components.AccentButton
 import com.rmp.ui.components.AppScreen
+import com.rmp.ui.components.buttons.BackButton
+import com.rmp.ui.components.buttons.CalendarButton
 
 @Composable
 fun NutritionScreen(
     uiState: NutritionUiState,
-    onBackClick: () -> Unit,
     onSaveMenu: () -> Unit,
     onAddNutrition: (Int) -> Unit,
     onCalendarClick: () -> Unit,
     firstEntrance: Boolean,
     onGenerateMenu: () -> Unit
 ) {
-    AppScreen {
+    AppScreen(
+        leftComposable = { BackButton() },
+        rightComposable = { CalendarButton(onCalendarClick) }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -41,9 +45,7 @@ fun NutritionScreen(
         ) {
             NutritionHeader(
                 currentAmount = uiState.currentAmount,
-                dailyGoal = uiState.dailyGoal,
-                onBackClick = onBackClick,
-                onCalendarClick = onCalendarClick
+                dailyGoal = uiState.dailyGoal
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -84,22 +86,13 @@ fun NutritionScreen(
 @Composable
 private fun NutritionHeader(
     currentAmount: Float,
-    dailyGoal: Float,
-    onBackClick: () -> Unit,
-    onCalendarClick: () -> Unit
+    dailyGoal: Float
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_grid),
-                contentDescription = "Back"
-            )
-        }
-
         Text(
             text = "Питание",
             fontSize = 20.sp,
@@ -110,13 +103,6 @@ private fun NutritionHeader(
             text = "%.1f ккал / %.1f ккал".format(currentAmount, dailyGoal),
             fontSize = 16.sp
         )
-
-        IconButton(onClick = onCalendarClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_calendar),
-                contentDescription = "Calendar"
-            )
-        }
     }
 }
 

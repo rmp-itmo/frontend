@@ -116,7 +116,6 @@ fun RmpNavGraph(
                 )
                 HomeRoute(
                     homeViewModel = homeViewModel,
-                    onSignOutClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
                 )
             }
             composable(
@@ -137,7 +136,6 @@ fun RmpNavGraph(
                 )
                 WaterRoute(
                     waterViewModel = waterViewModel,
-                    onBackClick = { navController.navigate(RmpDestinations.HOME_ROUTE) }
                 ) 
             }
             composable(
@@ -147,8 +145,7 @@ fun RmpNavGraph(
                     factory = NutritionViewModel.factory(appContainer)
                 )
                 NutritionRoute(
-                    nutritionViewModel = nutritionViewModel,
-                    onBackClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
+                    nutritionViewModel = nutritionViewModel
                 )
             }
 

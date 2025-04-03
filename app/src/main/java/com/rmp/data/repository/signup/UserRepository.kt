@@ -51,7 +51,7 @@ data class UserStatSummaryDto(
 
 @Serializable
 data class DateDto(
-    val date: String
+    val date: Int
 )
 
 interface UserRepository {

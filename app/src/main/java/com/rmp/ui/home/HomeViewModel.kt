@@ -1,6 +1,5 @@
 package com.rmp.ui.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -35,7 +34,6 @@ data class HealthData(
 
 data class HomeUiState(
     val isLoading: Boolean = false,
-    val userName: String = "",
     val healthData: HealthData = HealthData(),
     val errors: List<ErrorMessage> = emptyList()
 )
@@ -53,7 +51,6 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            fetchUserData()
             fetchUserStatSummary()
         }
     }
@@ -63,8 +60,7 @@ class HomeViewModel(
             _uiState.update {
                 it.copy(isLoading = true)
             }
-
-            val userStatSummaryData = async { userRepository.getMeStatSummary(DateDto(getCurrentDateFormatted())) }.await()
+            val userStatSummaryData = async { userRepository.getMeStatSummary(DateDto(getCurrentDateFormatted().toInt())) }.await()
 
             if (userStatSummaryData == null) {
                 _uiState.update {
@@ -88,32 +84,6 @@ class HomeViewModel(
                             heartRate = if (userStatSummaryData.heartRate != null && userStatSummaryData.heartRate > 0) userStatSummaryData.heartRate.toString() else "",
                             nutrition = userStatSummaryData.caloriesCurrent.roundToInt().toString()
                         ),
-                        isLoading = false
-                    )
-                }
-            }
-        }
-    }
-
-    private fun fetchUserData() {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(isLoading = true)
-            }
-
-            val userData = async { userRepository.getMe() }.await()
-
-            if (userData == null) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errors = listOf(ErrorMessage(null, R.string.error_load_data))
-                    )
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        userName = userData.name,
                         isLoading = false
                     )
                 }

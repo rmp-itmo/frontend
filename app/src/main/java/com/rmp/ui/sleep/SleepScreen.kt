@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import com.rmp.R
 import com.rmp.data.repository.sleep.SleepResponseDto
 import com.rmp.ui.components.AppScreen
+import com.rmp.ui.components.buttons.BackButton
 
 @Composable
 fun SleepScreen(
@@ -74,7 +75,7 @@ fun SleepScreen(
     )
 
     AppScreen(
-        showBackButton = true
+        leftComposable = { BackButton() }
     ) {
         Column(
             modifier = Modifier

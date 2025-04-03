@@ -28,21 +28,20 @@ import com.rmp.ui.LocalNavController
 import com.rmp.ui.RmpDestinations
 import com.rmp.ui.components.AppScreen
 import com.rmp.ui.components.SpinningCirclesLoader
+import com.rmp.ui.components.buttons.FeedButton
+import com.rmp.ui.components.buttons.SettingButton
 import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
-    onSignOutClick: () -> Unit,
-    clearTokens: () -> Unit
 ) {
     val context = LocalContext.current
     val navigator = LocalNavController.current
 
     AppScreen(
-        showButtonHome = true,
-        onSignOutClick = onSignOutClick,
-        clearTokens = clearTokens
+        leftComposable = { SettingButton() },
+        rightComposable = { FeedButton() }
     ) {
         if (uiState.isLoading) {
             SpinningCirclesLoader()
@@ -262,11 +261,11 @@ fun HealthCard(
     modifier: Modifier = Modifier,
     uiState: HomeUiState
 ) {
-    Card(
+    ElevatedCard(
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -499,64 +498,5 @@ fun WaterGlass(isFilled: Boolean) {
             tint = if (isFilled) colorResource(R.color.blue) else colorResource(R.color.black),
             modifier = Modifier.size(30.dp)
         )
-    }
-}
-
-@Composable
-fun SettingButton() {
-    val navigator = LocalNavController.current
-
-    IconButton(
-        onClick = { navigator.navigate(RmpDestinations.SETTINGS_ROUTE) },
-        modifier = Modifier
-            .wrapContentSize()
-            .padding(end = 8.dp, top = 16.dp)
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_settings),
-            contentDescription = (stringResource(R.string.settings)),
-            modifier = Modifier.size(28.dp)
-        )
-    }
-}
-
-@Composable
-fun FeedButton() {
-    val navigator = LocalNavController.current
-
-    IconButton(
-        onClick = { navigator.navigate(RmpDestinations.FEED_ROUTE) },
-        modifier = Modifier
-            .wrapContentSize()
-            .padding(start = 24.dp, top = 16.dp)
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_feed),
-            contentDescription = (stringResource(R.string.feed)),
-            modifier = Modifier.size(32.dp)
-        )
-    }
-
-}
-
-@Composable
-fun RowScope.BackButton(
-
-) {
-    val navigator = LocalNavController.current
-    IconButton(
-        onClick = { navigator.navigate(RmpDestinations.HOME_ROUTE) }
-    ) {
-        Column(
-            modifier = Modifier.align(Alignment.CenterVertically)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_grid),
-                contentDescription = (stringResource(R.string.menu)),
-                modifier = Modifier
-                    .size(32.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
-        }
     }
 }

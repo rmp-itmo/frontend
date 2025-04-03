@@ -11,7 +11,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun NutritionRoute(
     nutritionViewModel: NutritionViewModel,
-    onBackClick: () -> Unit
 ) {
     val uiState by nutritionViewModel.uiState.collectAsStateWithLifecycle()
     var showHistory by remember { mutableStateOf(false) }
@@ -26,7 +25,6 @@ fun NutritionRoute(
     } else {
         NutritionScreen(
             uiState = uiState,
-            onBackClick = onBackClick,
             onSaveMenu = { Log.d("SaveMenu", "Сохранить меню!!!!!!") },
             onAddNutrition = { amount -> nutritionViewModel.addNutritionRecord(amount) },
             onCalendarClick = { showHistory = true },

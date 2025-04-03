@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -23,17 +24,21 @@ import androidx.compose.ui.unit.sp
 import com.rmp.R
 import com.rmp.data.repository.water.WaterDailyRecord
 import com.rmp.ui.components.AppScreen
+import com.rmp.ui.components.buttons.BackButton
+import com.rmp.ui.components.buttons.CalendarButton
 import androidx.compose.material3.Text as Text1
 
 @Composable
 fun WaterScreen(
     uiState: WaterUiState,
-    onBackClick: () -> Unit,
     onAddWater: (Int) -> Unit,
     onCalendarClick: () -> Unit
 ) {
     var showVolumeDialog by remember { mutableStateOf(false) }
-    AppScreen {
+    AppScreen(
+        leftComposable = { BackButton() },
+        rightComposable = { CalendarButton(onCalendarClick) }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -43,8 +48,6 @@ fun WaterScreen(
             WaterHeader(
                 currentAmount = uiState.currentAmount,
                 dailyGoal = uiState.dailyGoal,
-                onBackClick = onBackClick,
-                onCalendarClick = onCalendarClick
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -169,21 +172,12 @@ fun WaterVolumeDialog(
 private fun WaterHeader(
     currentAmount: Float,
     dailyGoal: Float,
-    onBackClick: () -> Unit,
-    onCalendarClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_grid),
-                contentDescription = "Back"
-            )
-        }
-
         Text1(
             text = "Вода",
             fontSize = 20.sp,
@@ -194,13 +188,6 @@ private fun WaterHeader(
             text = "%.1f л / %.1f л".format(currentAmount, dailyGoal),
             fontSize = 16.sp
         )
-
-        IconButton(onClick = onCalendarClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_calendar),
-                contentDescription = "Calendar"
-            )
-        }
     }
 }
 
@@ -236,6 +223,7 @@ private fun AddWaterButton(onClick: () -> Unit) {
 private fun WaterCard(time: String, amount: String) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .width(154.dp)
@@ -268,6 +256,7 @@ private fun WaterCard(time: String, amount: String) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text1(
+                    modifier = Modifier.padding(start = 5.dp),
                     text = amount,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
