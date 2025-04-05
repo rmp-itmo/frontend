@@ -19,7 +19,7 @@ fun NutritionRoute(
     if (showHistory) {
         NutritionHistoryScreen(
             viewModel = nutritionViewModel,
-            uiState.dailyGoal,
+            uiState.caloriesTarget,
             onBackClick = { showHistory = false }
         )
     } else {

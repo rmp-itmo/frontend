@@ -19,7 +19,6 @@ object RmpDestinations {
     const val ACHIEVEMENT_ROUTE = "achievement"
     const val SETTINGS_ROUTE = "settings"
     const val FEED_ROUTE = "feed"
-    const val NUTRITION_ROUTE = "nutrition"
 }
 
 /**

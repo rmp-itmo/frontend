@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rmp.R
-import com.rmp.data.repository.nutrition.NutritionDailyRecord
 import com.rmp.ui.components.AppScreen
 import com.rmp.ui.components.NutritionCalendar
 import java.time.LocalDate
@@ -31,7 +30,7 @@ fun NutritionHistoryScreen(
     val historyState by viewModel.historyState.collectAsState()
 
     LaunchedEffect(selectedDate) {
-        viewModel.loadDailyStats(selectedDate)
+        viewModel.loadDailyStats()
     }
 
     AppScreen {
@@ -80,11 +79,11 @@ fun NutritionHistoryScreen(
                     is NutritionHistoryState.Empty -> EmptyState()
                     is NutritionHistoryState.Error -> ErrorState(
                         message = (historyState as NutritionHistoryState.Error).message,
-                        onRetry = { viewModel.loadDailyStats(selectedDate) }
+                        onRetry = { viewModel.loadDailyStats() }
                     )
                     is NutritionHistoryState.Success -> {
                         val state = historyState as NutritionHistoryState.Success
-                        NutritionCardsList(records = state.records)
+//                        NutritionCardsList(records = state.records)
                     }
                 }
             }
@@ -108,19 +107,19 @@ fun NutritionHistoryScreen(
     }
 }
 
-@Composable
-private fun NutritionCardsList(records: List<NutritionDailyRecord>) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 154.dp),
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(records) { record ->
-            NutritionCard(time = record.time, amount = "${record.volume} мл")
-        }
-    }
-}
+//@Composable
+//private fun NutritionCardsList(records: List<NutritionDailyRecord>) {
+//    LazyVerticalGrid(
+//        columns = GridCells.Adaptive(minSize = 154.dp),
+//        modifier = Modifier.fillMaxWidth(),
+//        verticalArrangement = Arrangement.spacedBy(8.dp),
+//        horizontalArrangement = Arrangement.spacedBy(8.dp),
+//    ) {
+//        items(records) { record ->
+//            NutritionCard(time = record.time, amount = "${record.volume} мл")
+//        }
+//    }
+//}
 
 @Composable
 private fun NutritionCard(time: String, amount: String) {

@@ -11,9 +11,9 @@ import com.rmp.data.repository.nutrition.GeneratedMenuResponse
 import com.rmp.data.repository.nutrition.GetMeal
 import com.rmp.data.repository.nutrition.IdealParams
 import com.rmp.data.repository.nutrition.MealRequest
-import com.rmp.data.repository.nutrition.NutritionDailyRecord
 import com.rmp.data.repository.nutrition.NutritionStatRequest
 import com.rmp.data.repository.nutrition.Params
+import com.rmp.data.repository.nutrition.RemoveMenuItemRequest
 import com.rmp.data.repository.nutrition.SaveMenuMeal
 import com.rmp.data.repository.nutrition.SaveMenuRequest
 import com.rmp.data.repository.nutrition.SwitchDishCheckboxRequest
@@ -30,9 +30,8 @@ import java.util.*
 
 
 interface NutritionUiState {
-    val currentAmount: Float
-    val dailyGoal: Float
-    val nutritionRecords: List<NutritionDailyRecord>
+    val caloriesCurrent: Float
+    val caloriesTarget: Float
     val meals: List<GetMeal>
     val params: Params
     val idealParams: IdealParams
@@ -42,20 +41,18 @@ interface NutritionUiState {
 sealed class NutritionHistoryState {
     data object Loading : NutritionHistoryState()
     data class Empty(
-        val dailyGoal: Float
+        val caloriesTarget: Float
     ) : NutritionHistoryState()
     data class Success(
         val date: LocalDate,
         val totalAmount: Float,
-        val records: List<NutritionDailyRecord>
     ) : NutritionHistoryState()
     data class Error(val message: String) : NutritionHistoryState()
 }
 
 private class NutritionViewModelState(
-    override val currentAmount: Float = 0f,
-    override val dailyGoal: Float = 2000f,
-    override val nutritionRecords: List<NutritionDailyRecord> = emptyList(),
+    override val caloriesCurrent: Float = 0f,
+    override val caloriesTarget: Float = 2000f,
     override val meals: List<GetMeal> = emptyList(),
     override val params: Params = Params(),
     override val idealParams: IdealParams = IdealParams(),
@@ -64,14 +61,13 @@ private class NutritionViewModelState(
     fun toUiState(): NutritionUiState = this
 
     fun copy(
-        currentAmount: Float = this.currentAmount,
-        dailyGoal: Float = this.dailyGoal,
-        nutritionRecords: List<NutritionDailyRecord> = this.nutritionRecords,
+        caloriesCurrent: Float = this.caloriesCurrent,
+        caloriesTarget: Float = this.caloriesTarget,
         meals: List<GetMeal> = this.meals,
         params: Params = this.params,
         idealParams: IdealParams = this.idealParams,
         errorMessage: String? = this.errorMessage
-    ) = NutritionViewModelState(currentAmount, dailyGoal, nutritionRecords, meals, params, idealParams, errorMessage)
+    ) = NutritionViewModelState(caloriesCurrent, caloriesTarget, meals, params, idealParams, errorMessage)
 }
 
 class NutritionViewModel(private val container: AppContainer) : ViewModel() {
@@ -90,62 +86,37 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
         )
 
     init {
-        loadNutritionData()
-    }
-
-    fun loadDailyStats(date: LocalDate) {
-        viewModelScope.launch {
-            _historyState.value = NutritionHistoryState.Loading
-            try {
-                val dateInt = date.format(DateTimeFormatter.BASIC_ISO_DATE).toInt()
-                val response = container.nutritionRepository.getDailyNutritionStats(NutritionStatRequest(dateInt))
-
-                if (response != null && response.nutrition.isNotEmpty()) {
-                    val totalAmount = response.nutrition.sumOf { it.volume.toDouble() }.toFloat()
-                    _historyState.value = NutritionHistoryState.Success(
-                        date = date,
-                        totalAmount = totalAmount,
-                        records = response.nutrition.map {
-                            NutritionDailyRecord(it.date, it.time, (it.volume * 1000))
-                        }
-                    )
-                } else {
-
-                    _historyState.value = NutritionHistoryState.Empty(response?.nutritionTarget?.toFloat() ?: 2f)
-                }
-            } catch (e: Exception) {
-                _historyState.value = NutritionHistoryState.Error("Ошибка загрузки: ${e.message}")
-            }
-        }
+        loadDailyStats()
     }
 
     @SuppressLint("SimpleDateFormat")
-    private fun loadNutritionData() {
+    public fun loadDailyStats() {
         viewModelScope.launch {
             try {
                 val currentDate = SimpleDateFormat("yyyyMMdd").format(Date()).toInt()
-                val response = container.nutritionRepository.getDailyNutritionStats(
+
+                Log.d("loadDailyStats", currentDate.toString())
+
+                val response = container.nutritionRepository.loadDailyStats(
                     NutritionStatRequest(currentDate)
                 )
 
-                Log.d("nutrition-target-log", "${response?.nutritionTarget}")
-
-                response?.let { stats ->
-                    val totalAmount = stats.nutrition.sumOf { it.volume.toDouble() }.toFloat()
-                    val records = stats.nutrition.map { record ->
-                        NutritionDailyRecord(
-                            date = record.date,
-                            time = record.time,
-                            volume = (record.volume * 1000)
-                        )
-                    }
-
+                if (response != null) {
                     updateState(
                         viewModelState.value.copy(
-                            dailyGoal = response.nutritionTarget.toFloat(),
-                            currentAmount = totalAmount,
-                            nutritionRecords = records,
+                            caloriesTarget = response.caloriesTarget,
+                            caloriesCurrent = response.caloriesCurrent,
                             errorMessage = null
+                        )
+                    )
+                    Log.d("LoadNutritionData",
+                        "caloriesTarget: ${response.caloriesTarget}" +
+                                "caloriesCurrent: ${response.caloriesCurrent}"
+                    )
+                } else {
+                    updateState(
+                        viewModelState.value.copy(
+                            errorMessage = "Failed to get caloriesCurrent and caloriesTarget"
                         )
                     )
                 }
@@ -162,11 +133,11 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
     fun switchDishCheckbox(mealId: Int, dishId: Int, menuItemId: Int, check: Boolean) {
         viewModelScope.launch {
             try {
-                val date = SwitchDishCheckboxRequest(menuItemId, check)
+                val date = SwitchDishCheckboxRequest(menuItemId, !check)
 
                 Log.d("SwitchDishCheckbox", SwitchDishCheckboxRequest(
                     menuItemId,
-                    check
+                    !check
                 ).toString()
                 )
 
@@ -185,7 +156,7 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
                     updateState(
                         viewModelState.value.copy(
                             meals = updatedMeals,
-                            currentAmount = response.calories,
+                            caloriesCurrent = response.calories,
                             errorMessage = null
                         )
                     )
@@ -209,7 +180,14 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
     fun removeMenuItem(mealId: Int, dishId: Int, menuItemId: Int) {
         viewModelScope.launch {
             try {
-                val response = container.nutritionRepository.removeMenuItem(menuItemId)
+                val date = RemoveMenuItemRequest(menuItemId)
+
+                Log.d("RemoveMenuItem", RemoveMenuItemRequest(
+                    menuItemId
+                ).toString()
+                )
+
+                val response = container.nutritionRepository.removeMenuItem(date)
 
                 if (response != null) {
                     val updatedMeals = viewModelState.value.meals.toMutableList()
@@ -224,7 +202,7 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
                     updateState(
                         viewModelState.value.copy(
                             meals = updatedMeals,
-                            currentAmount = response.calories,
+                            caloriesCurrent = response.calories,
                             errorMessage = null
                         )
                     )

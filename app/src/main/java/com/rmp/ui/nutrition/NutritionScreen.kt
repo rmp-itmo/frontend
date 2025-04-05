@@ -50,8 +50,8 @@ fun NutritionScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             NutritionHeader(
-                currentAmount = uiState.currentAmount,
-                dailyGoal = uiState.dailyGoal,
+                currentAmount = uiState.caloriesCurrent,
+                dailyGoal = uiState.caloriesTarget,
                 onBackClick = onBackClick,
                 onCalendarClick = onCalendarClick
             )
@@ -356,47 +356,6 @@ private fun NutritionCard(
                         Text(text = "Добавить")
                     }
                 }
-
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(top = 16.dp),
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//                    TextField(
-//                        value = dishName,
-//                        onValueChange = { dishName = it },
-//                        label = { Text("Название блюда") },
-//                        modifier = Modifier.fillMaxWidth()
-//                    )
-//                    TextField(
-//                        value = dishCalories,
-//                        onValueChange = { dishCalories = it },
-//                        label = { Text("Калорийность") },
-//                        modifier = Modifier.fillMaxWidth()
-//                    )
-//                    TextField(
-//                        value = dishDescription,
-//                        onValueChange = { dishDescription = it },
-//                        label = { Text("Описание") },
-//                        modifier = Modifier.fillMaxWidth()
-//                    )
-//                    Spacer(modifier = Modifier.height(16.dp))
-//                    Button(
-//                        onClick = {
-////                            onAddDishFormSubmit(dishName, dishCalories, dishDescription)
-//                            addDishFormState = false
-//                            dishName = ""
-//                            dishCalories = ""
-//                            dishDescription = ""
-//                        },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(48.dp)
-//                    ) {
-//                        Text(text = "Добавить")
-//                    }
-//                }
             }
         }
     }

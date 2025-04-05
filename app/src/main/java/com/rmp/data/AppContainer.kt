@@ -37,7 +37,7 @@ class AppContainerImpl(private val applicationContext: Context, database: AppDat
     }
     override val waterRepository: WaterRepository by lazy {
         WaterRepoImpl()
-
+    }
     override val nutritionRepository: NutritionRepository by lazy {
         NutritionRepoImpl()
     }

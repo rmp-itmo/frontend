@@ -4,19 +4,10 @@ import com.rmp.data.ApiClient
 import com.rmp.data.successOr
 
 class NutritionRepoImpl : NutritionRepository {
-    override suspend fun logNutrition(nutritionLog: NutritionDailyRecord): NutritionLogResponse? {
-        val response = ApiClient.authorizedRequest<NutritionLogResponse>(
-            ApiClient.Method.POST,
-            "users/log/water",
-            nutritionLog
-        )
-        return response.successOr(null)
-    }
-
-    override suspend fun getDailyNutritionStats(date: NutritionStatRequest): NutritionStatResponse? {
+    override suspend fun loadDailyStats(date: NutritionStatRequest): NutritionStatResponse? {
         val response = ApiClient.authorizedRequest<NutritionStatResponse>(
             ApiClient.Method.POST,
-            "users/stat/water",
+            "/users/stat/summary",
             date
         )
 
@@ -62,11 +53,11 @@ class NutritionRepoImpl : NutritionRepository {
         return response.successOr(null)
     }
 
-    override suspend fun removeMenuItem(menuItemId: Int): RemoveMenuItemResponse? {
+    override suspend fun removeMenuItem(date: RemoveMenuItemRequest): RemoveMenuItemResponse? {
         val response = ApiClient.authorizedRequest<RemoveMenuItemResponse>(
             ApiClient.Method.DELETE,
             "/users/menu",
-            menuItemId
+            date
         )
 
         return response.successOr(null)

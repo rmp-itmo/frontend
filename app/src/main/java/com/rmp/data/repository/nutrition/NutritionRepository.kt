@@ -1,15 +1,6 @@
 package com.rmp.data.repository.nutrition
 
-import com.rmp.ui.signup.StateDescription
 import kotlinx.serialization.Serializable
-
-@Serializable
-data class NutritionLogResponse(
-    val id: Int,
-    val currentAmount: Float? = null,
-    val dailyGoal: Int? = null,
-    val logs: List<NutritionDailyRecord>? = null
-)
 
 @Serializable
 data class NutritionStatRequest(
@@ -18,15 +9,16 @@ data class NutritionStatRequest(
 
 @Serializable
 data class NutritionStatResponse(
-    val nutritionTarget: Double,
-    val nutrition: List<NutritionDailyRecord>
-)
-
-@Serializable
-data class NutritionDailyRecord(
-    val date: Int,
-    val time: String,
-    val volume: Float
+    val caloriesTarget: Float,
+    val caloriesCurrent: Float,
+    val waterTarget: Float,
+    val waterCurrent: Float,
+    val stepsTarget: Float,
+    val stepsCurrent: Float,
+    val sleepHours: Float,
+    val sleepMinutes: Float,
+    val heartRate: Float?,
+    val glassesOfWater: Float
 )
 
 @Serializable
@@ -38,6 +30,11 @@ data class SwitchDishCheckboxRequest(
 @Serializable
 data class SwitchDishCheckboxResponse(
     val calories: Float
+)
+
+@Serializable
+data class RemoveMenuItemRequest(
+    val menuItemId: Int,
 )
 
 @Serializable
@@ -155,11 +152,10 @@ data class IdealParams(
 )
 
 interface NutritionRepository {
-    suspend fun logNutrition(nutritionLog: NutritionDailyRecord): NutritionLogResponse?
-    suspend fun getDailyNutritionStats(date: NutritionStatRequest): NutritionStatResponse?
+    suspend fun loadDailyStats(date: NutritionStatRequest): NutritionStatResponse?
     suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenuResponse?
     suspend fun saveGeneratedMenu(date: SaveMenuRequest): SaveMenuResponse?
     suspend fun getMenu(): GetMenuResponse?
     suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): SwitchDishCheckboxResponse?
-    suspend fun removeMenuItem(menuItemId: Int): RemoveMenuItemResponse?
+    suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): RemoveMenuItemResponse?
 }
