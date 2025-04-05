@@ -133,6 +133,15 @@ object ApiClient {
 
         Log.d("API", "Refresh req headers: ${refreshed.request.headers.toMap()}")
 
+        if (refreshed.status.value == 401) {
+            updateAuthorizationData(TokenDto("", ""))
+            appLogout()
+            return Result.Error(UnauthorizedException())
+        }
+        if (refreshed.status.value != 200) {
+            return Result.Error(UnauthorizedException())
+        }
+
         val tokenDto = refreshed.body<TokenDto>()
 
         Log.d("API", "Refreshed: $tokenDto")
