@@ -133,12 +133,6 @@ object ApiClient {
 
         Log.d("API", "Refresh req headers: ${refreshed.request.headers.toMap()}")
 
-        if (refreshed.status.value != 200) {
-            updateAuthorizationData(TokenDto("", ""))
-            appLogout()
-            return Result.Error(UnauthorizedException())
-        }
-
         val tokenDto = refreshed.body<TokenDto>()
 
         Log.d("API", "Refreshed: $tokenDto")
@@ -157,6 +151,8 @@ object ApiClient {
         Log.d("API", "Retry request headers: ${resp.request.headers.toMap()}")
 
         if (resp.status.value == 401) {
+            updateAuthorizationData(TokenDto("", ""))
+            appLogout()
             Log.d("API", "Unauthorized auto retry")
             return Result.Error(UnauthorizedException())
         }
