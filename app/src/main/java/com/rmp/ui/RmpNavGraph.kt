@@ -30,6 +30,8 @@ import com.rmp.ui.signup.SignupViewModel
 import com.rmp.ui.signup.WeightTarget
 import com.rmp.ui.sleep.SleepRoute
 import com.rmp.ui.sleep.SleepViewModel
+import com.rmp.ui.sleep.history.SleepHistoryRoute
+import com.rmp.ui.sleep.history.SleepHistoryViewModel
 import com.rmp.ui.water.WaterRoute
 import com.rmp.ui.water.WaterViewModel
 
@@ -129,6 +131,16 @@ fun RmpNavGraph(
                 )
             }
             composable(
+                route = RmpDestinations.SLEEP_HISTORY_ROUTE,
+            ) { _ ->
+                val sleepHistoryViewModel: SleepHistoryViewModel = viewModel(
+                    factory = SleepHistoryViewModel.factory(appContainer)
+                )
+                SleepHistoryRoute(
+                    sleepHistoryViewModel = sleepHistoryViewModel
+                )
+            }
+            composable(
                 route = RmpDestinations.WATER_ROUTE,
             ) { _ ->
                 val waterViewModel: WaterViewModel = viewModel(
@@ -157,6 +169,7 @@ fun RmpNavGraph(
                 )
                 SleepRoute (
                     sleepViewModel = sleepViewModel,
+                    { navController.navigate(RmpDestinations.SLEEP_HISTORY_ROUTE) }
                 )
             }
         }

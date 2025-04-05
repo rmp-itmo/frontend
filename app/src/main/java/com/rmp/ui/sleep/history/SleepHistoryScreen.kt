@@ -1,17 +1,18 @@
-package com.rmp.ui.heart
+package com.rmp.ui.sleep.history
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.rmp.R
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -20,45 +21,53 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.rmp.R
 import com.rmp.ui.components.GraphScreen
 import com.rmp.ui.components.GraphType
+import com.rmp.ui.components.ViewPeriod
 import kotlin.math.ceil
 import kotlin.math.floor
 
 @Composable
-fun HeartScreen(
-    heartViewModel: HeartViewModel
+fun SleepHistoryScreen(
+    sleepHistoryViewModel: SleepHistoryViewModel
 )
 {
     GraphScreen(
-        GraphType.HEART,
-        { value, dataPoints -> HeartRateChart(value, dataPoints) },
-        heartViewModel
+        GraphType.SLEEP,
+        { value, dataPoints -> SleepChart(value, dataPoints) },
+        sleepHistoryViewModel
     )
 }
 
-/*private fun generateSampleData(currentValue: Int): List<Pair<Float, Float>> {
-    return listOf(
-        0.0f to (currentValue - 15).coerceAtLeast(60).toFloat(),
-        0.2f to (currentValue - 10).toFloat(),
-        0.4f to (currentValue - 5).toFloat(),
-        0.6f to currentValue.toFloat(),
-        0.8f to (currentValue + 5).toFloat(),
-        1.0f to (currentValue + 3).toFloat()
-    )
-}*/
-
 @Composable
-private fun HeartRateChart(
-    value: Int,
+private fun SleepChart(
+    totalSleep: Int,
     dataPoints: List<Pair<String, Float>>,
-    tickValues: List<Float> = calculateTickValues(dataPoints),
-    allTickValues: List<Float> = calculateAllTickValues(dataPoints)
+    viewPeriod: ViewPeriod = ViewPeriod.DAY,
+    tickValues: List<Float> = calculateSleepTickValues(dataPoints.map { it.second }),
+    allTickValues: List<Float> = calculateAllSleepTickValues(dataPoints.map { it.second }, viewPeriod)
 ) {
-    val lineColor = colorResource(R.color.pink_antique)
+    val lineColor = colorResource(R.color.blue)
     val textColor = colorResource(R.color.black)
     val axisColor = Color.Black
     val gridColor = Color.DarkGray.copy(alpha = 0.3f)
+
+    val numericDataPoints = dataPoints.map { (date, minutes) ->
+        val numericValue = when (viewPeriod) {
+            ViewPeriod.DAY -> date.takeLast(2).toFloat()
+            ViewPeriod.MONTH -> date.takeLast(2).toFloat()
+            ViewPeriod.YEAR -> date.take(4).toFloat()
+        }
+        numericValue to minutes
+    }
+
+    Log.d("Points", dataPoints.toString())
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -67,16 +76,12 @@ private fun HeartRateChart(
             .padding(vertical = 16.dp)
     ) {
         Row(verticalAlignment = Alignment.Bottom) {
+            val sleepDuration = minutesToHoursMinutes(totalSleep)
+
             Text(
-                text = "$value ",
+                text = stringResource(R.string.sleep_measure).format(sleepDuration.first, sleepDuration.second),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 28.dp)
-            )
-            Text(
-                text = stringResource(R.string.pulse),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Normal,
                 modifier = Modifier.padding(bottom = 28.dp)
             )
         }
@@ -98,8 +103,8 @@ private fun HeartRateChart(
                 val drawWidth = drawSize
                 val drawHeight = drawSize
 
-                val minY = allTickValues.minOrNull() ?: 40f
-                val maxY = allTickValues.maxOrNull() ?: 120f
+                val minY = allTickValues.minOrNull() ?: 0f
+                val maxY = allTickValues.maxOrNull() ?: 600f
                 val rangeY = maxY - minY
 
                 drawLine(
@@ -126,14 +131,22 @@ private fun HeartRateChart(
                     val yPos = size.height - paddingBottom - ((tickValue - minY) / rangeY * drawHeight)
 
                     drawLine(
-                        color = Color.DarkGray,
+                        color = gridColor,
                         start = Offset(paddingLeft, yPos),
                         end = Offset(paddingLeft + drawWidth, yPos),
                         strokeWidth = 1f
                     )
 
+                    val hours = (tickValue / 60).toInt()
+                    val minutes = (tickValue % 60).toInt()
+                    val timeText = when {
+                        hours > 0 -> "${hours}ч"
+                        minutes > 0 -> "${minutes}м"
+                        else -> "0"
+                    }
+
                     drawContext.canvas.nativeCanvas.drawText(
-                        "%.0f".format(tickValue),
+                        timeText,
                         paddingLeft - 10f,
                         yPos + 10f,
                         textPaint
@@ -141,13 +154,12 @@ private fun HeartRateChart(
                 }
 
                 when {
-                    dataPoints.isEmpty() -> {
+                    numericDataPoints.isEmpty() -> {
                         val noDataPaint = android.graphics.Paint().apply {
                             color = textColor.toArgb()
                             textSize = 32f
                             textAlign = android.graphics.Paint.Align.CENTER
                         }
-
                         drawContext.canvas.nativeCanvas.drawText(
                             "Нет данных",
                             size.width / 2f,
@@ -155,48 +167,52 @@ private fun HeartRateChart(
                             noDataPaint
                         )
                     }
-                    dataPoints.size == 1 -> {
-                        val singleValue = dataPoints.first().second
-                        val yPos = size.height - paddingBottom - ((singleValue - minY) / rangeY * drawHeight)
+                    numericDataPoints.size == 1 -> {
+                        val singleValue = numericDataPoints.first().second
+                        val yPos = size.height - paddingBottom - ((singleValue - minY) / (maxY - minY)) * drawHeight
+
+                        val visibleYPos = yPos.coerceIn(
+                            paddingTop,
+                            size.height - paddingBottom
+                        )
 
                         drawLine(
                             color = lineColor,
-                            start = Offset(paddingLeft, yPos),
-                            end = Offset(paddingLeft + drawWidth, yPos),
+                            start = Offset(paddingLeft, visibleYPos),
+                            end = Offset(paddingLeft + drawWidth, visibleYPos),
                             strokeWidth = 3f,
                             cap = StrokeCap.Round
                         )
                     }
                     else -> {
-                        val minX = dataPoints.minOf { it.first }
-                        val maxX = dataPoints.maxOf { it.first }
-                        val rangeX = maxX.toFloat() - minX.toFloat()
+                        val minX = numericDataPoints.minOf { it.first }
+                        val maxX = numericDataPoints.maxOf { it.first }
+                        val rangeX = maxX - minX
 
-                        fun toScreenX(x: Float) = paddingLeft + ((x.toFloat() - minX.toFloat()) / rangeX) * drawWidth
-
+                        fun toScreenX(x: Float) = paddingLeft + ((x - minX) / rangeX) * drawWidth
                         fun toScreenY(y: Float) = size.height - paddingBottom - ((y - minY) / rangeY) * drawHeight
 
                         val path = Path().apply {
-                            val firstPoint = dataPoints.first()
-                            moveTo(toScreenX(firstPoint.first.toFloat()), toScreenY(firstPoint.second))
+                            val firstPoint = numericDataPoints.first()
+                            moveTo(toScreenX(firstPoint.first), toScreenY(firstPoint.second))
 
-                            for (i in 1 until dataPoints.size) {
-                                val prev = dataPoints[i-1]
-                                val curr = dataPoints[i]
+                            for (i in 1 until numericDataPoints.size) {
+                                val prev = numericDataPoints[i-1]
+                                val curr = numericDataPoints[i]
 
                                 val control1 = Offset(
-                                    toScreenX(prev.first.toFloat()) + (toScreenX(curr.first.toFloat()) - toScreenX(prev.first.toFloat())) * 0.3f,
+                                    toScreenX(prev.first) + (toScreenX(curr.first) - toScreenX(prev.first)) * 0.3f,
                                     toScreenY(prev.second)
                                 )
                                 val control2 = Offset(
-                                    toScreenX(curr.first.toFloat()) - (toScreenX(curr.first.toFloat()) - toScreenX(prev.first.toFloat())) * 0.3f,
+                                    toScreenX(curr.first) - (toScreenX(curr.first) - toScreenX(prev.first)) * 0.3f,
                                     toScreenY(curr.second)
                                 )
 
                                 cubicTo(
                                     control1.x, control1.y,
                                     control2.x, control2.y,
-                                    toScreenX(curr.first.toFloat()), toScreenY(curr.second)
+                                    toScreenX(curr.first), toScreenY(curr.second)
                                 )
                             }
                         }
@@ -217,27 +233,44 @@ private fun HeartRateChart(
     }
 }
 
-private fun calculateTickValues(dataPoints: List<Pair<String, Float>>): List<Float> {
-    if (dataPoints.isEmpty()) return listOf(60f, 80f, 100f, 120f)
+private fun calculateSleepTickValues(sleepMinutes: List<Float>): List<Float> {
+    if (sleepMinutes.isEmpty()) return listOf(120f, 240f, 360f, 480f)
 
-    val values = dataPoints.map { it.second }
-    val min = values.minOrNull() ?: 40f
-    val max = values.maxOrNull() ?: 140f
-    val step = ((max - min) / 4).coerceAtLeast(10f)
+    val values = sleepMinutes
+    val min = (values.minOrNull() ?: 0f).let { floor(it / 60f) * 60f }
+    val max = (values.maxOrNull() ?: 600f).let { ceil(it / 60f) * 60f }
+    val step = if (max - min > 360f) 120f else 60f
 
     return generateSequence(min) { it + step }
         .takeWhile { it <= max }
         .toList()
 }
 
-private fun calculateAllTickValues(dataPoints: List<Pair<String, Float>>): List<Float> {
-    if (dataPoints.isEmpty()) return listOf(40f, 60f, 80f, 100f, 120f)
+private fun calculateAllSleepTickValues(sleepMinutes: List<Float>, viewPeriod: ViewPeriod): List<Float> {
+    val defaultValues = when (viewPeriod) {
+        ViewPeriod.DAY -> listOf(0f, 120f, 240f, 360f, 480f, 600f)
+        ViewPeriod.MONTH -> listOf(0f, 180f, 360f, 540f)
+        ViewPeriod.YEAR -> listOf(0f, 240f, 480f)
+    }
 
-    val values = dataPoints.map { it.second }
-    val min = (values.minOrNull() ?: 40f).let { floor(it / 20f) * 20f }
-    val max = (values.maxOrNull() ?: 140f).let { ceil(it / 20f) * 20f }
+    if (sleepMinutes.isEmpty()) return defaultValues
 
-    return generateSequence(min) { it + 20f }
-        .takeWhile { it <= max }
-        .toList()
+    val minValue = maxOf(floor((sleepMinutes.minOrNull() ?: 0f) / 60f) * 60f, 0f)
+    val maxValue = maxOf(ceil((sleepMinutes.maxOrNull() ?: 600f) / 60f) * 60f, 60f)
+
+    return if (minValue == maxValue) {
+        listOf(
+            maxOf(minValue - 120f, 0f),
+            minValue,
+            minValue + 120f
+        ).filter { it >= 0f }
+    } else {
+        generateSequence(minValue) { it + 60f }
+            .takeWhile { it <= maxValue }
+            .toList()
+    }
+}
+
+fun minutesToHoursMinutes(totalMinutes: Int): Pair<Int, Int> {
+    return Pair(totalMinutes / 60, totalMinutes % 60)
 }

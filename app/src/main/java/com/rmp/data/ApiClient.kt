@@ -132,7 +132,7 @@ object ApiClient {
 
         val refreshed = execute(Method.POST, "auth/refresh", builder)
 
-        Log.d("API", "Refresh req headers: ${refreshed.request.headers.toMap()}")
+        Log.d("API", "Refresh req headers: ${refreshed.request.headers.toMap()} {${refreshed}")
 
         if (refreshed.status.value != 200) {
             return Result.Error(UnauthorizedException())

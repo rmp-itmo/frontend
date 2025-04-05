@@ -89,6 +89,10 @@
     <string name="max">Максимум</string>
     <string name="pulse"> уд мин</string>
     <string name="home">На главную</string>
+    <string name="pulse_measure">%s уд мин</string>
+
+    <!-- Sleep Screen -->
+    <string name="sleep_measure">%s ч %s мин</string>
 
     <!-- Policy -->
     <string name="privacy_policy_title">Политика конфиденциальности</string>

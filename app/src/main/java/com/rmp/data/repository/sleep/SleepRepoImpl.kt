@@ -1,6 +1,8 @@
 package com.rmp.data.repository.sleep
 
 import com.rmp.data.ApiClient
+import com.rmp.data.repository.heart.GraphConfigurationDto
+import com.rmp.data.repository.heart.GraphOutputDto
 import com.rmp.data.successOr
 
 
@@ -23,5 +25,9 @@ class SleepRepoImpl : SleepRepository {
             date
         )
         return response.successOr(null)
+    }
+
+    override suspend fun getGraphSleep(graphConfigurationDto: GraphConfigurationDto): GraphOutputDto? {
+        return ApiClient.authorizedRequest<GraphOutputDto>(ApiClient.Method.POST, "stat/graph/sleep", graphConfigurationDto).successOr(null)
     }
 }

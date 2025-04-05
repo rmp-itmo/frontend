@@ -1,35 +1,35 @@
-package com.rmp.ui.heart
+package com.rmp.ui.sleep.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.rmp.data.AppContainer
+import com.rmp.data.repository.sleep.SleepRepository
 import com.rmp.ui.components.GraphViewModel
-import com.rmp.data.repository.heart.HeartRepository
 import com.rmp.ui.components.ViewPeriod
 
 
-class HeartViewModel(
-    private val heartRepository: HeartRepository
+class SleepHistoryViewModel(
+    private val sleepRepository: SleepRepository
 ) : GraphViewModel() {
 
     init {
-        loadHeartData(_uiState.value.selectedPeriod)
+        loadSleepData(_uiState.value.selectedPeriod)
     }
 
     override fun updatePeriod(newPeriod: ViewPeriod) {
         _uiState.value = _uiState.value.copy(selectedPeriod = newPeriod)
-        loadHeartData(newPeriod)
+        loadSleepData(newPeriod)
     }
 
-    private fun loadHeartData(currentPeriod: ViewPeriod) {
-        loadData(currentPeriod) { config -> heartRepository.getGraphHeart(config) }
+    private fun loadSleepData(currentPeriod: ViewPeriod) {
+        loadData(currentPeriod) { config -> sleepRepository.getGraphSleep(config) }
     }
 
     companion object {
         fun factory(appContainer: AppContainer): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return HeartViewModel(appContainer.heartRepository) as T
+                return SleepHistoryViewModel(appContainer.sleepRepository) as T
             }
         }
     }
