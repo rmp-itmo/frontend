@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -33,7 +34,6 @@ data class HealthData(
 
 data class HomeUiState(
     val isLoading: Boolean = false,
-    val userName: String = "",
     val healthData: HealthData = HealthData(),
     val errors: List<ErrorMessage> = emptyList()
 )
@@ -51,18 +51,16 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            fetchUserData()
             fetchUserStatSummary()
         }
     }
 
-    private fun fetchUserStatSummary() {
+    fun fetchUserStatSummary() {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(isLoading = true)
             }
-
-            val userStatSummaryData = async { userRepository.getMeStatSummary(DateDto(getCurrentDateFormatted())) }.await()
+            val userStatSummaryData = async { userRepository.getMeStatSummary(DateDto(getCurrentDateFormatted().toInt())) }.await()
 
             if (userStatSummaryData == null) {
                 _uiState.update {
@@ -78,39 +76,14 @@ class HomeViewModel(
                             //calories = 1234 to 2000,
                             calories = userStatSummaryData.caloriesCurrent.roundToInt() to userStatSummaryData.caloriesTarget.roundToInt(),
                             //water = 1.2f to 2f,
-                            water = "%.1f".format(userStatSummaryData.waterCurrent).toFloat() to "%.1f".format(userStatSummaryData.waterTarget).toFloat(),
+                            water = "%.1f".format(Locale.US, userStatSummaryData.waterCurrent).toFloat() to
+                                    "%.1f".format(Locale.US, userStatSummaryData.waterTarget).toFloat(),
                             //steps = 123 to 2399,
                             steps = userStatSummaryData.stepsCurrent to userStatSummaryData.stepsTarget,
                             sleep = "%s ч %s мин".format(userStatSummaryData.sleepHours, userStatSummaryData.sleepMinutes),
                             heartRate = if (userStatSummaryData.heartRate != null && userStatSummaryData.heartRate > 0) userStatSummaryData.heartRate.toString() else "",
                             nutrition = userStatSummaryData.caloriesCurrent.roundToInt().toString()
                         ),
-                        isLoading = false
-                    )
-                }
-            }
-        }
-    }
-
-    private fun fetchUserData() {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(isLoading = true)
-            }
-
-            val userData = async { userRepository.getMe() }.await()
-
-            if (userData == null) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errors = listOf(ErrorMessage(null, R.string.error_load_data))
-                    )
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        userName = userData.name,
                         isLoading = false
                     )
                 }

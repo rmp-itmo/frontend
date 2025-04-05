@@ -25,6 +25,7 @@
     <string name="invalid_email">Некорректный email</string>
     <string name="error_load_data">Ошибка загрузки</string>
     <string name="error_session_expired">Извините, сессия истекла, пожалуйста авторизуйтесь</string>
+    <string name="error_time_provided">Указано некорректное время</string>
 
 
     <!-- SignUp screen -->
@@ -78,6 +79,25 @@
     <string name="heart_min">уд мин</string>
     <string name="nutrition_unit">ккал</string>
     <string name="no_data">Нет данных</string>
+
+    <!-- Heart Screen -->
+    <string name="day">День</string>
+    <string name="month">Месяц</string>
+    <string name="year">Год</string>
+    <string name="average">Средний</string>
+    <string name="min">Минимум</string>
+    <string name="max">Максимум</string>
+    <string name="pulse"> уд мин</string>
+    <string name="home">На главную</string>
+
+    <!-- Policy -->
+    <string name="privacy_policy_title">Политика конфиденциальности</string>
+    <string name="privacy_policy_message">
+        Ваши данные о здоровье будут использоваться для отображения графиков и анализа.
+        Мы не передаем данные третьим лицам.
+    </string>
+    <string name="ok">OK</string>
+    <string name="learn_more">Подробнее</string>
 
     <!--  Water Screen   -->
     <string name="water">Вода</string>

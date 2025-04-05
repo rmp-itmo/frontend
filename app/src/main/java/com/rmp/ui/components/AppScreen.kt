@@ -5,30 +5,22 @@ import android.content.Context
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -37,19 +29,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.rmp.R
-import com.rmp.ui.LocalNavController
-import com.rmp.ui.RmpDestinations
-import com.rmp.ui.home.FeedButton
-import com.rmp.ui.home.SettingButton
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScreen(
-    showTopBar: Boolean = true,
-    showButtons: Boolean = false,
-    openDrawer: () -> Unit = {},
-    onSignOutClick: () -> Unit = {},
-    clearTokens: () -> Unit = {},
+    leftComposable: @Composable (RowScope.() -> Unit) = {},
+    rightComposable: @Composable (RowScope.() -> Unit) = {},
     content: @Composable (BoxScope.() -> Unit)
 ) {
     val topAppBarState = rememberTopAppBarState()
@@ -71,32 +57,23 @@ fun AppScreen(
                 },
                 scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState),
                 navigationIcon = {
-                    if (showButtons) {
-                        Row(
-                            modifier = Modifier.padding(start = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            FeedButton()
-                        }
+                    Row (
+                        modifier = Modifier
+                            .padding(top = 12.dp, start = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        leftComposable()
                     }
                 },
                 actions = {
-                    if (showButtons) {
-                        SettingButton()
-                        IconButton(
-                            onClick = {
-                                onSignOutClick()
-                                clearTokens()
-                            },
-                            modifier = Modifier.padding(end = 24.dp, top = 16.dp),
-                            colors = IconButtonDefaults.iconButtonColors(contentColor = Color.Gray)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.ExitToApp,
-                                contentDescription = stringResource(R.string.sign_out),
-                                modifier = Modifier.size(36.dp)
-                            )
-                        }
+                    Row (
+                        modifier = Modifier
+                            .padding(top = 12.dp, end = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        rightComposable()
                     }
                 }
             )

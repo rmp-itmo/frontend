@@ -10,7 +10,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun WaterRoute(
     waterViewModel: WaterViewModel,
-    onBackClick: () -> Unit
 ) {
     val uiState by waterViewModel.uiState.collectAsStateWithLifecycle()
     var showHistory by remember { mutableStateOf(false) }
@@ -24,7 +23,6 @@ fun WaterRoute(
     } else {
         WaterScreen(
             uiState = uiState,
-            onBackClick = onBackClick,
             onAddWater = { amount -> waterViewModel.addWaterRecord(amount) },
             onCalendarClick = { showHistory = true }
         )

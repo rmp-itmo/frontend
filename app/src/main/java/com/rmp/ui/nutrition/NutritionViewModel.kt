@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -90,7 +89,7 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     @SuppressLint("SimpleDateFormat")
-    public fun loadDailyStats() {
+    fun loadDailyStats() {
         viewModelScope.launch {
             try {
                 val currentDate = SimpleDateFormat("yyyyMMdd").format(Date()).toInt()
