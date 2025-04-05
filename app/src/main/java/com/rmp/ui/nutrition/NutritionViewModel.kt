@@ -47,7 +47,7 @@ sealed class NutritionHistoryState {
     data class Success(
         val date: LocalDate,
         val caloriesCurrent: Float,
-        val dish: List<GetDish>
+        val dishes: Map<String, List<GetDish>>
     ) : NutritionHistoryState()
     data class Error(val message: String) : NutritionHistoryState()
 }
@@ -131,6 +131,7 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
             }
         }
     }
+
     fun getMenuStats(date: LocalDate) {
         viewModelScope.launch {
             _historyState.value = NutritionHistoryState.Loading
@@ -139,17 +140,23 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
                 val response = container.nutritionRepository.getMenuStats(NutritionStatRequest(dateInt))
                 Log.d("ss", response.toString())
                 if (response != null && response.dishes.isNotEmpty()) {
-                    val totalAmount = response.dishes.sumOf { it.calories }.toFloat()
+                    val totalAmount = response.dishes.values.flatten().sumOf { it.calories }.toFloat()
                     _historyState.value = NutritionHistoryState.Success(
                         date = date,
                         caloriesCurrent = totalAmount,
-                        dish = response.dishes.map {
-                            GetDish(it.id, it.name, it.description, it.imageUrl, it.portionsCount, it.calories, it.protein, it.fat, it.carbohydrates, it.timeToCook, it.typeId, it.menuItemId, it.checked)
+                        dishes = response.dishes.mapValues { (_, dishes) ->
+                            dishes.map {
+                                GetDish(
+                                    it.id, it.name, it.description, it.imageUrl,
+                                    it.portionsCount, it.calories, it.protein,
+                                    it.fat, it.carbohydrates, it.timeToCook,
+                                    it.typeId, it.menuItemId, it.checked
+                                )
+                            }
                         }
                     )
                 } else {
-
-                    _historyState.value = NutritionHistoryState.Empty(response?.caloriesTarget?.toFloat() ?: 2f)
+                    _historyState.value = NutritionHistoryState.Empty(response?.caloriesTarget ?: 2f)
                 }
             } catch (e: Exception) {
                 _historyState.value = NutritionHistoryState.Error("Ошибка загрузки: ${e.message}")

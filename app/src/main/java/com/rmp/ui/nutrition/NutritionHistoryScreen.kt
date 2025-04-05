@@ -94,17 +94,21 @@ fun NutritionHistoryScreen(
                     )
                     is NutritionHistoryState.Success -> {
                         val state = historyState as NutritionHistoryState.Success
-                        // Create mock meals list from the dishes we got
-                        val mockMeals = listOf(
+                        val meals = state.dishes.map { (mealName, dishes) ->
                             GetMeal(
-                                mealId = 0,
-                                name = "Прием пищи",
-                                dishes = state.dish,
-                                params = Params()
+                                mealId = 0, // Use a proper ID if available
+                                name = mealName,
+                                dishes = dishes,
+                                params = Params(
+                                    calories = dishes.sumOf { it.calories },
+                                    protein = dishes.sumOf { it.protein },
+                                    fat = dishes.sumOf { it.fat },
+                                    carbohydrates = dishes.sumOf { it.carbohydrates }
+                                )
                             )
-                        )
+                        }
                         NutritionCardsList(
-                            meals = mockMeals,
+                            meals = meals,
                         )
                     }
                 }

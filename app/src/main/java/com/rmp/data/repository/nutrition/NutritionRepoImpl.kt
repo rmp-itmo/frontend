@@ -1,7 +1,6 @@
 package com.rmp.data.repository.nutrition
 
 import com.rmp.data.ApiClient
-import com.rmp.data.Result
 import com.rmp.data.successOr
 
 class NutritionRepoImpl : NutritionRepository {

@@ -155,7 +155,7 @@ data class IdealParams(
 data class NutritionHistoryStatResponse(
     val caloriesTarget: Float,
     val date: Int,
-    val dishes: List<GetDish>
+    val dishes: Map<String, List<GetDish>>
 )
 
 
