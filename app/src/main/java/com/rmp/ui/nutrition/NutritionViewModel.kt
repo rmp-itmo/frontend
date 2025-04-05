@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.rmp.data.AppContainer
 import com.rmp.data.repository.nutrition.GeneratedMenuRequest
 import com.rmp.data.repository.nutrition.GeneratedMenuResponse
+import com.rmp.data.repository.nutrition.GetDish
 import com.rmp.data.repository.nutrition.GetMeal
 import com.rmp.data.repository.nutrition.IdealParams
 import com.rmp.data.repository.nutrition.MealRequest
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -44,7 +46,8 @@ sealed class NutritionHistoryState {
     ) : NutritionHistoryState()
     data class Success(
         val date: LocalDate,
-        val totalAmount: Float,
+        val caloriesCurrent: Float,
+        val dish: List<GetDish>
     ) : NutritionHistoryState()
     data class Error(val message: String) : NutritionHistoryState()
 }
@@ -125,6 +128,31 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
                         errorMessage = "Failed to load nutrition data: ${e.message}"
                     )
                 )
+            }
+        }
+    }
+    fun getMenuStats(date: LocalDate) {
+        viewModelScope.launch {
+            _historyState.value = NutritionHistoryState.Loading
+            try {
+                val dateInt = date.format(DateTimeFormatter.BASIC_ISO_DATE).toInt()
+                val response = container.nutritionRepository.getMenuStats(NutritionStatRequest(dateInt))
+                Log.d("ss", response.toString())
+                if (response != null && response.dishes.isNotEmpty()) {
+                    val totalAmount = response.dishes.sumOf { it.calories }.toFloat()
+                    _historyState.value = NutritionHistoryState.Success(
+                        date = date,
+                        caloriesCurrent = totalAmount,
+                        dish = response.dishes.map {
+                            GetDish(it.id, it.name, it.description, it.imageUrl, it.portionsCount, it.calories, it.protein, it.fat, it.carbohydrates, it.timeToCook, it.typeId, it.menuItemId, it.checked)
+                        }
+                    )
+                } else {
+
+                    _historyState.value = NutritionHistoryState.Empty(response?.caloriesTarget?.toFloat() ?: 2f)
+                }
+            } catch (e: Exception) {
+                _historyState.value = NutritionHistoryState.Error("Ошибка загрузки: ${e.message}")
             }
         }
     }

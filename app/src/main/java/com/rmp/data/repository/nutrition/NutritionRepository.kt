@@ -151,6 +151,14 @@ data class IdealParams(
     val maxCarbohydrates: Double = 0.0
 )
 
+@Serializable
+data class NutritionHistoryStatResponse(
+    val caloriesTarget: Float,
+    val date: Int,
+    val dishes: List<GetDish>
+)
+
+
 interface NutritionRepository {
     suspend fun loadDailyStats(date: NutritionStatRequest): NutritionStatResponse?
     suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenuResponse?
@@ -158,4 +166,5 @@ interface NutritionRepository {
     suspend fun getMenu(): GetMenuResponse?
     suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): SwitchDishCheckboxResponse?
     suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): RemoveMenuItemResponse?
+    suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistoryStatResponse?
 }

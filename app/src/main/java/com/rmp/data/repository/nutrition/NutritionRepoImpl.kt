@@ -1,6 +1,7 @@
 package com.rmp.data.repository.nutrition
 
 import com.rmp.data.ApiClient
+import com.rmp.data.Result
 import com.rmp.data.successOr
 
 class NutritionRepoImpl : NutritionRepository {
@@ -57,6 +58,16 @@ class NutritionRepoImpl : NutritionRepository {
         val response = ApiClient.authorizedRequest<RemoveMenuItemResponse>(
             ApiClient.Method.DELETE,
             "/users/menu",
+            date
+        )
+
+        return response.successOr(null)
+    }
+
+    override suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistoryStatResponse? {
+        val response = ApiClient.authorizedRequest<NutritionHistoryStatResponse>(
+            ApiClient.Method.POST,
+            "users/stat/menu",
             date
         )
 
