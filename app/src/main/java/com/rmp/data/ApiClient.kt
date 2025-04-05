@@ -1,7 +1,6 @@
 package com.rmp.data
 
 import android.util.Log
-import androidx.compose.ui.platform.LocalDensity
 import com.rmp.ui.appLogout
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -135,6 +134,8 @@ object ApiClient {
         Log.d("API", "Refresh req headers: ${refreshed.request.headers.toMap()}")
 
         if (refreshed.status.value != 200) {
+            updateAuthorizationData(TokenDto("", ""))
+            appLogout()
             return Result.Error(UnauthorizedException())
         }
 
