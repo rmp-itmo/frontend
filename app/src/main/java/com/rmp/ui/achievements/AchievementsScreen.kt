@@ -1,5 +1,6 @@
 package com.rmp.ui.achievements
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,8 +19,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -108,8 +114,9 @@ fun AchievementCard(
 fun AchievementsScreen(
     uiState: AchievementsUiState,
     fetchAchievements: () -> Unit,
-    onShareAchievement: (ShareAchievementDto) -> Unit
+    onShareAchievement: (Context, ShareAchievementDto) -> Unit
 ) {
+    val ctx = LocalContext.current
 
     RefreshedAppScreen(
         swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isLoading),
@@ -128,33 +135,29 @@ fun AchievementsScreen(
                 type = 1,
                 header = "Питание",
                 prefix = "питанию",
-                icon = R.drawable.ic_nutrition_large,
-                onShareAchievement
-            )
+                icon = R.drawable.ic_nutrition_large
+            ) { onShareAchievement(ctx, it) }
             AchievementCard(
                 achievement = uiState.achievements.water,
                 type = 2,
                 header = "Вода",
                 prefix = "воде",
-                icon = R.drawable.ic_water_large,
-                onShareAchievement
-            )
+                icon = R.drawable.ic_water_large
+            ) { onShareAchievement(ctx, it) }
             AchievementCard(
                 achievement = uiState.achievements.sleep,
                 type = 3,
                 header = "Сон",
                 prefix = "сну",
-                icon = R.drawable.ic_sleep_large,
-                onShareAchievement
-            )
+                icon = R.drawable.ic_sleep_large
+            ) { onShareAchievement(ctx, it) }
             AchievementCard(
                 achievement = uiState.achievements.steps,
                 type = 4,
                 header = "Шаги",
                 prefix = "шагам",
-                icon = R.drawable.ic_workout_large,
-                onShareAchievement
-            )
+                icon = R.drawable.ic_workout_large
+            ) { onShareAchievement(ctx, it) }
         }
     }
 }

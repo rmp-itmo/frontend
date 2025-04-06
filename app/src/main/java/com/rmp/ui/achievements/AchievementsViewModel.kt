@@ -1,5 +1,7 @@
 package com.rmp.ui.achievements
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -18,8 +20,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+data class ShareDescription(
+    val type: Int,
+    val show: Boolean = false
+)
+
 data class AchievementsUiState(
     val isLoading: Boolean = false,
+    val shared: ShareDescription = ShareDescription(0, false),
     val achievements: AchievementsDto? = null,
     val errors: List<ErrorMessage> = emptyList()
 )
@@ -72,7 +80,7 @@ class AchievementsViewModel(
         }
     }
 
-    fun shareAchievement(shareAchievementDto: ShareAchievementDto) {
+    fun shareAchievement(ctx: Context, shareAchievementDto: ShareAchievementDto) {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(isLoading = true)
@@ -88,6 +96,10 @@ class AchievementsViewModel(
                 }
                 return@launch
             }
+
+            Toast
+                .makeText(ctx, "Пост с вашими достижениями опубликован!", Toast.LENGTH_SHORT)
+                .show()
 
             _uiState.update {
                 it.copy(
