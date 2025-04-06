@@ -15,6 +15,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.rmp.R
 import com.rmp.data.AppContainer
+import com.rmp.ui.achievements.AchievementsRoute
+import com.rmp.ui.achievements.AchievementsViewModel
 import com.rmp.ui.forum.feed.FeedRoute
 import com.rmp.ui.forum.feed.FeedViewModel
 import com.rmp.ui.forum.profile.ProfileRoute
@@ -199,6 +201,15 @@ fun RmpNavGraph(
                 )
 
                 ProfileRoute(profileViewModel)
+            }
+            composable(
+                route = RmpDestinations.ACHIEVEMENT_ROUTE
+            ) {
+                val achievementsViewModel: AchievementsViewModel = viewModel(
+                    factory = AchievementsViewModel.factory(appContainer)
+                )
+
+                AchievementsRoute(achievementsViewModel)
             }
         }
     }

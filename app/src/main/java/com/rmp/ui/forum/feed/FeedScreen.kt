@@ -27,6 +27,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import android.util.Log
+
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +47,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rmp.data.UploadedImage
 import com.rmp.ui.LocalNavController
@@ -52,6 +59,8 @@ import com.rmp.R
 import com.rmp.ui.components.RefreshedAppScreen
 import com.rmp.ui.components.buttons.ProfileButton
 import kotlinx.coroutines.delay
+import com.rmp.ui.components.AppScreen
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun FeedScreen(
@@ -62,7 +71,6 @@ fun FeedScreen(
 ) {
     val navigator = LocalNavController.current
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isLoading)
-
 
     RefreshedAppScreen(
         leftComposable = { BackButton() },

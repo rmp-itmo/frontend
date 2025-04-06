@@ -28,6 +28,13 @@ import com.rmp.ui.components.PostList
 import com.rmp.ui.components.RefreshedAppScreen
 import com.rmp.ui.components.buttons.BackToFeedButton
 import java.util.Locale
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.OutlinedButton
+
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.rmp.ui.RmpDestinations
 
 @Composable
 fun ProfileScreen(
