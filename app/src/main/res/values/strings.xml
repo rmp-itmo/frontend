@@ -111,4 +111,12 @@
     <string name="generate_menu">Сгенерировать меню</string>
     <string name="save_menu">Сохранить меню</string>
 
+    <!-- Forum Screen -->
+    <string name="post_title">Заголовок</string>
+    <string name="post_title_input">Введите заголовок</string>
+    <string name="post_text_input">Введите текст</string>
+    <string name="post_text">Текст</string>
+    <string name="post_img">Загрузи изображение</string>
+
+
 </resources>
