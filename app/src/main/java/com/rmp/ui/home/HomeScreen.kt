@@ -102,6 +102,7 @@ fun HomeScreen(
                     )
                     WaterCard(
                         progress = if (uiState.healthData.water != null) ((uiState.healthData.water.first / uiState.healthData.water.second) * 8).roundToInt() else 0,
+                        modifier = Modifier.weight(1f),
                         onClick = { navigator.navigate(RmpDestinations.WATER_ROUTE) }
                     )
                 }
@@ -421,11 +422,10 @@ fun WaterCard(
 ) {
     val shape = RoundedCornerShape(20.dp)
 
-    ElevatedCard (
+    Card(
         modifier = modifier
             .aspectRatio(1f)
             .height(160.dp)
-            .clip(shape)
             .clickable { onClick() },
         shape = shape,
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
@@ -433,7 +433,6 @@ fun WaterCard(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(16.dp)
         ) {
             Text(
