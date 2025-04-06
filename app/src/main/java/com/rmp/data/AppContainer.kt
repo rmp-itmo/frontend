@@ -2,6 +2,10 @@ package com.rmp.data
 
 import android.content.Context
 import com.rmp.data.database.AppDatabase
+import com.rmp.data.repository.achievements.AchievementsRepoImpl
+import com.rmp.data.repository.achievements.AchievementsRepository
+import com.rmp.data.repository.forum.ForumRepoImpl
+import com.rmp.data.repository.forum.ForumRepository
 import com.rmp.data.repository.heart.HeartRepoImpl
 import com.rmp.data.repository.heart.HeartRepository
 import com.rmp.data.repository.nutrition.NutritionRepoImpl
@@ -23,6 +27,8 @@ interface AppContainer {
     val waterRepository: WaterRepository
     val sleepRepository: SleepRepository
     val nutritionRepository: NutritionRepository
+    val forumRepository: ForumRepository
+    val achievementsRepository: AchievementsRepository
 }
 
 public var ApplicationDatabase: AppDatabase? = null
@@ -55,5 +61,11 @@ class AppContainerImpl(private val applicationContext: Context, database: AppDat
     override val nutritionRepository: NutritionRepository by lazy {
         NutritionRepoImpl()
        
+    }
+    override val forumRepository: ForumRepository by lazy {
+        ForumRepoImpl()
+    }
+    override val achievementsRepository: AchievementsRepository by lazy {
+        AchievementsRepoImpl()
     }
 }
