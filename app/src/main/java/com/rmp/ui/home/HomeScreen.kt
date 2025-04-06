@@ -1,6 +1,5 @@
 package com.rmp.ui.home
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -26,12 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rmp.R
 import com.rmp.ui.LocalNavController
 import com.rmp.ui.RmpDestinations
-import com.rmp.ui.components.AppScreen
+import com.rmp.ui.components.RefreshedAppScreen
 import com.rmp.ui.components.buttons.FeedButton
 import com.rmp.ui.components.buttons.SettingButton
 import kotlin.math.roundToInt
@@ -45,88 +42,83 @@ fun HomeScreen(
     val navigator = LocalNavController.current
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isLoading)
 
-    SwipeRefresh(
-        state = swipeRefreshState,
-        onRefresh = onRefresh,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        AppScreen(
+    RefreshedAppScreen(
             leftComposable = { SettingButton() },
-            rightComposable = { FeedButton() }
+            rightComposable = { FeedButton() },
+            swipeRefreshState = swipeRefreshState,
+            onRefresh = onRefresh
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HealthCard(
+                uiState = uiState,
+                calories = if (uiState.healthData.calories != null) "${uiState.healthData.calories.first} / ${uiState.healthData.calories.second}" else "",
+                water = if (uiState.healthData.water != null) "${uiState.healthData.water.first}л / ${uiState.healthData.water.second}л" else "",
+                steps = if (uiState.healthData.steps != null) "${uiState.healthData.steps.first} / ${uiState.healthData.steps.second}" else ""
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState())
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                HealthCard(
-                    uiState = uiState,
-                    calories = if (uiState.healthData.calories != null) "${uiState.healthData.calories.first} / ${uiState.healthData.calories.second}" else "",
-                    water = if (uiState.healthData.water != null) "${uiState.healthData.water.first}л / ${uiState.healthData.water.second}л" else "",
-                    steps = if (uiState.healthData.steps != null) "${uiState.healthData.steps.first} / ${uiState.healthData.steps.second}" else ""
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Column(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        HomeItemCard(
-                            title = R.string.sleep,
-                            value = uiState.healthData.sleep
-                                ?: stringResource(R.string.no_data),
-                            imageRes = R.drawable.ic_sleep,
-                            onClick = { navigator.navigate(RmpDestinations.SLEEP_ROUTE) }
-                        )
-                        HomeItemCard(
-                            title = R.string.heart,
-                            value = if (uiState.healthData.heartRate != "") uiState.healthData.heartRate + " " + stringResource(
-                                R.string.heart_min
-                            ) else "",
-                            imageRes = R.drawable.ic_heart,
-                            onClick = { navigator.navigate(RmpDestinations.HEART_ROUTE) }
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        HomeItemCard(
-                            title = R.string.nutrition,
-                            value = (if (uiState.healthData.nutrition != null) uiState.healthData.nutrition + " " + stringResource(
-                                R.string.nutrition_unit
-                            ) else stringResource(R.string.no_data)),
-                            imageRes = R.drawable.ic_nutrition,
-                            onClick = { navigator.navigate(RmpDestinations.NUTRITION_ROUTE) }
-                        )
-                        WaterCard(
-                            progress = if (uiState.healthData.water != null) ((uiState.healthData.water.first / uiState.healthData.water.second) * 8).roundToInt() else 0,
-                            modifier = Modifier.weight(1f).shadow(4.dp, RoundedCornerShape(20.dp)),
-                            onClick = { navigator.navigate(RmpDestinations.WATER_ROUTE) }
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        HomeItemCard(
-                            title = R.string.workout,
-                            imageRes = R.drawable.ic_workout,
-                            onClick = { navigator.navigate(RmpDestinations.TRAIN_ROUTE) }
-                        )
-                        HomeItemCard(
-                            title = R.string.achievements,
-                            imageRes = R.drawable.ic_achievements,
-                            onClick = { navigator.navigate(RmpDestinations.ACHIEVEMENT_ROUTE) }
-                        )
-                    }
+                    HomeItemCard(
+                        title = R.string.sleep,
+                        value = uiState.healthData.sleep
+                            ?: stringResource(R.string.no_data),
+                        imageRes = R.drawable.ic_sleep,
+                        onClick = { navigator.navigate(RmpDestinations.SLEEP_ROUTE) }
+                    )
+                    HomeItemCard(
+                        title = R.string.heart,
+                        value = if (uiState.healthData.heartRate != "") uiState.healthData.heartRate + " " + stringResource(
+                            R.string.heart_min
+                        ) else "",
+                        imageRes = R.drawable.ic_heart,
+                        onClick = { navigator.navigate(RmpDestinations.HEART_ROUTE) }
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    HomeItemCard(
+                        title = R.string.nutrition,
+                        value = (if (uiState.healthData.nutrition != null) uiState.healthData.nutrition + " " + stringResource(
+                            R.string.nutrition_unit
+                        ) else stringResource(R.string.no_data)),
+                        imageRes = R.drawable.ic_nutrition,
+                        onClick = { navigator.navigate(RmpDestinations.NUTRITION_ROUTE) }
+                    )
+                    WaterCard(
+                        progress = if (uiState.healthData.water != null) ((uiState.healthData.water.first / uiState.healthData.water.second) * 8).roundToInt() else 0,
+                        onClick = { navigator.navigate(RmpDestinations.WATER_ROUTE) }
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    HomeItemCard(
+                        title = R.string.workout,
+                        imageRes = R.drawable.ic_workout,
+                        onClick = { navigator.navigate(RmpDestinations.TRAIN_ROUTE) }
+                    )
+                    HomeItemCard(
+                        title = R.string.achievements,
+                        imageRes = R.drawable.ic_achievements,
+                        onClick = { navigator.navigate(RmpDestinations.ACHIEVEMENT_ROUTE) }
+                    )
                 }
             }
         }
@@ -167,14 +159,14 @@ fun ImageCard(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            when (title) {
-                stringResource(R.string.sleep) -> {
+            when {
+                title == stringResource(R.string.sleep) -> {
                     BoldNumbersText(value)
                 }
-                stringResource(R.string.heart) -> {
+                title == stringResource(R.string.heart) -> {
                     BoldFirstNumberText(value)
                 }
-                stringResource(R.string.nutrition) -> {
+                title == stringResource(R.string.nutrition) -> {
                     BoldFirstNumberText(value)
                 }
                 else -> {
