@@ -4,15 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.rmp.ui.forum.profile.ProfileUiState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -30,6 +21,23 @@ fun getCurrentYearPlusMonth(): Pair<Int, String> {
     val yearFormatter = DateTimeFormatter.ofPattern("yyyy")
     val monthFormatter = DateTimeFormatter.ofPattern("MM")
     return currentDate.format(yearFormatter).toInt() to currentDate.format(monthFormatter)
+}
+
+fun getLastDayOfMonth(date: Int): Int {
+    val input = "$date"
+
+    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+
+    return LocalDate.parse(input, formatter).lengthOfMonth()
+}
+
+fun getAsDate(date: Int): LocalDate {
+    val input = "$date"
+
+    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+
+    return LocalDate
+        .parse(input, formatter)
 }
 
 data class UploadedImage(

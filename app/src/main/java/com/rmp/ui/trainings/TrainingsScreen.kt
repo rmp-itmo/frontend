@@ -1,12 +1,18 @@
 package com.rmp.ui.trainings
 
 import android.util.Log
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,10 +20,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,105 +29,151 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TimePickerDialog
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rmp.R
 import com.rmp.data.getCurrentDateAsNumber
+import com.rmp.data.getAsDate
 import com.rmp.data.repository.training.SetStepsTargetDto
 import com.rmp.data.repository.training.TrainingListDto
 import com.rmp.data.repository.training.TrainingLogDto
 import com.rmp.ui.components.DropDown
+import com.rmp.ui.components.TimePicker
 import com.rmp.ui.components.RefreshedAppScreen
 import com.rmp.ui.components.buttons.BackButton
 import kotlin.math.roundToInt
 
 @Composable
 fun TrainingIcon(trainingType: String) {
+    val icon = when(trainingType) {
+        "Бег" -> R.drawable.ic_run
+        "Плавание" -> R.drawable.ic_swim
+        "Велосипед" -> R.drawable.ic_cycling
+        else -> R.drawable.ic_run
+    }
     Icon(
-        painter = painterResource(R.drawable.mid),
-        contentDescription = "Training Type #$trainingType"
+        painter = painterResource(icon),
+        contentDescription = "Training Type #$trainingType",
+        modifier = Modifier.size(170.dp)
     )
 }
 
 @Composable
 fun TrainingDay(trainingDay: Pair<String, List<TrainingListDto.Training>>) {
     val (day, trainings) = trainingDay
-    Column {
-        Text("Date: $day")
-        TrainingList(trainings)
-    }
-}
+    ElevatedCard(
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 15.dp, vertical = 10.dp),
+//                    .verticalScroll(rememberScrollState()),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
+    ) {
+        Column(
+            Modifier
+                .padding(horizontal = 15.dp, vertical = 10.dp)
+        ) {
+            Text(
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                text = "$day"
+            )
 
-@Composable
-fun TrainingList(trainings: List<TrainingListDto.Training>) {
-    Column {
-        for (training in trainings) {
-            Row {
-                Column {
-                    TrainingIcon(training.type)
-                }
-                Column {
-                    Row {
-                        Column {
-                            Text(training.type)
-                            Text("Since ${training.start} till ${training.end}")
-                        }
-                    }
-                    Row {
-                        Column {
-                            Text("Калории")
-                            Text(training.calories.roundToInt().toString())
-                        }
-                        Column {
-                            Text("Интенсивность")
-                            Text(training.intensity)
-                        }
-                    }
+            if (trainings.size > 0) {
+                TrainingList(trainings)
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_no_trains),
+                        contentDescription = "",
+                        modifier = Modifier.size(170.dp)
+                    )
+                    Text("В этот день у вас не было тренировок")
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TimePicker(
-    label: String,
-    onTimeSelected: (Pair<Int, Int>) -> Unit
-) {
-    var show by remember { mutableStateOf(false) }
-    val state = rememberTimePickerState()
-
-    state.is24hour = true
-
-    TextButton(onClick = { show = true }) {
-        Text(label)
-    }
-
-    if (show) {
-        TimePickerDialog(
-            onDismissRequest = { show = false },
-            title = { Text(label) },
-            confirmButton = {
-                TextButton(onClick = {
-                    onTimeSelected(state.hour to state.minute)
-                    show = false
-                }) {
-                    Text("Выбрать")
+fun TrainingList(trainings: List<TrainingListDto.Training>) {
+    var idx = 0
+    Column {
+        for (training in trainings) {
+            var last = idx == trainings.lastIndex
+            idx++
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    TrainingIcon(training.type)
+                }
+                Column {
+                    Row(
+                        Modifier.padding(bottom = 10.dp)
+                    ) {
+                        Column {
+                            Text(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                text = training.type,
+                                modifier = Modifier.padding(bottom = 20.dp))
+                            Text("${training.start} - ${training.end}")
+                        }
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.width(200.dp),
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                fontWeight = FontWeight.Bold,
+                                text = "Калории"
+                            )
+                            Text(training.calories.roundToInt().toString())
+                        }
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                fontWeight = FontWeight.Bold,
+                                text = "Интенсивность"
+                            )
+                            Text(training.intensity)
+                        }
+                    }
                 }
             }
-        ) {
-            androidx.compose.material3.TimePicker(state)
+
+            if (!last)
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
+                    thickness = 1.dp, color = Color.Black
+                )
         }
     }
 }
@@ -151,6 +201,12 @@ fun CreateTrainingDialog(
         onDismissRequest = onCancel,
         text = {
             Column {
+                Text(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    text = "Добавление тренировки",
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
                 DropDown(
                     options = uiState.types.map { it.name },
                     label = "Тип тренировки",
@@ -172,7 +228,6 @@ fun CreateTrainingDialog(
                         TimePicker("Начало тренировки ${timeStart.describeTime()}") { (h, m) ->
                             val mF = if (m < 10) "0$m" else "$m"
                             val hF = if (h < 10) "0$h" else "$h"
-                            Log.d("training", "selected time: $hF:$mF $h, $m")
                             timeStart = hF to mF
                         }
                     }
@@ -181,7 +236,6 @@ fun CreateTrainingDialog(
                         TimePicker("Конец тренировки ${timeEnd.describeTime()}") { (h, m) ->
                             val mF = if (m < 10) "0$m" else "$m"
                             val hF = if (h < 10) "0$h" else "$h"
-                            Log.d("training", "selected time: $hF:$mF $h, $m")
                             timeEnd = hF to mF
                         }
                     }
@@ -230,8 +284,17 @@ fun EditStepsDialog(
     AlertDialog(
         onDismissRequest = onCancel,
         text = {
-            Column {
-                Text("Текущая цель ${uiState.stepsTarget}")
+            Column{
+                Text(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    text = "Изменить цель по шагам",
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+                Text(
+                    "Текущая цель ${uiState.stepsTarget}",
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
                 OutlinedTextField(
                     value = steps,
                     onValueChange = { steps = it },
@@ -261,6 +324,55 @@ fun EditStepsDialog(
         }
 
     )
+}
+
+@Composable
+fun ProgressBar(
+    current: Int,
+    total: Int,
+    modifier: Modifier = Modifier
+) {
+    val progress = current.toFloat() / total
+    val text = "$current / $total"
+
+    Box(
+        modifier = modifier
+            .height(40.dp)
+            .clip(RoundedCornerShape(35.dp))
+            .background(Color.White)
+            .padding(4.dp)
+    ) {
+        // Background
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .shadow(
+                    elevation = 5.dp,
+                    shape = RoundedCornerShape(35.dp),
+                    clip = true
+                )
+                .background(Color.White)
+        )
+
+        // Filled progress
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(progress)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(35.dp))
+                .background(Color(0xFFFFA500))
+        )
+
+        // Progress text
+        Text(
+            text = text,
+            color = Color.Black,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = 8.dp),
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 @Composable
@@ -300,9 +412,14 @@ fun TrainingsScreen(
 
         Column(
             modifier = Modifier
+                .padding(horizontal = 15.dp, vertical = 20.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Text("Тренировки")
+            Text(
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                text = "Тренировки"
+            )
             ElevatedCard(
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 modifier = Modifier
@@ -312,33 +429,86 @@ fun TrainingsScreen(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
             ) {
-                Row {
-                    Text("Цель по шагам ${uiState.stepsTarget}")
-                    OutlinedButton(onClick = {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 15.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        text = "Цель по шагам ${uiState.stepsTarget}"
+                    )
+                    IconButton(onClick = {
                         showEditSteps = true
                     }) {
-                        Text("edit")
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_edit),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(25.dp)
+                        )
                     }
                 }
-                Text("Текущие шаги: ${uiState.stepsCurrent}")
 
-                HorizontalDivider()
+                ProgressBar(
+                    uiState.stepsCurrent, uiState.stepsTarget,
+                    Modifier.padding(horizontal = 15.dp, vertical = 5.dp)
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 15.dp, vertical = 15.dp),
+                    thickness = 1.dp, color = Color.Black
+                )
 
                 TrainingList(uiState.trainings[today] ?: listOf())
 
-                TextButton(onClick = {
-                    showCreateTraining = true
-                }) {
-                    Text("Добавить тренировку")
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    IconButton(onClick = {
+                        showCreateTraining = true
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_add),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(35.dp)
+                        )
+                    }
                 }
             }
 
-            Text("История")
+            Text(
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 16.dp),
+                text = "История"
+            )
+            fun Int.fixdate(): String = if (this < 10) "0$this" else "$this"
 
-            uiState.trainings.forEach { (day, list) ->
-                if (day == today) return@forEach
-
-                TrainingDay(day to list)
+            if (uiState.trainings.size > 0) {
+                val date = uiState.trainings.entries.last().key.toInt()
+                val localDate = getAsDate(date)
+                val maxDay = localDate.dayOfMonth
+                var day = maxDay
+                while (day >= 1) {
+                    if (day == maxDay) {
+                        day -= 1
+                        continue
+                    }
+                    val key = "${localDate.year}${localDate.monthValue.fixdate()}${day.fixdate()}"
+                    val formatted = "${day.fixdate()}.${localDate.monthValue.fixdate()}.${localDate.year}"
+                    if (key !in uiState.trainings) {
+                        TrainingDay(formatted to listOf())
+                    } else {
+                        TrainingDay(formatted to uiState.trainings[key]!!)
+                    }
+                    day -= 1
+                }
             }
         }
     }
