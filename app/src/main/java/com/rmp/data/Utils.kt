@@ -25,6 +25,13 @@ fun getCurrentDateAsNumber(): Int {
     return currentDate.format(formatter).toInt()
 }
 
+fun getCurrentYearPlusMonth(): Pair<Int, String> {
+    val currentDate = LocalDate.now()
+    val yearFormatter = DateTimeFormatter.ofPattern("yyyy")
+    val monthFormatter = DateTimeFormatter.ofPattern("MM")
+    return currentDate.format(yearFormatter).toInt() to currentDate.format(monthFormatter)
+}
+
 data class UploadedImage(
     val image: String,
     val imageName: String,

@@ -39,6 +39,8 @@ import com.rmp.ui.sleep.SleepRoute
 import com.rmp.ui.sleep.SleepViewModel
 import com.rmp.ui.sleep.history.SleepHistoryRoute
 import com.rmp.ui.sleep.history.SleepHistoryViewModel
+import com.rmp.ui.trainings.TrainingsRoute
+import com.rmp.ui.trainings.TrainingsViewModel
 import com.rmp.ui.water.WaterRoute
 import com.rmp.ui.water.WaterViewModel
 import kotlinx.serialization.Serializable
@@ -210,6 +212,15 @@ fun RmpNavGraph(
                 )
 
                 AchievementsRoute(achievementsViewModel)
+            }
+            composable(
+                route = RmpDestinations.TRAIN_ROUTE
+            ) {
+                val trainingViewModel: TrainingsViewModel = viewModel(
+                    factory = TrainingsViewModel.factory(appContainer)
+                )
+
+                TrainingsRoute(trainingViewModel)
             }
         }
     }
