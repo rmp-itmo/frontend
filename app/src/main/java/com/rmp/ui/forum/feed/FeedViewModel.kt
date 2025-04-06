@@ -1,10 +1,8 @@
 package com.rmp.ui.forum.feed
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import coil.util.Logger
 import com.rmp.R
 import com.rmp.data.ErrorMessage
 import com.rmp.data.UploadedImage
@@ -14,8 +12,6 @@ import com.rmp.data.repository.forum.ForumRepository
 import com.rmp.data.repository.forum.PostDto
 import com.rmp.data.repository.forum.UpvoteDto
 import com.rmp.data.repository.forum.updateAfterUpVoting
-import com.rmp.data.repository.sleep.SleepRepository
-import com.rmp.ui.sleep.SleepViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

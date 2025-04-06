@@ -46,7 +46,11 @@ data class ProfileDto(
     @SerialName("subscriptions")
     val subscriptions: Map<String, String>,
     @SerialName("isSubscribed")
-    val isSubscribed: Boolean
+    val isSubscribed: Boolean,
+    @SerialName("isMale")
+    val isMale: Boolean,
+    @SerialName("name")
+    val name: String
 )
 
 @Serializable
