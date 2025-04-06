@@ -14,6 +14,8 @@ import com.rmp.data.repository.signup.UserRepoImpl
 import com.rmp.data.repository.signup.UserRepository
 import com.rmp.data.repository.sleep.SleepRepoImpl
 import com.rmp.data.repository.sleep.SleepRepository
+import com.rmp.data.repository.training.TrainingRepoImpl
+import com.rmp.data.repository.training.TrainingRepository
 import com.rmp.data.repository.water.WaterRepoImpl
 import com.rmp.data.repository.water.WaterRepository
 
@@ -29,6 +31,7 @@ interface AppContainer {
     val nutritionRepository: NutritionRepository
     val forumRepository: ForumRepository
     val achievementsRepository: AchievementsRepository
+    val trainingsRepository: TrainingRepository
 }
 
 public var ApplicationDatabase: AppDatabase? = null
@@ -67,5 +70,8 @@ class AppContainerImpl(private val applicationContext: Context, database: AppDat
     }
     override val achievementsRepository: AchievementsRepository by lazy {
         AchievementsRepoImpl()
+    }
+    override val trainingsRepository: TrainingRepository by lazy {
+        TrainingRepoImpl()
     }
 }
