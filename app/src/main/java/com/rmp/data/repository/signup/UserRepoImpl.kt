@@ -28,4 +28,8 @@ class UserRepoImpl: UserRepository {
     override suspend fun getMeStatSummary(date: DateDto): UserStatSummaryDto? {
         return ApiClient.authorizedRequest<UserStatSummaryDto>(ApiClient.Method.POST, "users/stat/summary", date).successOr(null)
     }
+
+    override suspend fun checkUserDailyTarget(date: DateDto): DailyCheckDto? {
+        return ApiClient.authorizedRequest<DailyCheckDto>(ApiClient.Method.POST, "users/target/check", date).successOr(null)
+    }
 }

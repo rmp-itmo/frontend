@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
@@ -15,18 +16,22 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.work.Constraints
+import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import com.rmp.R
 import com.rmp.data.repository.heart.HeartRateLogDto
 import com.rmp.data.repository.heart.HeartRepoImpl
 import com.rmp.data.repository.heart.HeartRepository
+import com.rmp.data.repository.signup.DateDto
+import com.rmp.data.repository.signup.UserRepoImpl
+import com.rmp.data.repository.signup.UserRepository
 import com.rmp.data.repository.steps.StepsRepoImpl
 import com.rmp.data.repository.steps.StepsRepository
 import com.rmp.data.repository.steps.UserStepsLogDto
-import com.rmp.services.schedulers.DailyHealthWorker
 import com.rmp.ui.MainActivity
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -36,8 +41,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 class HealthConnectForegroundService : Service() {
@@ -47,6 +54,7 @@ class HealthConnectForegroundService : Service() {
 
     private lateinit var heartRepository: HeartRepository
     private lateinit var stepsRepository: StepsRepository
+    private lateinit var userRepository: UserRepository
 
     private val NOTIFICATION_CHANNEL_ID = "HealthConnectChannel"
     private val NOTIFICATION_ID = 101
@@ -56,6 +64,7 @@ class HealthConnectForegroundService : Service() {
 
         heartRepository = HeartRepoImpl()
         stepsRepository = StepsRepoImpl()
+        userRepository = UserRepoImpl()
 
         healthConnectClient = HealthConnectClient.getOrCreate(this)
         createNotificationChannel()
@@ -65,6 +74,7 @@ class HealthConnectForegroundService : Service() {
         if (!isRunning) {
             isRunning = true
             startForeground(NOTIFICATION_ID, createNotification())
+
             startHealthDataCollection()
 
             Log.d("HealthConnect", "Service started")
@@ -111,6 +121,12 @@ class HealthConnectForegroundService : Service() {
 
                     fetchStepCountData()
                     fetchHeartRateData()
+
+                    val now = Instant.now()
+                    if (isNearMidnight(now)) {
+                        userRepository.checkUserDailyTarget(DateDto(now.toDateAndTime().first))
+                        Log.d("HealthConnect", "Daily check target")
+                    }
                 } catch (e: Exception) {
                     Log.e("HealthConnect", "Error in data collection loop", e)
                     updateNotification("Ошибка: ${e.localizedMessage}")
@@ -118,6 +134,17 @@ class HealthConnectForegroundService : Service() {
                 }
             }
         }
+    }
+
+    private fun isNearMidnight(instant: Instant): Boolean {
+        val zoneId = ZoneId.systemDefault()
+        val zonedDateTime = instant.atZone(zoneId)
+
+        val hour = zonedDateTime.hour
+        val minute = zonedDateTime.minute
+        val seconds = zonedDateTime.second
+
+        return (hour == 23 && minute >= 57 && seconds >= 59)
     }
 
     private fun updateNotification(text: String) {
@@ -201,24 +228,6 @@ class HealthConnectForegroundService : Service() {
         val time = zonedDateTime.format(timeFormatter).toInt()
 
         return Pair(date, time)
-    }
-
-    private fun scheduleDailyWork() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val dailyRequest = PeriodicWorkRequestBuilder<DailyHealthWorker>(
-            24, TimeUnit.HOURS,
-            1, TimeUnit.MINUTES
-        ).setConstraints(constraints)
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "daily_health_work",
-            ExistingPeriodicWorkPolicy.KEEP,
-            dailyRequest
-        )
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
