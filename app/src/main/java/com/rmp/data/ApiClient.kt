@@ -99,6 +99,7 @@ object ApiClient {
         } catch (e: Exception) {
             Log.d("API", "Deserialization failed! ${resp.bodyAsText()}")
             Log.d("API", e.message.toString())
+            Log.d("API", e.stackTraceToString())
             Result.Error(BadResponse())
         }
 
@@ -139,6 +140,8 @@ object ApiClient {
             return Result.Error(UnauthorizedException())
         }
         if (refreshed.status.value != 200) {
+            updateAuthorizationData(TokenDto("", ""))
+            appLogout()
             return Result.Error(UnauthorizedException())
         }
 
@@ -179,6 +182,7 @@ object ApiClient {
 
         val builder: HttpRequestBuilder.() -> Unit = {
             setBody(data)
+            Log.d("API", "Set data: $data")
             bearerAuth(authorizationData.accessToken)
             headers {
                 set("Content-Type", "application/json")

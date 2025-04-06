@@ -12,8 +12,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.rmp.R
 import com.rmp.data.AppContainer
+import com.rmp.ui.forum.feed.FeedRoute
+import com.rmp.ui.forum.feed.FeedViewModel
+import com.rmp.ui.forum.profile.ProfileRoute
+import com.rmp.ui.forum.profile.ProfileViewModel
 import com.rmp.ui.heart.HeartRoute
 import com.rmp.ui.heart.HeartViewModel
 import com.rmp.ui.hello.HelloRoute
@@ -34,10 +39,14 @@ import com.rmp.ui.sleep.history.SleepHistoryRoute
 import com.rmp.ui.sleep.history.SleepHistoryViewModel
 import com.rmp.ui.water.WaterRoute
 import com.rmp.ui.water.WaterViewModel
+import kotlinx.serialization.Serializable
 
 val LocalNavController = compositionLocalOf<NavHostController> { error("NavController not found") }
 
 var appLogout: () -> Unit = {}
+
+@Serializable
+data class ProfileNavigator(val userId: Long)
 
 @Composable
 fun RmpNavGraph(
@@ -160,7 +169,6 @@ fun RmpNavGraph(
                     nutritionViewModel = nutritionViewModel
                 )
             }
-
             composable(
                 route = RmpDestinations.SLEEP_ROUTE
             ) { _ ->
@@ -171,6 +179,26 @@ fun RmpNavGraph(
                     sleepViewModel = sleepViewModel,
                     { navController.navigate(RmpDestinations.SLEEP_HISTORY_ROUTE) }
                 )
+            }
+
+            composable(
+                route = RmpDestinations.FEED_ROUTE
+            ) {
+                val feedViewModel: FeedViewModel = viewModel(
+                    factory = FeedViewModel.factory(appContainer.forumRepository)
+                )
+
+                FeedRoute(feedViewModel)
+            }
+            composable<ProfileNavigator> { profile ->
+                val p = profile.toRoute<ProfileNavigator>()
+                p.userId
+
+                val profileViewModel: ProfileViewModel = viewModel(
+                    factory = ProfileViewModel.factory(p.userId, forumRepository = appContainer.forumRepository)
+                )
+
+                ProfileRoute(profileViewModel)
             }
         }
     }
