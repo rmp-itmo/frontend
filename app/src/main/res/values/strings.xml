@@ -25,6 +25,7 @@
     <string name="invalid_email">Некорректный email</string>
     <string name="error_load_data">Ошибка загрузки</string>
     <string name="error_session_expired">Извините, сессия истекла, пожалуйста авторизуйтесь</string>
+    <string name="error_time_provided">Указано некорректное время</string>
 
 
     <!-- SignUp screen -->
@@ -63,6 +64,52 @@
 
     <!--  Home Screen   -->
     <string name="sign_out">Выйти</string>
+    <string name="error">Ошибка</string>
+    <string name="sleep">Сон</string>
+    <string name="heart">Сердце</string>
+    <string name="nutrition">Питание</string>
+    <string name="workout">Тренировки</string>
+    <string name="achievements">Достижения</string>
+    <string name="health">Здоровье</string>
+    <string name="calories">Калории</string>
+    <string name="steps">Шаги</string>
+    <string name="glass_water">Стакан воды</string>
+    <string name="settings">Настройки</string>
+    <string name="feed">Лента</string>
+    <string name="heart_min">уд мин</string>
+    <string name="nutrition_unit">ккал</string>
+    <string name="no_data">Нет данных</string>
+
+    <!-- Heart Screen -->
+    <string name="day">День</string>
+    <string name="month">Месяц</string>
+    <string name="year">Год</string>
+    <string name="average">Средний</string>
+    <string name="min">Минимум</string>
+    <string name="max">Максимум</string>
+    <string name="pulse"> уд мин</string>
+    <string name="home">На главную</string>
+    <string name="pulse_measure">%s уд мин</string>
+
+    <!-- Sleep Screen -->
+    <string name="sleep_measure">%s ч %s мин</string>
+
+    <!-- Policy -->
+    <string name="privacy_policy_title">Политика конфиденциальности</string>
+    <string name="privacy_policy_message">
+        Ваши данные о здоровье будут использоваться для отображения графиков и анализа.
+        Мы не передаем данные третьим лицам.
+    </string>
+    <string name="ok">OK</string>
+    <string name="learn_more">Подробнее</string>
+
+    <!--  Water Screen   -->
+    <string name="water">Вода</string>
+    <string name="add_water">Добавить воду</string>
+
+    <!-- Nutrition Screen -->
+    <string name="generate_menu">Сгенерировать меню</string>
+    <string name="save_menu">Сохранить меню</string>
 
     <!-- Settings Screen  -->
     <string name="invalid_height">Некорректный рост. Укажите значение от 50 до 250 см.</string>
