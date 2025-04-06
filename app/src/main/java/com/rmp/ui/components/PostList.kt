@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -19,8 +18,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,9 +33,6 @@ import coil.compose.SubcomposeAsyncImage
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import com.rmp.R
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import coil.compose.rememberAsyncImagePainter
 import com.rmp.data.baseUrl
 import com.rmp.data.repository.forum.PostDto
 

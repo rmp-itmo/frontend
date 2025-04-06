@@ -51,8 +51,6 @@ data class ProfileDto(
     val isMale: Boolean,
     @SerialName("name")
     val name: String,
-    @SerialName("isSubscribed")
-    val isSubscribed: Boolean
 )
 
 @Serializable
