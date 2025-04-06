@@ -108,7 +108,7 @@ fun HomeScreen(
                         )
                         WaterCard(
                             progress = if (uiState.healthData.water != null) ((uiState.healthData.water.first / uiState.healthData.water.second) * 8).roundToInt() else 0,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).shadow(4.dp, RoundedCornerShape(20.dp)),
                             onClick = { navigator.navigate(RmpDestinations.WATER_ROUTE) }
                         )
                     }
@@ -167,14 +167,14 @@ fun ImageCard(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            when {
-                title == stringResource(R.string.sleep) -> {
+            when (title) {
+                stringResource(R.string.sleep) -> {
                     BoldNumbersText(value)
                 }
-                title == stringResource(R.string.heart) -> {
+                stringResource(R.string.heart) -> {
                     BoldFirstNumberText(value)
                 }
-                title == stringResource(R.string.nutrition) -> {
+                stringResource(R.string.nutrition) -> {
                     BoldFirstNumberText(value)
                 }
                 else -> {

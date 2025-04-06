@@ -54,9 +54,18 @@ data class DateDto(
     val date: Int
 )
 
+@Serializable
+data class DailyCheckDto(
+    val dishes: Boolean = false,
+    val water: Boolean = false,
+    val steps: Boolean = false,
+    val sleep: Boolean = false
+)
+
 interface UserRepository {
     suspend fun createUser(createUserDto: CreateUserDto): Boolean
     suspend fun loginUser(userLoginDto: UserLoginDto): TokenDto?
     suspend fun getMe(): UserDto?
     suspend fun getMeStatSummary(date: DateDto): UserStatSummaryDto?
+    suspend fun checkUserDailyTarget(date: DateDto): DailyCheckDto?
 }
