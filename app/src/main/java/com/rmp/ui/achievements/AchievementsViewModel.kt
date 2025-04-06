@@ -1,13 +1,16 @@
 package com.rmp.ui.achievements
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rmp.R
+import com.rmp.data.AppContainer
 import com.rmp.data.ErrorMessage
 import com.rmp.data.repository.achievements.AchievementsDto
 import com.rmp.data.repository.achievements.AchievementsRepository
 import com.rmp.data.repository.achievements.ShareAchievementDto
 import com.rmp.ui.forum.profile.ProfileUiState
+import com.rmp.ui.nutrition.NutritionViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +34,16 @@ class AchievementsViewModel(
         viewModelScope.launch {
             fetchAchievements()
         }
+    }
+
+    companion object {
+        fun factory(appContainer: AppContainer): ViewModelProvider.Factory =
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return AchievementsViewModel(appContainer.achievementsRepository) as T
+                }
+            }
     }
 
     fun fetchAchievements() {
