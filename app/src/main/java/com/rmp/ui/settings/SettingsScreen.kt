@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,20 +21,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rmp.R
 import com.rmp.ui.components.AccentImageButton
 import com.rmp.ui.components.AccentImageSecondaryButton
-import com.rmp.ui.components.AppScreenSettings
+import com.rmp.ui.components.AppScreen
 import com.rmp.ui.components.Header
 import com.rmp.ui.components.LabelledInput
+import com.rmp.ui.components.buttons.BackButton
+import com.rmp.ui.components.buttons.SignOutButton
 import com.rmp.ui.theme.RmpTheme
 
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
-    onSignOutClick: () -> Unit,
     onNameChange: (String) -> Unit,
     onGenderChange: (Gender) -> Unit,
     onAgeChange: (String) -> Unit,
@@ -40,18 +43,22 @@ fun SettingsScreen(
     onActivityLevelChange: (ActivityLevel) -> Unit,
     onGoalChange: (Goal) -> Unit,
     onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit
+    onPasswordChange: (String) -> Unit,
+    onNickNameChange: (String) -> Unit,
+    onSaveClick: () -> Unit,
+    onSignOutClick: () -> Unit
 ) {
     RmpTheme {
-        AppScreenSettings(
-            showTopBar = true,
-            onSignOutClick = onSignOutClick
+        AppScreen(
+            leftComposable = { BackButton() },
+            rightComposable = { SignOutButton(onSignOutClick)}
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 20.dp)
-                    .imePadding(),
+                    .imePadding()
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -124,18 +131,18 @@ fun SettingsScreen(
                     )
                     Row {
                         RadioButton(
-                            selected = uiState.activityLevel == ActivityLevel.LOW,
-                            onClick = { onActivityLevelChange(ActivityLevel.LOW) }
+                            selected = uiState.activityLevel == ActivityLevel.Low,
+                            onClick = { onActivityLevelChange(ActivityLevel.Low) }
                         )
                         Text("Низкий", modifier = Modifier.align(Alignment.CenterVertically))
                         RadioButton(
-                            selected = uiState.activityLevel == ActivityLevel.MODERATE,
-                            onClick = { onActivityLevelChange(ActivityLevel.MODERATE) }
+                            selected = uiState.activityLevel == ActivityLevel.Medium,
+                            onClick = { onActivityLevelChange(ActivityLevel.Medium) }
                         )
                         Text("Средний", modifier = Modifier.align(Alignment.CenterVertically))
                         RadioButton(
-                            selected = uiState.activityLevel == ActivityLevel.HIGH,
-                            onClick = { onActivityLevelChange(ActivityLevel.HIGH) }
+                            selected = uiState.activityLevel == ActivityLevel.High,
+                            onClick = { onActivityLevelChange(ActivityLevel.High) }
                         )
                         Text("Высокий", modifier = Modifier.align(Alignment.CenterVertically))
                     }
@@ -156,13 +163,13 @@ fun SettingsScreen(
                                 .padding(end = 1.dp)
                                 .padding(1.dp)
                         ) {
-                            if (uiState.goal == Goal.LOSE_WEIGHT) {
+                            if (uiState.goal == Goal.Lose) {
                                 AccentImageButton(
                                     imageRes = R.drawable.weight_lower,
                                     contentDescription = "Снижение",
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    onGoalChange(Goal.LOSE_WEIGHT)
+                                    onGoalChange(Goal.Lose)
                                 }
                             } else {
                                 AccentImageSecondaryButton(
@@ -170,7 +177,7 @@ fun SettingsScreen(
                                     contentDescription = "Снижение",
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    onGoalChange(Goal.LOSE_WEIGHT)
+                                    onGoalChange(Goal.Lose)
                                 }
                             }
                         }
@@ -182,13 +189,13 @@ fun SettingsScreen(
                                 .padding(horizontal = 1.dp)
                                 .padding(1.dp)
                         ) {
-                            if (uiState.goal == Goal.MAINTAIN_WEIGHT) {
+                            if (uiState.goal == Goal.Maintain) {
                                 AccentImageButton(
                                     imageRes = R.drawable.weight_same,
                                     contentDescription = "Поддержание",
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    onGoalChange(Goal.MAINTAIN_WEIGHT)
+                                        onGoalChange(Goal.Maintain)
                                 }
                             } else {
                                 AccentImageSecondaryButton(
@@ -196,7 +203,7 @@ fun SettingsScreen(
                                     contentDescription = "Поддержание",
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    onGoalChange(Goal.MAINTAIN_WEIGHT)
+                                    onGoalChange(Goal.Maintain)
                                 }
                             }
                         }
@@ -208,13 +215,13 @@ fun SettingsScreen(
                                 .padding(start = 1.dp)
                                 .padding(1.dp)
                         ) {
-                            if (uiState.goal == Goal.GAIN_WEIGHT) {
+                            if (uiState.goal == Goal.Gain) {
                                 AccentImageButton(
                                     imageRes = R.drawable.weight_higher,
                                     contentDescription = "Набор",
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    onGoalChange(Goal.GAIN_WEIGHT)
+                                    onGoalChange(Goal.Gain)
                                 }
                             } else {
                                 AccentImageSecondaryButton(
@@ -222,7 +229,7 @@ fun SettingsScreen(
                                     contentDescription = "Набор",
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    onGoalChange(Goal.GAIN_WEIGHT)
+                                    onGoalChange(Goal.Gain)
                                 }
                             }
                         }
@@ -249,40 +256,19 @@ fun SettingsScreen(
                         value = uiState.nickname.value,
                         label = uiState.nickname.hint,
                         modifier = Modifier.fillMaxWidth(),
-                        onInputChange = onPasswordChange
+                        onInputChange = onNickNameChange
                     )
                 }
+                Button(
+                    onClick = onSaveClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text("Сохранить изменения")
+                }
             }
+
         }
     }
-}
-@Preview(showBackground = true)
-@Composable
-fun SettingsScreenPreview() {
-    val dummyState = SettingsUiState(
-        name = SettingsField(value = "Иван", hint = "Введите имя"),
-        gender = Gender.MALE, // Значение по умолчанию "Мужской"
-        age = "32",
-        height = SettingsField(value = "180", hint = "Введите рост (см)"),
-        weight = SettingsField(value = "75", hint = "Введите вес (кг)"),
-        activityLevel = ActivityLevel.MODERATE, // Например, "Средний"
-        goal = Goal.MAINTAIN_WEIGHT, // Например, "Поддержание веса"
-        email = SettingsField(value = "example@mail.com", hint = "Введите email"),
-        password = SettingsField(value = "password123", hint = "Введите пароль"),
-        nickname = SettingsField(value = "Иван#123", hint = "Придумайте себе никнейм")// Никнейм по умолчанию
-    )
-
-    SettingsScreen(
-        uiState = dummyState,
-        onNameChange = {},
-        onGenderChange = {},
-        onAgeChange = {},
-        onHeightChange = {},
-        onWeightChange = {},
-        onActivityLevelChange = {},
-        onGoalChange = {},
-        onEmailChange = {},
-        onPasswordChange = {},
-        onSignOutClick = {}
-    )
 }

@@ -1,5 +1,6 @@
 package com.rmp.ui.settings
 
+// Общие модели данных
 data class SettingsField(
     val value: String = "",
     val error: Int? = null,
@@ -11,22 +12,25 @@ enum class Gender {
 }
 
 enum class ActivityLevel {
-    LOW, MODERATE, HIGH
+    Low, Medium, High
 }
 
 enum class Goal {
-    LOSE_WEIGHT, MAINTAIN_WEIGHT, GAIN_WEIGHT
+    Lose, Maintain, Gain
 }
 
-data class SettingsUiState(
-    val name: SettingsField = SettingsField(hint = "Введите имя"),
-    val gender: Gender = Gender.MALE,  // Используем enum Gender
-    val age: String = "",        // Число
-    val height: SettingsField = SettingsField(hint = "Введите рост (см)"),
-    val weight: SettingsField = SettingsField(hint = "Введите вес (кг)"),
-    val activityLevel: ActivityLevel = ActivityLevel.MODERATE,  // Используем enum ActivityLevel
-    val goal: Goal = Goal.MAINTAIN_WEIGHT,  // Используем enum Goal
-    val email: SettingsField = SettingsField(hint = "Введите email"),
-    val password: SettingsField = SettingsField(hint = "Введите пароль"),
-    val nickname: SettingsField = SettingsField(hint = "Придумайте себе никнейм")  // Никнейм по умолчанию: Имя#id (генерируется)
-)
+// Интерфейс состояния (контракт для UI)
+interface SettingsUiState {
+    val name: SettingsField
+    val gender: Gender
+    val age: String
+    val height: SettingsField
+    val weight: SettingsField
+    val activityLevel: ActivityLevel
+    val goal: Goal
+    val email: SettingsField
+    val password: SettingsField
+    val nickname: SettingsField
+    val isLoading: Boolean
+    val errorMessage: String?
+}

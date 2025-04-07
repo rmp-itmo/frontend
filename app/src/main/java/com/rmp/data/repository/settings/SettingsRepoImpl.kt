@@ -5,7 +5,7 @@ import com.rmp.data.ApiClient
 import com.rmp.data.isSuccess
 import com.rmp.data.successOr
 
-class SettingsRepositoryImpl : SettingsRepository {
+class SettingsRepoImpl : SettingsRepository {
     override suspend fun getSettings(): UserSettingsDto? {
         return ApiClient.authorizedRequest<UserSettingsDto>(
             ApiClient.Method.GET,
@@ -13,12 +13,11 @@ class SettingsRepositoryImpl : SettingsRepository {
         ).successOr(null)
     }
 
-    override suspend fun updateSettings(request: UpdateSettingsRequest): Boolean {
-        val response = ApiClient.authorizedRequest<AnyResponse>(
+    override suspend fun updateSettings(request: UpdateSettingsRequest): UpdateSettingsResponse? {
+        return ApiClient.authorizedRequest<UpdateSettingsResponse>(
             ApiClient.Method.POST,
             "users/update",
             request
-        )
-        return response.isSuccess()
+        ).successOr(null)
     }
 }

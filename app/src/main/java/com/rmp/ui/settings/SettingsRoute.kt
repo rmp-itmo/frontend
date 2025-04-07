@@ -1,7 +1,15 @@
 package com.rmp.ui.settings
 
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
@@ -10,7 +18,10 @@ fun SettingsRoute(
     onSignOutClick: () -> Unit
 ) {
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-    SettingsRoute(
+    var showSaveDialog by remember { mutableStateOf(false) }
+
+
+    SettingsScreen(
         uiState = uiState,
         onNameChange = settingsViewModel::updateName,
         onGenderChange = settingsViewModel::updateGender,
@@ -21,34 +32,33 @@ fun SettingsRoute(
         onGoalChange = settingsViewModel::updateGoal,
         onEmailChange = settingsViewModel::updateEmail,
         onPasswordChange = settingsViewModel::updatePassword,
+        onNickNameChange = settingsViewModel::updateNickName,
+        onSaveClick = { showSaveDialog = true },
         onSignOutClick = onSignOutClick
     )
-}
-@Composable
-fun SettingsRoute(
-    uiState: SettingsUiState,
-    onNameChange: (String) -> Unit,
-    onGenderChange: (Gender) -> Unit,
-    onAgeChange: (String) -> Unit,
-    onHeightChange: (String) ->Unit,
-    onWeightChange: (String) -> Unit,
-    onActivityLevelChange: (ActivityLevel) ->Unit,
-    onGoalChange: (Goal) -> Unit,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onSignOutClick: () -> Unit
-) {
-    SettingsScreen(
-        uiState = uiState,
-        onNameChange = onNameChange,
-        onGenderChange = onGenderChange,
-        onAgeChange = onAgeChange,
-        onHeightChange = onHeightChange,
-        onWeightChange = onWeightChange,
-        onActivityLevelChange = onActivityLevelChange,
-        onGoalChange = onGoalChange,
-        onEmailChange = onEmailChange,
-        onPasswordChange = onPasswordChange,
-        onSignOutClick = onSignOutClick
-    )
+
+    if (showSaveDialog) {
+        AlertDialog(
+            onDismissRequest = { showSaveDialog = false },
+            title = { Text("Сохранить изменения?") },
+            text = { Text("Вы уверены, что хотите сохранить изменения?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        settingsViewModel.saveSettings()
+                        showSaveDialog = false
+                    }
+                ) {
+                    Text("Сохранить")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showSaveDialog = false }
+                ) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
 }
