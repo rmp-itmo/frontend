@@ -23,8 +23,8 @@ interface LoginUiState {
 }
 
 private class LoginViewModelState(
-    override val email: String = "alina@test.test",
-    override val password: String = "alina",
+    override val email: String = "f@f.f",
+    override val password: String = "f",
     override val emailError: Int? = null,
     override val passwordError: Int? = null,
     override val loginError: Int? = null,

@@ -178,15 +178,17 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
                 val response = container.nutritionRepository.switchDishCheckbox(date)
 
                 if (response != null) {
-                    val updatedMeals = viewModelState.value.meals.toMutableList()
-                    val meal = updatedMeals[mealId]
-                    val updatedMeal = meal.copy(
-                        dishes = meal.dishes.toMutableList().apply {
-                            val updatedDish = this[dishId].copy(checked = check)
-                            this[dishId] = updatedDish
-                        }
-                    )
-                    updatedMeals[mealId] = updatedMeal
+                    val updatedMeals = viewModelState.value.meals.map { meal ->
+                        meal.copy(dishes = meal.dishes.toMutableList())
+                    }.toMutableList()
+
+                    val updatedDishes = updatedMeals[mealId].dishes.toMutableList()
+
+                    val updatedDish = updatedDishes[dishId].copy(checked = !check)
+                    updatedDishes[dishId] = updatedDish
+
+                    updatedMeals[mealId] = updatedMeals[mealId].copy(dishes = updatedDishes)
+
                     updateState(
                         viewModelState.value.copy(
                             meals = updatedMeals,

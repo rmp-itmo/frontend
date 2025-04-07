@@ -1,6 +1,7 @@
 package com.rmp.ui.nutrition
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,10 +19,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +34,7 @@ import com.rmp.ui.components.AppScreen
 import coil.compose.rememberAsyncImagePainter
 import com.rmp.data.repository.nutrition.GetDish
 import com.rmp.data.repository.nutrition.GetMeal
+import com.rmp.ui.components.SecondaryButton
 
 @Composable
 fun NutritionScreen(
@@ -149,6 +154,7 @@ private fun NutritionCard(
 ) {
     var addDishFormState by remember { mutableStateOf(false) }
     var dishName by remember { mutableStateOf("") }
+    var dishPhoto by remember { mutableStateOf("") }
     var dishCalories by remember { mutableStateOf("") }
     var dishDescription by remember { mutableStateOf("") }
 
@@ -163,6 +169,7 @@ private fun NutritionCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.White)
                 .padding(top = 12.dp, start = 12.dp, end = 12.dp),
             horizontalAlignment = Alignment.Start
         ) {
@@ -216,150 +223,174 @@ private fun NutritionCard(
                     }
                 }
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Text(text = "Название")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Изображение")
+                DishForm(
+                    dishName = dishName,
+                    dishPhoto = dishPhoto,
+                    dishCalories = dishCalories,
+                    dishDescription = dishDescription,
+                    onDishNameChange = { dishName = it },
+                    onDishCaloriesChange = { dishCalories = it },
+                    onDishDescriptionChange = { dishDescription = it },
+                    onAddDish = {
+                        addDishFormState = false
+                        dishName = ""
+                        dishCalories = ""
+                        dishDescription = ""
                     }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        TextField(
-                            value = dishName,
-                            onValueChange = { dishName = it },
-                            label = { Text("Введи название") },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(39.dp)
-                                .padding(end = 8.dp)
-                                .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                        )
-                        TextField(
-                            value = "",
-                            onValueChange = { /* Обработка загрузки изображения */ },
-                            label = { Text("Загрузи изображение") },
-                            trailingIcon = {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_upload_photo),
-                                    contentDescription = "Download icon"
-                                )
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(39.dp)
-                                .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                        )
-                    }
-
-                    Text(text = "Описание")
-                    TextField(
-                        value = dishDescription,
-                        onValueChange = { dishDescription = it },
-                        label = { Text("Введи описание рецепта") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(70.dp)
-                            .padding(top = 8.dp)
-                            .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                    )
-
-                    Text(text = "Калории")
-                    TextField(
-                        value = dishCalories,
-                        onValueChange = { dishCalories = it },
-                        label = { Text("Введи калории") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(39.dp)
-                            .padding(top = 8.dp)
-                            .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            Text(text = "Белки")
-                            TextField(
-                                value = "",
-                                onValueChange = { /* Обработка белков */ },
-                                label = { Text("Белки") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(39.dp)
-                                    .padding(top = 8.dp)
-                                    .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                            )
-                        }
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            Text(text = "Жиры")
-                            TextField(
-                                value = "",
-                                onValueChange = { /* Обработка жиров */ },
-                                label = { Text("Жиры") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(39.dp)
-                                    .padding(top = 8.dp)
-                                    .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                            )
-                        }
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            Text(text = "Углеводы")
-                            TextField(
-                                value = "",
-                                onValueChange = { /* Обработка углеводов */ },
-                                label = { Text("Углеводы") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(39.dp)
-                                    .padding(top = 8.dp)
-                                    .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            // Обработка кнопки
-                            addDishFormState = false
-                            dishName = ""
-                            dishCalories = ""
-                            dishDescription = ""
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                    ) {
-                        Text(text = "Добавить")
-                    }
-                }
+                )
             }
         }
     }
 }
+
+@Composable
+fun DishForm(
+    dishName: String,
+    dishPhoto: String, //TODO change to photo
+    dishCalories: String,
+    dishDescription: String,
+    onDishNameChange: (String) -> Unit,
+    onDishCaloriesChange: (String) -> Unit,
+    onDishDescriptionChange: (String) -> Unit,
+    onAddDish: () -> Unit
+) {
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(text = "Название")
+            OutlinedTextField(
+                value = dishName,
+                onValueChange = { onDishNameChange(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                singleLine = true
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(text = "Изображение")
+            OutlinedTextField(
+                value = dishPhoto,
+                onValueChange = { /* Обработка загрузки изображения */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                singleLine = true
+            )
+        }
+    }
+
+    Text(text = "Описание")
+    OutlinedTextField(
+        value = dishDescription,
+        onValueChange = { onDishDescriptionChange(it) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp),
+        singleLine = false
+    )
+
+    Text(text = "Калории")
+    OutlinedTextField(
+        value = dishCalories,
+        onValueChange = { onDishCaloriesChange(it) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(55.dp),
+        singleLine = true
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(text = "Белки")
+            OutlinedTextField(
+                value = "",
+                onValueChange = { /* Обработка белков */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                singleLine = true
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(text = "Жиры")
+            OutlinedTextField(
+                value = "",
+                onValueChange = { /* Обработка жиров */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                singleLine = true
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(text = "Углеводы")
+            OutlinedTextField(
+                value = "",
+                onValueChange = { /* Обработка углеводов */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                singleLine = true
+            )
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(
+            onClick = {
+                onAddDish()
+            },
+            modifier = Modifier
+                .width(156.dp)
+                .height(48.dp)
+                .clip(RoundedCornerShape(20.dp))
+        ) {
+            Text(
+                text = stringResource(R.string.add),
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        }
+    }
+}
+
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -486,21 +517,11 @@ private fun NutritionCardItem(
                     modifier = Modifier.size(19.dp)
                 )
             }
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_unselected_checkbox),
-//                contentDescription = "Checkbox icon",
-//                modifier = Modifier.size(19.dp)
-//            )
             Image(
                 painter = painterResource(id = R.drawable.ic_share),
                 contentDescription = "Share icon",
                 modifier = Modifier.size(19.dp)
             )
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_trash),
-//                contentDescription = "Checkbox icon",
-//                modifier = Modifier.size(19.dp)
-//            )
             IconButton(
                 onClick = { onRemoveItem(mealIndex, dishIndex, dish.menuItemId) },
                 modifier = Modifier.size(20.dp)

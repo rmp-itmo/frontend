@@ -105,6 +105,6 @@
 
     <!-- Nutrition Screen -->
     <string name="generate_menu">Сгенерировать меню</string>
-    <string name="save_menu">Сохранить меню</string>
+    <string name="add">Добавить</string>
 
 </resources>
