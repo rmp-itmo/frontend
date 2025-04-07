@@ -11,19 +11,16 @@ fun SleepRoute(
 ) {
     val uiState by sleepViewModel.uiState.collectAsStateWithLifecycle()
 
-    SleepRoute(uiState, sleepViewModel::onGoBadTimeChange,
-        sleepViewModel::onWakeUpChange, sleepViewModel::onQualityChange,
+    SleepRoute(uiState, sleepViewModel::onQualityChange,
         sleepViewModel::saveSleep, onGraphicClick)
 }
 
 @Composable
 fun SleepRoute(
     uiState: SleepUiState,
-    onGoBadChange: (String) -> Unit,
-    onWakeUpChange: (String) -> Unit,
     onQualityChange: (Int) -> Unit,
-    onSaveSleepButton: () -> Unit,
+    onSaveSleepButton: (SleepLogDto) -> Unit,
     onGraphicClick: () -> Unit
 ) {
-    SleepScreen(uiState, onGoBadChange, onWakeUpChange, onQualityChange, onGraphicClick, onSaveSleepButton)
+    SleepScreen(uiState, onQualityChange, onGraphicClick, onSaveSleepButton)
 }

@@ -2,7 +2,6 @@ package com.rmp.ui.sleep
 
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Button
@@ -23,14 +22,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,30 +39,29 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rmp.R
 import com.rmp.data.repository.sleep.SleepResponseDto
 import com.rmp.ui.components.AppScreen
+import com.rmp.ui.components.TimePicker
 import com.rmp.ui.components.buttons.BackButton
 
 @Composable
 fun SleepScreen(
     uiState: SleepUiState,
-    onGoBadChange: (String) -> Unit,
-    onWakeUpChange: (String) -> Unit,
     onQualityChange: (Int) -> Unit,
     onGraphicClick: () -> Unit,
-    onSaveSleepButton: () -> Unit
+    onSaveSleepButton: (SleepLogDto) -> Unit
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val blockWidth = screenWidth * 1.0f
     val blockHeight = screenHeight * 0.38f
+
+    var timeStart by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var timeEnd by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     val images = mapOf(
         1 to R.drawable.smile,
@@ -84,8 +79,8 @@ fun SleepScreen(
         ) {
             SleepHeader()
 
-            var isErrorGoBad by remember { mutableStateOf(false) }
-            var isErrorWakeUp by remember { mutableStateOf(false) }
+            val isErrorGoBad by remember { mutableStateOf(false) }
+            val isErrorWakeUp by remember { mutableStateOf(false) }
             val errorMessage = "Указана некорректная дата"
 
             if (uiState.isFirstTime) {
@@ -162,37 +157,9 @@ fun SleepScreen(
                                     modifier = Modifier.align(Alignment.CenterHorizontally),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    TextField(
-                                        value = uiState.goBadTime,
-                                        onValueChange = { newText ->
-                                            val formatted = formatTimeInput(newText)
-
-                                            isErrorGoBad = !isTimeValid(formatted)
-                                            onGoBadChange(formatted)
-                                        },
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically)
-                                            .width(screenHeight * 0.1f)
-                                            .height(screenWidth * 0.115f)
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .border(
-                                                1.dp,
-                                                MaterialTheme.colorScheme.primary,
-                                                RoundedCornerShape(20.dp)
-                                            ),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        textStyle = TextStyle(
-                                            textAlign = TextAlign.Center,
-                                            fontWeight = FontWeight.Medium
-                                        ),
-                                        colors = TextFieldDefaults.colors(
-                                            focusedContainerColor = Color.White,
-                                            unfocusedContainerColor = Color.White,
-                                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                                            unfocusedIndicatorColor = Color.White,
-                                            disabledIndicatorColor = Color.Transparent
-                                        )
-                                    )
+                                    TimePicker(timeStart.describeTime()) { (h, m) ->
+                                        timeStart = h to m
+                                    }
                                 }
                             }
 
@@ -219,37 +186,9 @@ fun SleepScreen(
                                     modifier = Modifier.align(Alignment.CenterHorizontally),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    TextField(
-                                        value = uiState.wakeUpTime,
-                                        onValueChange = { newText ->
-                                            val formatted = formatTimeInput(newText)
-
-                                            isErrorWakeUp = !isTimeValid(formatted)
-                                            onWakeUpChange(formatted)
-                                        },
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically)
-                                            .width(screenHeight * 0.1f)
-                                            .height(screenWidth * 0.115f)
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .border(
-                                                1.dp,
-                                                MaterialTheme.colorScheme.primary,
-                                                RoundedCornerShape(20.dp)
-                                            ),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        textStyle = TextStyle(
-                                            textAlign = TextAlign.Center,
-                                            fontWeight = FontWeight.Medium
-                                        ),
-                                        colors = TextFieldDefaults.colors(
-                                            focusedContainerColor = Color.White,
-                                            unfocusedContainerColor = Color.White,
-                                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                                            unfocusedIndicatorColor = Color.White,
-                                            disabledIndicatorColor = Color.Transparent
-                                        )
-                                    )
+                                    TimePicker(timeEnd.describeTime()) { (h, m) ->
+                                        timeEnd = h to m
+                                    }
                                 }
                             }
                         }
@@ -304,7 +243,18 @@ fun SleepScreen(
                         ) {
                             Button(
                                 onClick = {
-                                    onSaveSleepButton()
+                                    if (timeStart != null && timeEnd != null) {
+                                        val (hS, mS) = timeStart!!
+                                        val (hE, mE) = timeEnd!!
+                                        onSaveSleepButton(
+                                            SleepLogDto(
+                                                startHours = hS,
+                                                startMinutes = mS,
+                                                finishHours = hE,
+                                                finishMinutes = mE
+                                            )
+                                        )
+                                    }
                                 },
                                 modifier = Modifier
                                     .width(blockWidth / 2)
@@ -466,21 +416,20 @@ private fun ColumnScope.HistoryHeader(
     }
 }
 
-private fun isTimeValid(time: String): Boolean {
-    if (time.isEmpty()) return true
 
-    val timePattern = Regex("^([01][0-9]|2[0-3]):([0-5][0-9])$")
-    return timePattern.matches(time)
-}
-
-fun formatTimeInput(input: String): String {
-    val filtered = input.filter { it.isDigit() }
-    return when {
-        filtered.isEmpty() -> ""
-        filtered.length == 1 -> "0${filtered}:"
-        filtered.length == 2 -> "${filtered}:"
-        filtered.length == 3 -> "${filtered.substring(0, 2)}:${filtered[2]}" // "123" → "12:3"
-        filtered.length >= 4 -> "${filtered.substring(0, 2)}:${filtered.substring(2, 4)}" // "1234" → "12:34"
-        else -> input
-    }.take(5)
+private fun Pair<Int, Int>?.describeTime(): String {
+    return if (this == null) "XX:XX"
+    else {
+        val hours = if (first < 10) {
+            "0${first}"
+        } else {
+            "$first"
+        }
+        val minutes = if (second < 10) {
+            "0${second}"
+        } else {
+            "$second"
+        }
+        return "$hours:$minutes"
+    }
 }

@@ -39,6 +39,13 @@ interface SleepUiState {
 }
 
 
+data class SleepLogDto(
+    val startHours: Int,
+    val startMinutes: Int,
+    val finishHours: Int,
+    val finishMinutes: Int
+)
+
 private class SleepViewModelState(
     override val isLoading: Boolean = false,
     override val goBadTime: String = "00:00",
@@ -91,14 +98,6 @@ class SleepViewModel(private val sleepRepository: SleepRepository): ViewModel() 
 
     init {
         viewModelScope.launch {}
-    }
-
-    fun onGoBadTimeChange(newTime: String) {
-        updateState(viewModelState.value.copy(goBadTime = newTime))
-    }
-
-    fun onWakeUpChange(newTime: String) {
-        updateState(viewModelState.value.copy(wakeUpTime = newTime))
     }
 
     fun onQualityChange(newValue: Int) {
@@ -197,13 +196,10 @@ class SleepViewModel(private val sleepRepository: SleepRepository): ViewModel() 
         }
     }
 
-    fun saveSleep() {
+    fun saveSleep(time: SleepLogDto) {
         viewModelScope.launch {
-            val (goBadHours, goBadMinutes) = viewModelState.value.goBadTime.split(":").map { it.toInt() }
-            val (wakeUpHours, wakeUpMinutes) = viewModelState.value.wakeUpTime.split(":").map { it.toInt() }
-
-            val goBadTime = LocalTime.of(goBadHours, goBadMinutes)
-            val wakeUpTime = LocalTime.of(wakeUpHours, wakeUpMinutes)
+            val goBadTime = LocalTime.of(time.startHours, time.startMinutes)
+            val wakeUpTime = LocalTime.of(time.finishHours, time.finishMinutes)
 
             val duration = if (wakeUpTime.isBefore(goBadTime)) {
                 Duration.between(goBadTime, LocalTime.MAX).plus(
