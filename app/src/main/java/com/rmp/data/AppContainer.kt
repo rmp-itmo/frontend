@@ -10,6 +10,8 @@ import com.rmp.data.repository.heart.HeartRepoImpl
 import com.rmp.data.repository.heart.HeartRepository
 import com.rmp.data.repository.nutrition.NutritionRepoImpl
 import com.rmp.data.repository.nutrition.NutritionRepository
+import com.rmp.data.repository.settings.SettingsRepository
+import com.rmp.data.repository.settings.SettingsRepoImpl
 import com.rmp.data.repository.signup.UserRepoImpl
 import com.rmp.data.repository.signup.UserRepository
 import com.rmp.data.repository.sleep.SleepRepoImpl
@@ -29,6 +31,7 @@ interface AppContainer {
     val waterRepository: WaterRepository
     val sleepRepository: SleepRepository
     val nutritionRepository: NutritionRepository
+    val settingsRepository: SettingsRepository
     val forumRepository: ForumRepository
     val achievementsRepository: AchievementsRepository
     val trainingsRepository: TrainingRepository
@@ -64,6 +67,9 @@ class AppContainerImpl(private val applicationContext: Context, database: AppDat
     override val nutritionRepository: NutritionRepository by lazy {
         NutritionRepoImpl()
        
+    }
+    override val settingsRepository: SettingsRepository by lazy {
+        SettingsRepoImpl()
     }
     override val forumRepository: ForumRepository by lazy {
         ForumRepoImpl()

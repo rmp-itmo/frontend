@@ -31,6 +31,8 @@ import com.rmp.ui.login.LoginRoute
 import com.rmp.ui.login.LoginViewModel
 import com.rmp.ui.nutrition.NutritionRoute
 import com.rmp.ui.nutrition.NutritionViewModel
+import com.rmp.ui.settings.SettingsRoute
+import com.rmp.ui.settings.SettingsViewModel
 import com.rmp.ui.signup.ActivityLevel
 import com.rmp.ui.signup.SignupRoute
 import com.rmp.ui.signup.SignupViewModel
@@ -182,6 +184,24 @@ fun RmpNavGraph(
                 SleepRoute (
                     sleepViewModel = sleepViewModel,
                     { navController.navigate(RmpDestinations.SLEEP_HISTORY_ROUTE) }
+                )
+            }
+
+            composable(
+                route = RmpDestinations.SETTINGS_ROUTE
+            ) { _ ->
+                val settingsViewModel: SettingsViewModel = viewModel(
+                    factory = SettingsViewModel.factory(appContainer)
+                )
+                SettingsRoute(
+                    settingsViewModel = settingsViewModel,
+                    onSignOutClick = {
+                        navController.navigate(RmpDestinations.LOGIN_ROUTE) {
+                            popUpTo(RmpDestinations.HOME_ROUTE) {
+                                inclusive = true
+                            }
+                        }
+                    }
                 )
             }
 

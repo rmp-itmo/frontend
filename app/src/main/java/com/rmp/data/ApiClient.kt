@@ -43,6 +43,10 @@ fun <T> Result<T>.successOr(fallback: T): T {
     return (this as? Result.Success<T>)?.data ?: fallback
 }
 
+fun <T> Result<T>.getIfException(): ApiException? {
+    return (this as? Result.Error)?.exception
+}
+
 fun Result<*>.isSuccess(): Boolean {
     return this is Result.Success
 }
@@ -100,7 +104,7 @@ object ApiClient {
             Log.d("API", "Deserialization failed! ${resp.bodyAsText()}")
             Log.d("API", e.message.toString())
             Log.d("API", e.stackTraceToString())
-            Result.Error(BadResponse())
+            Result.Error(resp.body())
         }
 
     suspend inline fun <reified T> unauthorizedRequest(method: Method, url: String, data: Any? = null): Result<T> {
