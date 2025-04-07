@@ -46,6 +46,12 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    fun signOutClick() {
+        viewModelScope.launch {
+            container.database.authTokenDao().clearTokens()
+        }
+    }
+
     fun loadSettings() {
         viewModelScope.launch {
             _state.update {

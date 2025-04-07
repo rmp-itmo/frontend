@@ -193,16 +193,7 @@ fun RmpNavGraph(
                 val settingsViewModel: SettingsViewModel = viewModel(
                     factory = SettingsViewModel.factory(appContainer)
                 )
-                SettingsRoute(
-                    settingsViewModel = settingsViewModel,
-                    onSignOutClick = {
-                        navController.navigate(RmpDestinations.LOGIN_ROUTE) {
-                            popUpTo(RmpDestinations.HOME_ROUTE) {
-                                inclusive = true
-                            }
-                        }
-                    }
-                )
+                SettingsRoute( settingsViewModel = settingsViewModel )
             }
 
             composable(

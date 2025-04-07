@@ -14,7 +14,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun SettingsRoute(
     settingsViewModel: SettingsViewModel,
-    onSignOutClick: () -> Unit
 ) {
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     var showSaveDialog by remember { mutableStateOf(false) }
@@ -33,7 +32,7 @@ fun SettingsRoute(
         onPasswordChange = settingsViewModel::updatePassword,
         onNickNameChange = settingsViewModel::updateNickName,
         onSaveClick = { showSaveDialog = true },
-        onSignOutClick = onSignOutClick,
+        onSignOutClick = settingsViewModel::signOutClick,
         onRefresh = settingsViewModel::loadSettings,
         clearError = settingsViewModel::clearErrors
     )
