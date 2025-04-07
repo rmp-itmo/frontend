@@ -18,8 +18,8 @@ import com.rmp.data.repository.nutrition.NutritionStatRequest
 import com.rmp.data.repository.nutrition.RemoveMenuItemRequest
 import com.rmp.data.repository.nutrition.SaveMenuMeal
 import com.rmp.data.repository.nutrition.SaveMenuRequest
+import com.rmp.data.repository.nutrition.SearchResultDto
 import com.rmp.data.repository.nutrition.SwitchDishCheckboxRequest
-import com.rmp.ui.forum.feed.FeedViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -402,7 +402,10 @@ data class NutritionUiState(
     val menu: Menu? = null,
     val currentCalories: Float = 0f,
     val targetCalories: Float = 0f,
-    val history: NutritionHistory? = null
+
+    val history: NutritionHistory? = null,
+
+    val searchResult: SearchResultDto? = null
 )
 
 class NutritionViewModel(

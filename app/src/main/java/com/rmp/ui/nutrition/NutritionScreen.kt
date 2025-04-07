@@ -1,48 +1,30 @@
 package com.rmp.ui.nutrition
 
-import android.R.style.Theme
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.provider.MediaStore
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,19 +35,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rmp.R
 import com.rmp.ui.components.AccentButton
-import com.rmp.ui.components.AppScreen
 import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rmp.data.UploadedImage
-import com.rmp.data.getCurrentDateAsNumber
 import com.rmp.data.repository.nutrition.GetDish
 import com.rmp.data.repository.nutrition.GetMeal
-import com.rmp.data.repository.training.SetStepsTargetDto
 import com.rmp.ui.components.RefreshedAppScreen
-import com.rmp.ui.components.SecondaryButton
 import com.rmp.ui.components.buttons.BackButton
-import com.rmp.ui.theme.RmpTheme
-import java.nio.file.WatchEvent
 
 @Composable
 fun NutritionScreen(
@@ -98,6 +74,8 @@ fun NutritionScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(1f)) {
                 NutritionCardsList(
+                    //TODO: Provide findDish method
+                    uiState, {},
                     meals = uiState.menu?.meals ?: listOf(),
                     onSwitchDishCheckbox = onSwitchDishCheckbox,
                     onRemoveItem = onRemoveItem
@@ -153,6 +131,8 @@ private fun NutritionHeader(
 
 @Composable
 private fun NutritionCardsList(
+    uiState: NutritionUiState,
+    findDish: () -> Unit,
     meals: List<GetMeal>,
     onSwitchDishCheckbox: (Long, Boolean) -> Unit,
     onRemoveItem: (Long) -> Unit) {
@@ -162,6 +142,7 @@ private fun NutritionCardsList(
     ) {
         items(meals) { meal ->
             NutritionCard(
+                uiState, findDish,
                 mealName = meal.name,
                 dishes = meal.dishes,
                 onSwitchDishCheckbox = onSwitchDishCheckbox,
@@ -173,6 +154,8 @@ private fun NutritionCardsList(
 
 @Composable
 private fun NutritionCard(
+    uiState: NutritionUiState,
+    findDish: () -> Unit,
     mealName: String,
     dishes: List<GetDish>,
     onSwitchDishCheckbox: (Long, Boolean) -> Unit,
@@ -244,6 +227,8 @@ private fun NutritionCard(
                 }
             } else {
                 DishForm(
+                    uiState,
+                    findDish,
                     onNewDishCreated = {
 
                     },
@@ -419,13 +404,30 @@ fun NewDishForm(
 
 @Composable
 fun FindDishForm(
+    uiState: NutritionUiState,
+    findDish: () -> Unit,
     onDishSelected: (Long) -> Unit
 ) {
-    //TODO: Загружаем блюда с бэка и рисуем дропдаун, наружу отдаем id
+    val searchInput by remember { mutableStateOf("") }
+
+    OutlinedTextField(
+        value = searchInput,
+        onValueChange = {  },
+        shape = RoundedCornerShape(size = 50.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color.Black,
+            unfocusedBorderColor = Color.Red,
+            unfocusedContainerColor = Color.Magenta,
+            focusedContainerColor = Color.Green,
+            focusedLabelColor = Color.Magenta
+        ),
+    )
 }
 
 @Composable
 fun DishForm(
+    uiState: NutritionUiState,
+    findDish: () -> Unit,
     onNewDishCreated: () -> Unit,
     onDishSelected: (Long) -> Unit
 ) {
@@ -434,9 +436,13 @@ fun DishForm(
 
 
     if (formSelector) {
-        NewDishForm(onNewDishCreated)
+        FindDishForm(
+            uiState,
+            findDish,
+            onDishSelected
+        )
     } else {
-        FindDishForm(onDishSelected)
+        NewDishForm(onNewDishCreated)
     }
 }
 

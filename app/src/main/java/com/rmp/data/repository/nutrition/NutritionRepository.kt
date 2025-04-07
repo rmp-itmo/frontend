@@ -1,6 +1,8 @@
 package com.rmp.data.repository.nutrition
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+
 
 
 @Serializable
@@ -161,6 +163,48 @@ data class NutritionHistory(
     val dishes: Map<String, List<GetDish>>
 )
 
+@Serializable
+data class FilterDto(
+    @SerialName("nameFilter")
+    val nameFilter: String,
+    @SerialName("typeId")
+    val typeId: Int
+)
+
+
+@Serializable
+data class SearchResultDto(
+    @SerialName("dishes")
+    val dishes: List<Dish>,
+    @SerialName("filter")
+    val filter: FilterDto
+) {
+    @Serializable
+    data class Dish(
+        @SerialName("calories")
+        val calories: Double,
+        @SerialName("carbohydrates")
+        val carbohydrates: Double,
+        @SerialName("description")
+        val description: String,
+        @SerialName("fat")
+        val fat: Double,
+        @SerialName("id")
+        val id: Long,
+        @SerialName("imageUrl")
+        val imageUrl: String,
+        @SerialName("name")
+        val name: String,
+        @SerialName("portionsCount")
+        val portionsCount: Int,
+        @SerialName("protein")
+        val protein: Double,
+        @SerialName("timeToCook")
+        val timeToCook: Int,
+        @SerialName("typeId")
+        val typeId: Int
+    )
+}
 
 interface NutritionRepository {
     suspend fun loadDailyStats(date: NutritionStatRequest): NutritionStatResponse?
@@ -170,4 +214,5 @@ interface NutritionRepository {
     suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): SwitchDishCheckboxResponse?
     suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): RemoveMenuItemResponse?
     suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistory?
+    suspend fun getDish(filter: FilterDto): SearchResultDto?
 }

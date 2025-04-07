@@ -72,4 +72,7 @@ class NutritionRepoImpl : NutritionRepository {
 
         return response.successOr(null)
     }
+
+    override suspend fun getDish(filter: FilterDto): SearchResultDto? =
+        ApiClient.authorizedRequest<SearchResultDto>(ApiClient.Method.POST, "dish/find", filter).successOr(null)
 }
