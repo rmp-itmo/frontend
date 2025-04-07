@@ -1,7 +1,6 @@
 package com.rmp.data
 
 import android.util.Log
-import androidx.compose.ui.platform.LocalDensity
 import com.rmp.ui.appLogout
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -100,6 +99,7 @@ object ApiClient {
         } catch (e: Exception) {
             Log.d("API", "Deserialization failed! ${resp.bodyAsText()}")
             Log.d("API", e.message.toString())
+            Log.d("API", e.stackTraceToString())
             Result.Error(BadResponse())
         }
 
@@ -132,9 +132,16 @@ object ApiClient {
 
         val refreshed = execute(Method.POST, "auth/refresh", builder)
 
-        Log.d("API", "Refresh req headers: ${refreshed.request.headers.toMap()}")
+        Log.d("API", "Refresh req headers: ${refreshed.request.headers.toMap()} {${refreshed}")
 
+        if (refreshed.status.value == 401) {
+            updateAuthorizationData(TokenDto("", ""))
+            appLogout()
+            return Result.Error(UnauthorizedException())
+        }
         if (refreshed.status.value != 200) {
+            updateAuthorizationData(TokenDto("", ""))
+            appLogout()
             return Result.Error(UnauthorizedException())
         }
 
@@ -156,6 +163,8 @@ object ApiClient {
         Log.d("API", "Retry request headers: ${resp.request.headers.toMap()}")
 
         if (resp.status.value == 401) {
+            updateAuthorizationData(TokenDto("", ""))
+            appLogout()
             Log.d("API", "Unauthorized auto retry")
             return Result.Error(UnauthorizedException())
         }
@@ -173,6 +182,7 @@ object ApiClient {
 
         val builder: HttpRequestBuilder.() -> Unit = {
             setBody(data)
+            Log.d("API", "Set data: $data")
             bearerAuth(authorizationData.accessToken)
             headers {
                 set("Content-Type", "application/json")
