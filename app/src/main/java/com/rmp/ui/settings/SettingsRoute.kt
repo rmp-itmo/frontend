@@ -5,7 +5,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +33,9 @@ fun SettingsRoute(
         onPasswordChange = settingsViewModel::updatePassword,
         onNickNameChange = settingsViewModel::updateNickName,
         onSaveClick = { showSaveDialog = true },
-        onSignOutClick = onSignOutClick
+        onSignOutClick = onSignOutClick,
+        onRefresh = settingsViewModel::loadSettings,
+        clearError = settingsViewModel::clearErrors
     )
 
     if (showSaveDialog) {

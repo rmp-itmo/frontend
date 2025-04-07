@@ -1,12 +1,12 @@
 package com.rmp.data.repository.settings
 
-import com.rmp.data.AnyResponse
+import com.rmp.data.ApiException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserSettingsDto(
-    val id: Int,
+    val id: Long,
     val name: String,
     val email: String,
     val height: Double,
@@ -34,14 +34,11 @@ data class UpdateSettingsRequest(
 )
 
 @Serializable
-data class UpdateSettingsResponse(
-    val id: Int? = null,
-    val code: Int? = null,
-    val status: String? = null,
-    val message: String? = null
+data class UpdateSettingsSuccess(
+    val id: Long
 )
 
 interface SettingsRepository {
     suspend fun getSettings(): UserSettingsDto?
-    suspend fun updateSettings(request: UpdateSettingsRequest): UpdateSettingsResponse?
+    suspend fun updateSettings(request: UpdateSettingsRequest): Pair<UpdateSettingsSuccess?, ApiException?>
 }

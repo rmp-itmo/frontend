@@ -1,8 +1,8 @@
-package com.rmp.data.repository.settings;
+package com.rmp.data.repository.settings
 
-import com.rmp.data.AnyResponse
 import com.rmp.data.ApiClient
-import com.rmp.data.isSuccess
+import com.rmp.data.ApiException
+import com.rmp.data.getIfException
 import com.rmp.data.successOr
 
 class SettingsRepoImpl : SettingsRepository {
@@ -13,11 +13,12 @@ class SettingsRepoImpl : SettingsRepository {
         ).successOr(null)
     }
 
-    override suspend fun updateSettings(request: UpdateSettingsRequest): UpdateSettingsResponse? {
-        return ApiClient.authorizedRequest<UpdateSettingsResponse>(
+    override suspend fun updateSettings(request: UpdateSettingsRequest): Pair<UpdateSettingsSuccess?, ApiException?> {
+        val response =ApiClient.authorizedRequest<UpdateSettingsSuccess>(
             ApiClient.Method.POST,
             "users/update",
             request
-        ).successOr(null)
+        )
+        return response.successOr(null) to response.getIfException()
     }
 }

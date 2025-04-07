@@ -1,5 +1,6 @@
 package com.rmp.ui.settings
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,12 +11,14 @@ import com.rmp.data.repository.settings.UserSettingsDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
-private class SettingsViewModelState(
+private data class SettingsViewModelState(
     override val name: SettingsField = SettingsField(hint = "Введите имя"),
     override val gender: Gender = Gender.MALE,
     override val age: String = "",
@@ -28,71 +31,56 @@ private class SettingsViewModelState(
     override val nickname: SettingsField = SettingsField(hint = "Придумайте себе никнейм"),
     override val isLoading: Boolean = false,
     override val errorMessage: String? = null
-) : SettingsUiState {
-    fun copy(
-        name: SettingsField = this.name,
-        gender: Gender = this.gender,
-        age: String = this.age,
-        height: SettingsField = this.height,
-        weight: SettingsField = this.weight,
-        activityLevel: ActivityLevel = this.activityLevel,
-        goal: Goal = this.goal,
-        email: SettingsField = this.email,
-        password: SettingsField = this.password,
-        nickname: SettingsField = this.nickname,
-        isLoading: Boolean = this.isLoading,
-        errorMessage: String? = this.errorMessage
-    ) = SettingsViewModelState(
-        name = name.copy(hint = this.name.hint),
-        gender = gender,
-        age = age,
-        height = height.copy(hint = this.height.hint),
-        weight = weight.copy(hint = this.weight.hint),
-        activityLevel = activityLevel,
-        goal = goal,
-        email = email.copy(hint = this.email.hint),
-        password = password.copy(hint = this.password.hint),
-        nickname = nickname.copy(hint = this.nickname.hint),
-        isLoading = isLoading,
-        errorMessage = errorMessage
-    )
-}
+) : SettingsUiState
 
 class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     private val _state = MutableStateFlow<SettingsViewModelState>(SettingsViewModelState())
     private var _originalSettings: UserSettingsDto? = null
     val uiState: StateFlow<SettingsUiState> = _state.asStateFlow()
 
-    private suspend fun loadSettings() {
-        updateState(_state.value.copy(isLoading = true))
-        try {
-            val settings = container.settingsRepository.getSettings()
-            _originalSettings = settings
-            settings?.let {
-                updateState(
-                    _state.value.copy(
-                        name = SettingsField(value = it.name),
-                        gender = if (it.isMale) Gender.MALE else Gender.FEMALE,
-                        age = it.age.toString(),
-                        height = SettingsField(value = it.height.toString()),
-                        weight = SettingsField(value = it.weight.toString()),
-                        activityLevel = ActivityLevel.valueOf(it.activityType),
-                        goal = Goal.valueOf(it.goalType),
-                        email = SettingsField(value = it.email),
-                        password = SettingsField(value = ""),
-                        nickname = SettingsField(value = it.nickName),
-                        isLoading = false
-                    )
-                )
-            }
-        } catch (e: Exception) {
-            updateState(
-                _state.value.copy(
-                    isLoading = false,
-                    errorMessage = "Ошибка загрузки настроек"
-                )
+    fun clearErrors() {
+        _state.update {
+            it.copy(
+                errorMessage = null
             )
         }
+    }
+
+    fun loadSettings() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
+
+            val settings = container.settingsRepository.getSettings() ?: run {
+                _state.update {
+                    it.copy(
+                        errorMessage = "Ошибка загрузки"
+                    )
+                }
+                return@launch
+            }
+
+            _originalSettings = settings
+
+            _state.update {
+                it.copy (
+                    name = it.name.copy(value = settings.name),
+                    gender = if (settings.isMale) Gender.MALE else Gender.FEMALE,
+                    age = settings.age.toString(),
+                    height = it.height.copy(value = "${(settings.height * 10).roundToInt() / 10.0}"),
+                    weight = it.weight.copy(value = "${(settings.weight * 10).roundToInt() / 10.0}"),
+                    activityLevel = ActivityLevel.valueOf(settings.activityType),
+                    goal = Goal.valueOf(settings.goalType),
+                    email = it.email.copy(value = settings.email),
+                    nickname = it.nickname.copy(value = settings.nickName),
+                    isLoading = false
+                )
+            }
+        }
+
     }
     init {
         viewModelScope.launch {
@@ -102,7 +90,9 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     fun saveSettings() {
         viewModelScope.launch {
-            updateState(_state.value.copy(isLoading = true))
+            _state.update {
+                it.copy(isLoading = true)
+            }
             try {
                 var requestBuilder = UpdateSettingsRequest(date = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date()).toInt())
                 if (_state.value.name.value != _originalSettings?.name) {
@@ -138,78 +128,134 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                     requestBuilder
                 }
                 val response = container.settingsRepository.updateSettings(request)
-                if (response != null) {
-                    updateState(_state.value.copy(
-                        isLoading = false,
-                        errorMessage = null
-                    ))
+
+                Log.d("response", response.toString())
+
+                if (response.second != null) {
+                    if (response.second!!.code != 200) {
+                        _state.update {
+                            it.copy(
+                                errorMessage = response.second!!.message
+                            )
+                        }
+                    }
+                    _state.update {
+                        it.copy(
+                            isLoading = false
+                        )
+                    }
                 } else {
-                    updateState(_state.value.copy(
-                        isLoading = false,
-                        errorMessage = "Failed to save settings"
-                    ))
+                    if (response.first != null) {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "Settings successfully changed"
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "Error on saving messages"
+                            )
+                        }
+                    }
+
                 }
             } catch (e: Exception) {
-                updateState(_state.value.copy(
-                    isLoading = false,
-                    errorMessage = "Error saving settings: ${e.message}"
-                ))
+                Log.d("exception", e.message ?: "")
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error on saving settings: ${e.message}"
+                    )
+                }
             }
         }
     }
 
-
     fun updateName(newName: String) {
-        updateState(_state.value.copy(name = _state.value.name.copy(value = newName)))
+        _state.update {
+            it.copy(
+                name = it.name.copy(value = newName)
+            )
+        }
     }
 
     fun updateGender(newGender: Gender) {
-        updateState(_state.value.copy(gender = newGender))
+        _state.update {
+            it.copy(
+                gender = newGender
+            )
+        }
     }
 
     fun updateAge(newAge: String) {
-        updateState(_state.value.copy(age = newAge))
+        _state.update {
+            it.copy(
+                age = newAge
+            )
+        }
     }
 
     fun updateHeight(newHeight: String) {
         val error = if (newHeight.toFloatOrNull() != null && newHeight.toFloat() in 50.0..250.0) null else R.string.invalid_height
-        updateState(_state.value.copy(height = _state.value.height.copy(value = newHeight, error = error)))
+        _state.update {
+            it.copy(
+                height = it.height.copy(value = newHeight, error = error)
+            )
+        }
     }
 
     fun updateWeight(newWeight: String) {
-        updateState(_state.value.copy(weight = _state.value.weight.copy(value = newWeight)))
+        _state.update {
+            it.copy(
+                weight = it.weight.copy(value = newWeight)
+            )
+        }
     }
 
-    fun updateActivityLevel(newLevel: ActivityLevel) {
-        updateState(_state.value.copy(activityLevel = newLevel))
+    fun updateActivityLevel(activityLevel: ActivityLevel) {
+        _state.update {
+            it.copy(
+                activityLevel = activityLevel
+            )
+        }
     }
 
     fun updateGoal(newGoal: Goal) {
-        updateState(_state.value.copy(goal = newGoal))
+        _state.update {
+            it.copy(
+                goal = newGoal
+            )
+        }
     }
 
+
     fun updateEmail(newEmail: String) {
-        updateState(_state.value.copy(email = _state.value.email.copy(value = newEmail)))
+        _state.update {
+            it.copy(
+                email = it.email.copy(
+                    value = newEmail,
+                    error = if (newEmail.isValidEmail()) null else R.string.invalid_email)
+            )
+        }
     }
 
     fun updatePassword(newPassword: String) {
-        updateState(_state.value.copy(password = _state.value.password.copy(value = newPassword)))
+        _state.update {
+            it.copy(
+                password = it.password.copy(value = newPassword)
+            )
+        }
     }
 
     fun updateNickName(newNickName: String) {
-        updateState(_state.value.copy(nickname = _state.value.nickname.copy(value = newNickName)))
-    }
-
-    private fun generateNickname() {
-        val name = _state.value.name.value.ifBlank { "User" }
-        val id = (1000..9999).random()
-        updateState(_state.value.copy(
-            nickname = _state.value.nickname.copy(value = "$name#$id")
-        ))
-    }
-
-    private fun updateState(newState: SettingsViewModelState) {
-        _state.value = newState
+        _state.update {
+            it.copy(
+                nickname = it.nickname.copy(value = newNickName)
+            )
+        }
     }
 
     companion object {
@@ -222,7 +268,6 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             }
     }
 }
-
 fun String.isValidEmail(): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }

@@ -1,5 +1,6 @@
 package com.rmp.ui.settings
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,18 +20,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rmp.R
 import com.rmp.ui.components.AccentImageButton
 import com.rmp.ui.components.AccentImageSecondaryButton
-import com.rmp.ui.components.AppScreen
 import com.rmp.ui.components.Header
 import com.rmp.ui.components.LabelledInput
+import com.rmp.ui.components.RefreshedAppScreen
 import com.rmp.ui.components.buttons.BackButton
 import com.rmp.ui.components.buttons.SignOutButton
-import com.rmp.ui.theme.RmpTheme
 
 @Composable
 fun SettingsScreen(
@@ -46,33 +48,40 @@ fun SettingsScreen(
     onPasswordChange: (String) -> Unit,
     onNickNameChange: (String) -> Unit,
     onSaveClick: () -> Unit,
-    onSignOutClick: () -> Unit
+    onSignOutClick: () -> Unit,
+    onRefresh: () -> Unit,
+    clearError: () -> Unit
 ) {
-    RmpTheme {
-        AppScreen(
-            leftComposable = { BackButton() },
-            rightComposable = { SignOutButton(onSignOutClick)}
+
+    val context = LocalContext.current
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isLoading)
+
+    RefreshedAppScreen(
+        leftComposable = { BackButton() },
+        rightComposable = { SignOutButton(onSignOutClick)},
+        swipeRefreshState = swipeRefreshState,
+        onRefresh = onRefresh
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .imePadding()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp)
-                    .imePadding()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxHeight(0.8f)
             ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxHeight(0.8f)
-                ) {
-                    Header(
-                        stringResource(R.string.settings_header),
-                        null,
+                Header(
+                    stringResource(R.string.settings_header),
+                    null,
                         Modifier.align(Alignment.Start),
                         textAlign = TextAlign.Start,
                     )
-                    Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(30.dp))
 
                     // Поле для имени
                     LabelledInput(
@@ -236,12 +245,25 @@ fun SettingsScreen(
                     }
 
                     // Поле для email
-                    LabelledInput(
-                        value = uiState.email.value,
-                        label = uiState.email.hint,
-                        modifier = Modifier.fillMaxWidth(),
-                        onInputChange = onEmailChange
-                    )
+
+                    if (uiState.email.error == null) {
+                        LabelledInput(
+                            value = uiState.email.value,
+                            label = uiState.email.hint,
+                            modifier = Modifier.fillMaxWidth(),
+                            onInputChange = onEmailChange
+                        )
+                    } else {
+                        LabelledInput(
+                            value = uiState.email.value,
+                            label = uiState.email.hint,
+                            modifier = Modifier.fillMaxWidth(),
+                            onInputChange = onEmailChange,
+                            isError = true,
+                            errorMessage = stringResource(R.string.invalid_email)
+                        )
+                    }
+
 
                     // Поле для пароля
                     LabelledInput(
@@ -251,24 +273,39 @@ fun SettingsScreen(
                         onInputChange = onPasswordChange
                     )
 
-                    // Поле для никнейма
                     LabelledInput(
                         value = uiState.nickname.value,
                         label = uiState.nickname.hint,
                         modifier = Modifier.fillMaxWidth(),
                         onInputChange = onNickNameChange
                     )
-                }
                 Button(
                     onClick = onSaveClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    enabled = !checkErrors(uiState)
                 ) {
                     Text("Сохранить изменения")
                 }
-            }
+                if (uiState.errorMessage != null) {
+                    Toast.makeText(
+                        context,
+                        uiState.errorMessage,
+                        Toast.LENGTH_LONG
+                    ).show()
 
+                    clearError.invoke()
+                }
+            }
         }
     }
+}
+
+
+fun checkErrors(state: SettingsUiState): Boolean {
+    return listOf(
+        state.email.error, state.height.error, state.name.error,
+        state.nickname.error, state.weight.error, state.password.error
+    ).any { it != null }
 }
