@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -127,7 +128,9 @@ fun TrainingList(trainings: List<TrainingListDto.Training>) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(
+                    Modifier.padding(horizontal = 10.dp)
+                ) {
                     TrainingIcon(training.type)
                 }
                 Column {
@@ -425,7 +428,6 @@ fun TrainingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp, vertical = 10.dp),
-//                    .verticalScroll(rememberScrollState()),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
             ) {
@@ -490,25 +492,22 @@ fun TrainingsScreen(
             )
             fun Int.fixdate(): String = if (this < 10) "0$this" else "$this"
 
-            if (uiState.trainings.size > 0) {
-                val date = uiState.trainings.entries.last().key.toInt()
-                val localDate = getAsDate(date)
-                val maxDay = localDate.dayOfMonth
-                var day = maxDay
-                while (day >= 1) {
-                    if (day == maxDay) {
-                        day -= 1
-                        continue
-                    }
-                    val key = "${localDate.year}${localDate.monthValue.fixdate()}${day.fixdate()}"
-                    val formatted = "${day.fixdate()}.${localDate.monthValue.fixdate()}.${localDate.year}"
-                    if (key !in uiState.trainings) {
-                        TrainingDay(formatted to listOf())
-                    } else {
-                        TrainingDay(formatted to uiState.trainings[key]!!)
-                    }
+            val localDate = getAsDate(getCurrentDateAsNumber())
+            val maxDay = localDate.dayOfMonth
+            var day = maxDay
+            while (day >= 1) {
+                if (day == maxDay) {
                     day -= 1
+                    continue
                 }
+                val key = "${localDate.year}${localDate.monthValue.fixdate()}${day.fixdate()}"
+                val formatted = "${day.fixdate()}.${localDate.monthValue.fixdate()}.${localDate.year}"
+                if (key !in uiState.trainings) {
+                    TrainingDay(formatted to listOf())
+                } else {
+                    TrainingDay(formatted to uiState.trainings[key]!!)
+                }
+                day -= 1
             }
         }
     }

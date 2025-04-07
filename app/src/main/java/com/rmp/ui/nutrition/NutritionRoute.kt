@@ -9,31 +9,25 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun NutritionRoute(
-    nutritionViewModel: NutritionViewModel,
-    onBackClick: () -> Unit
+    nutritionViewModel: NutritionViewModel
 ) {
     val uiState by nutritionViewModel.uiState.collectAsStateWithLifecycle()
     var showHistory by remember { mutableStateOf(false) }
-    var firstEntrance by remember { mutableStateOf(true) }
 
     if (showHistory) {
         NutritionHistoryScreen(
-            viewModel = nutritionViewModel,
-            uiState.caloriesTarget,
+            uiState = uiState,
+            fetchHistory = nutritionViewModel::fetchHistory,
+            uiState.history?.caloriesTarget ?: 0f,
             onBackClick = { showHistory = false }
         )
     } else {
         NutritionScreen(
             uiState = uiState,
-            onBackClick = onBackClick,
-            onSwitchDishCheckbox = nutritionViewModel::switchDishCheckbox,
+            onSwitchDishCheckbox = nutritionViewModel::switchCheckBox,
             onRemoveItem = nutritionViewModel::removeMenuItem,
             onCalendarClick = { showHistory = true },
-            firstEntrance = firstEntrance,
-            onGenerateMenu = {
-                nutritionViewModel.generateMenu(2000)
-                firstEntrance = false
-            }
+            onGenerateMenu = nutritionViewModel::generateMenu
         )
     }
 }

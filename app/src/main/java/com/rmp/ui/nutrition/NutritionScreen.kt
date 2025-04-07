@@ -1,26 +1,49 @@
 package com.rmp.ui.nutrition
 
+import android.R.style.Theme
 import android.annotation.SuppressLint
+import android.net.Uri
+import android.provider.MediaStore
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,54 +55,65 @@ import com.rmp.R
 import com.rmp.ui.components.AccentButton
 import com.rmp.ui.components.AppScreen
 import coil.compose.rememberAsyncImagePainter
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.rmp.data.UploadedImage
+import com.rmp.data.getCurrentDateAsNumber
 import com.rmp.data.repository.nutrition.GetDish
 import com.rmp.data.repository.nutrition.GetMeal
+import com.rmp.data.repository.training.SetStepsTargetDto
+import com.rmp.ui.components.RefreshedAppScreen
 import com.rmp.ui.components.SecondaryButton
+import com.rmp.ui.components.buttons.BackButton
+import com.rmp.ui.theme.RmpTheme
+import java.nio.file.WatchEvent
 
 @Composable
 fun NutritionScreen(
     uiState: NutritionUiState,
-    onBackClick: () -> Unit,
-    onSwitchDishCheckbox: (Int, Int, Int, Boolean) -> Unit,
-    onRemoveItem: (Int, Int, Int) -> Unit,
+    onSwitchDishCheckbox: (Long, Boolean) -> Unit,
+    onRemoveItem: (Long) -> Unit,
     onCalendarClick: () -> Unit,
-    firstEntrance: Boolean,
     onGenerateMenu: () -> Unit
 ) {
-    AppScreen {
+    val state = rememberSwipeRefreshState(false)
+
+    RefreshedAppScreen(
+        leftComposable = { BackButton() },
+        onRefresh = {},
+        swipeRefreshState = state,
+        modifier = Modifier.blur(if (!uiState.isMenuGenerated) 8.dp else 0.dp)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
-                .blur(if (firstEntrance) 8.dp else 0.dp),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             NutritionHeader(
-                currentAmount = uiState.caloriesCurrent,
-                dailyGoal = uiState.caloriesTarget,
-                onBackClick = onBackClick,
+                currentAmount = uiState.currentCalories,
+                dailyGoal = uiState.targetCalories,
                 onCalendarClick = onCalendarClick
             )
 
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(1f)) {
                 NutritionCardsList(
-                    meals = uiState.meals,
+                    meals = uiState.menu?.meals ?: listOf(),
                     onSwitchDishCheckbox = onSwitchDishCheckbox,
                     onRemoveItem = onRemoveItem
                 )
             }
         }
+    }
 
-        if (firstEntrance) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                AccentButton(stringResource(R.string.generate_menu), onGenerateMenu)
-            }
+    if (!uiState.isMenuGenerated) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            AccentButton(stringResource(R.string.generate_menu), onGenerateMenu)
         }
     }
 }
@@ -88,7 +122,6 @@ fun NutritionScreen(
 private fun NutritionHeader(
     currentAmount: Float,
     dailyGoal: Float,
-    onBackClick: () -> Unit,
     onCalendarClick: () -> Unit
 ) {
     Row(
@@ -96,29 +129,24 @@ private fun NutritionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_grid),
-                contentDescription = "Back"
-            )
-        }
-
         Text(
             text = "Питание",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
 
-        Text(
-            text = "%.1f ккал / %.1f ккал".format(currentAmount, dailyGoal),
-            fontSize = 16.sp
-        )
-
-        IconButton(onClick = onCalendarClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_calendar),
-                contentDescription = "Calendar"
+        Row {
+            Text(
+                text = "%.1f ккал / %.1f ккал".format(currentAmount, dailyGoal),
+                fontSize = 16.sp
             )
+
+            IconButton(onClick = onCalendarClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_calendar),
+                    contentDescription = "Calendar"
+                )
+            }
         }
     }
 }
@@ -126,8 +154,8 @@ private fun NutritionHeader(
 @Composable
 private fun NutritionCardsList(
     meals: List<GetMeal>,
-    onSwitchDishCheckbox: (Int, Int, Int, Boolean) -> Unit,
-    onRemoveItem: (Int, Int, Int) -> Unit) {
+    onSwitchDishCheckbox: (Long, Boolean) -> Unit,
+    onRemoveItem: (Long) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -136,7 +164,6 @@ private fun NutritionCardsList(
             NutritionCard(
                 mealName = meal.name,
                 dishes = meal.dishes,
-                mealIndex = meals.indexOf(meal),
                 onSwitchDishCheckbox = onSwitchDishCheckbox,
                 onRemoveItem
             )
@@ -148,15 +175,10 @@ private fun NutritionCardsList(
 private fun NutritionCard(
     mealName: String,
     dishes: List<GetDish>,
-    mealIndex: Int,
-    onSwitchDishCheckbox: (Int, Int, Int, Boolean) -> Unit,
-    onRemoveItem: (Int, Int, Int) -> Unit
+    onSwitchDishCheckbox: (Long, Boolean) -> Unit,
+    onRemoveItem: (Long) -> Unit
 ) {
     var addDishFormState by remember { mutableStateOf(false) }
-    var dishName by remember { mutableStateOf("") }
-    var dishPhoto by remember { mutableStateOf("") }
-    var dishCalories by remember { mutableStateOf("") }
-    var dishDescription by remember { mutableStateOf("") }
 
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -187,8 +209,6 @@ private fun NutritionCard(
                     Column(modifier = Modifier.fillMaxWidth()) {
                         NutritionCardItem(
                             dish = dish,
-                            mealIndex = mealIndex,
-                            dishIndex = dishes.indexOf(dish),
                             onSwitchDishCheckbox = onSwitchDishCheckbox,
                             onRemoveItem = onRemoveItem
                         )
@@ -224,18 +244,11 @@ private fun NutritionCard(
                 }
             } else {
                 DishForm(
-                    dishName = dishName,
-                    dishPhoto = dishPhoto,
-                    dishCalories = dishCalories,
-                    dishDescription = dishDescription,
-                    onDishNameChange = { dishName = it },
-                    onDishCaloriesChange = { dishCalories = it },
-                    onDishDescriptionChange = { dishDescription = it },
-                    onAddDish = {
-                        addDishFormState = false
-                        dishName = ""
-                        dishCalories = ""
-                        dishDescription = ""
+                    onNewDishCreated = {
+
+                    },
+                    onDishSelected = {
+
                     }
                 )
             }
@@ -244,17 +257,27 @@ private fun NutritionCard(
 }
 
 @Composable
-fun DishForm(
-    dishName: String,
-    dishPhoto: String, //TODO change to photo
-    dishCalories: String,
-    dishDescription: String,
-    onDishNameChange: (String) -> Unit,
-    onDishCaloriesChange: (String) -> Unit,
-    onDishDescriptionChange: (String) -> Unit,
+fun NewDishForm(
     onAddDish: () -> Unit
 ) {
-    Spacer(modifier = Modifier.height(16.dp))
+    val ctx = LocalContext.current
+
+    var dishName by remember { mutableStateOf("") }
+    var dishDescription by remember { mutableStateOf("") }
+    var dishPhoto by remember { mutableStateOf<UploadedImage?>(null) }
+    var dishCalories by remember { mutableFloatStateOf(0f) }
+    var dishFats by remember { mutableFloatStateOf(0f) }
+    var dishProtein by remember { mutableFloatStateOf(0f) }
+    var dishCarbohydrates by remember { mutableFloatStateOf(0f) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val uploaded = UploadedImage.buildFromUri(ctx, it)
+            dishPhoto = uploaded
+        }
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -267,7 +290,7 @@ fun DishForm(
             Text(text = "Название")
             OutlinedTextField(
                 value = dishName,
-                onValueChange = { onDishNameChange(it) },
+                onValueChange = { dishName = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
@@ -281,22 +304,19 @@ fun DishForm(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "Изображение")
-            OutlinedTextField(
-                value = dishPhoto,
-                onValueChange = { /* Обработка загрузки изображения */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp),
-                singleLine = true
-            )
+            Button (
+                modifier = Modifier.padding(top = 5.dp),
+                onClick = { imagePickerLauncher.launch("image/*") }
+            ) {
+                Text("Загрузить изображение")
+            }
         }
     }
 
     Text(text = "Описание")
     OutlinedTextField(
         value = dishDescription,
-        onValueChange = { onDishDescriptionChange(it) },
+        onValueChange = { dishDescription = it },
         modifier = Modifier
             .fillMaxWidth()
             .height(110.dp),
@@ -305,8 +325,9 @@ fun DishForm(
 
     Text(text = "Калории")
     OutlinedTextField(
-        value = dishCalories,
-        onValueChange = { onDishCaloriesChange(it) },
+        value = dishCalories.toString(),
+        onValueChange = { dishCalories = it.toFloat() },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier
             .fillMaxWidth()
             .height(55.dp),
@@ -323,8 +344,9 @@ fun DishForm(
         ) {
             Text(text = "Белки")
             OutlinedTextField(
-                value = "",
-                onValueChange = { /* Обработка белков */ },
+                value = "$dishProtein",
+                onValueChange = { dishProtein = it.toFloat() },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
@@ -340,8 +362,9 @@ fun DishForm(
         ) {
             Text(text = "Жиры")
             OutlinedTextField(
-                value = "",
-                onValueChange = { /* Обработка жиров */ },
+                value = "$dishFats",
+                onValueChange = { dishFats = it.toFloat() },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
@@ -357,8 +380,9 @@ fun DishForm(
         ) {
             Text(text = "Углеводы")
             OutlinedTextField(
-                value = "",
-                onValueChange = { /* Обработка углеводов */ },
+                value = "$dishCarbohydrates",
+                onValueChange = { dishCarbohydrates = it.toFloat() },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
@@ -375,6 +399,8 @@ fun DishForm(
     ) {
         Button(
             onClick = {
+                // TODO: Собираем дто и пихаем ее в колбэк
+//                val createDishDto =
                 onAddDish()
             },
             modifier = Modifier
@@ -391,15 +417,76 @@ fun DishForm(
     }
 }
 
+@Composable
+fun FindDishForm(
+    onDishSelected: (Long) -> Unit
+) {
+    //TODO: Загружаем блюда с бэка и рисуем дропдаун, наружу отдаем id
+}
+
+@Composable
+fun DishForm(
+    onNewDishCreated: () -> Unit,
+    onDishSelected: (Long) -> Unit
+) {
+    var formSelector by remember { mutableStateOf(true) }
+    Spacer(modifier = Modifier.height(16.dp))
+
+
+    if (formSelector) {
+        NewDishForm(onNewDishCreated)
+    } else {
+        FindDishForm(onDishSelected)
+    }
+}
+
+
+@Composable
+private fun ApproveRemove(
+    name: String,
+    onApprove: () -> Unit,
+    onCancel: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        text = {
+            Column {
+                Text(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    text = "Удаление $name",
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+                Text(
+                    fontSize = 16.sp,
+                    text = "Вы уверены что хотите удалить $name из вашего меню?"
+                )
+            }
+        },
+        confirmButton = {
+            FilledTonalButton(onClick = {
+                onApprove()
+            }) {
+                Text("Удалить")
+            }
+
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onCancel
+            ) {
+                Text("Отмена")
+            }
+        }
+    )
+}
 
 @SuppressLint("DefaultLocale")
 @Composable
 private fun NutritionCardItem(
     dish: GetDish,
-    mealIndex: Int,
-    dishIndex: Int,
-    onSwitchDishCheckbox: (Int, Int, Int, Boolean) -> Unit,
-    onRemoveItem: (Int, Int, Int) -> Unit
+    onSwitchDishCheckbox: (Long, Boolean) -> Unit,
+    onRemoveItem: (Long) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -414,7 +501,9 @@ private fun NutritionCardItem(
         Image(
             painter = painter,
             contentDescription = "Item image",
-            modifier = Modifier.size(70.dp)
+            modifier = Modifier
+                .size(130.dp)
+                .padding(horizontal = 15.dp)
         )
 
         Column(
@@ -494,6 +583,16 @@ private fun NutritionCardItem(
             }
         }
 
+        var showRemoveDialog by remember { mutableStateOf(false) }
+
+        if (showRemoveDialog)
+            ApproveRemove(dish.name, {
+                onRemoveItem(dish.menuItemId)
+                showRemoveDialog = false
+            }) {
+                showRemoveDialog = false
+            }
+
         Column(
             modifier = Modifier.width(19.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -501,11 +600,10 @@ private fun NutritionCardItem(
             IconButton(
                 onClick = {
                     onSwitchDishCheckbox(
-                        mealIndex,
-                        dishIndex,
                         dish.menuItemId,
-                        dish.checked
-                    ) },
+                        !dish.checked
+                    )
+                },
                 modifier = Modifier.size(20.dp)
             ) {
                 Icon(
@@ -517,13 +615,15 @@ private fun NutritionCardItem(
                     modifier = Modifier.size(19.dp)
                 )
             }
-            Image(
-                painter = painterResource(id = R.drawable.ic_share),
-                contentDescription = "Share icon",
-                modifier = Modifier.size(19.dp)
-            )
+//            Image(
+//                painter = painterResource(id = R.drawable.ic_share),
+//                contentDescription = "Share icon",
+//                modifier = Modifier.size(19.dp)
+//            )
             IconButton(
-                onClick = { onRemoveItem(mealIndex, dishIndex, dish.menuItemId) },
+                onClick = {
+                    showRemoveDialog = true
+                },
                 modifier = Modifier.size(20.dp)
             ) {
                 Icon(

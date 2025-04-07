@@ -14,34 +14,86 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rmp.R
 import coil.compose.rememberAsyncImagePainter
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rmp.data.repository.nutrition.GetDish
 import com.rmp.data.repository.nutrition.GetMeal
 import com.rmp.data.repository.nutrition.Params
+import com.rmp.ui.RmpDestinations
 import com.rmp.ui.components.AppScreen
 import com.rmp.ui.components.NutritionCalendar
+import com.rmp.ui.components.RefreshedAppScreen
+import com.rmp.ui.components.buttons.BackButton
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun NutritionHistoryScreen(
-    viewModel: NutritionViewModel,
+    uiState: NutritionUiState,
+    fetchHistory: (Int) -> Unit,
     dailyGoal: Float,
     onBackClick: () -> Unit
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    val historyState by viewModel.historyState.collectAsState()
-
-    LaunchedEffect(selectedDate) {
-        viewModel.getMenuStats(selectedDate)
+    val caloriesCurrent = uiState.history?.dishes?.map {
+        it.value.sumOf { it.calories }
+    }?.sum() ?: 0.0
+    val meals = uiState.history?.dishes?.map { (mealName, dishes) ->
+        GetMeal(
+            mealId = 0,
+            name = mealName,
+            dishes = dishes,
+            params = Params(
+                calories = dishes.sumOf { it.calories },
+                protein = dishes.sumOf { it.protein },
+                fat = dishes.sumOf { it.fat },
+                carbohydrates = dishes.sumOf { it.carbohydrates }
+            )
+        )
+    } ?: listOf()
+    fun LocalDate.getAsInt(): Int {
+        fun Int.fixDate(): String = if (this < 10L) "0$this" else "$this"
+        val y = year.fixDate()
+        val m = monthValue.fixDate()
+        val d = dayOfMonth.fixDate()
+        return "$y$m$d".toInt()
     }
 
-    AppScreen {
+    val fetchSelected: () -> Unit = {
+        fetchHistory(selectedDate.getAsInt())
+    }
+
+    LaunchedEffect(selectedDate) {
+        fetchSelected()
+    }
+
+    RefreshedAppScreen(
+        leftComposable = {
+            IconButton(
+                onClick = onBackClick
+            ) {
+                Column(
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.back_to_feed),
+                        contentDescription = (stringResource(R.string.menu)),
+                        modifier = Modifier
+                            .size(35.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                }
+            }
+        },
+        onRefresh = fetchSelected,
+        swipeRefreshState = rememberSwipeRefreshState(uiState.isLoading)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -59,16 +111,7 @@ fun NutritionHistoryScreen(
                 )
 
                 Text(
-                    text = when (historyState) {
-                        is NutritionHistoryState.Success ->
-                            "%.1f ккал / %.1f ккал".format(
-                                (historyState as NutritionHistoryState.Success).caloriesCurrent,
-                                dailyGoal
-                            )
-                        is NutritionHistoryState.Empty ->
-                            "0.0 ккал / %.1f ккал".format(dailyGoal)
-                        else -> "0.0 ккал / $dailyGoal ккал"
-                    },
+                    text = "%.1f ккал / %.1f ккал".format(caloriesCurrent, dailyGoal),
                     fontSize = 16.sp
                 )
             }
@@ -85,32 +128,15 @@ fun NutritionHistoryScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Box(modifier = Modifier.weight(1f)) {
-                when (historyState) {
-                    is NutritionHistoryState.Loading -> LoadingState()
-                    is NutritionHistoryState.Empty -> EmptyState()
-                    is NutritionHistoryState.Error -> ErrorState(
-                        message = (historyState as NutritionHistoryState.Error).message,
-                        onRetry = { viewModel.getMenuStats(selectedDate) }
+                if (uiState.errors.isNotEmpty()) {
+                    ErrorState(
+                        message = "Ошибка загрузки",
+                        onRetry = { fetchSelected() }
                     )
-                    is NutritionHistoryState.Success -> {
-                        val state = historyState as NutritionHistoryState.Success
-                        val meals = state.dishes.map { (mealName, dishes) ->
-                            GetMeal(
-                                mealId = 0, // Use a proper ID if available
-                                name = mealName,
-                                dishes = dishes,
-                                params = Params(
-                                    calories = dishes.sumOf { it.calories },
-                                    protein = dishes.sumOf { it.protein },
-                                    fat = dishes.sumOf { it.fat },
-                                    carbohydrates = dishes.sumOf { it.carbohydrates }
-                                )
-                            )
-                        }
-                        NutritionCardsList(
-                            meals = meals,
-                        )
-                    }
+                } else {
+                    NutritionCardsList(
+                        meals = meals,
+                    )
                 }
             }
 
@@ -156,14 +182,15 @@ private fun NutritionCard(
     dishes: List<GetDish>,
     mealIndex: Int
 ) {
-    var addDishFormState by remember { mutableStateOf(false) }
-    var dishName by remember { mutableStateOf("") }
-    var dishCalories by remember { mutableStateOf("") }
-    var dishDescription by remember { mutableStateOf("") }
-
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(16.dp),
+        colors = CardColors(
+            containerColor = Color.White,
+            contentColor = CardDefaults.cardColors().contentColor,
+            disabledContainerColor = CardDefaults.cardColors().disabledContainerColor,
+            disabledContentColor = CardDefaults.cardColors().disabledContentColor
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
@@ -188,9 +215,7 @@ private fun NutritionCard(
                 dishes.forEachIndexed { index, dish ->
                     Column(modifier = Modifier.fillMaxWidth()) {
                         NutritionCardItem(
-                            dish = dish,
-                            mealIndex = mealIndex,
-                            dishIndex = dishes.indexOf(dish),
+                            dish = dish
                         )
 
                         if (index < dishes.lastIndex) {
@@ -206,164 +231,6 @@ private fun NutritionCard(
                     }
                 }
             }
-
-            if (!addDishFormState) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(onClick = { addDishFormState = true }) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_add),
-                            contentDescription = "Add dish icon",
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Text(text = "Название")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Изображение")
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        TextField(
-                            value = dishName,
-                            onValueChange = { dishName = it },
-                            label = { Text("Введи название") },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(39.dp)
-                                .padding(end = 8.dp)
-                                .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                        )
-                        TextField(
-                            value = "",
-                            onValueChange = { /* Обработка загрузки изображения */ },
-                            label = { Text("Загрузи изображение") },
-                            trailingIcon = {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_upload_photo),
-                                    contentDescription = "Download icon"
-                                )
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(39.dp)
-                                .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                        )
-                    }
-
-                    Text(text = "Описание")
-                    TextField(
-                        value = dishDescription,
-                        onValueChange = { dishDescription = it },
-                        label = { Text("Введи описание рецепта") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(70.dp)
-                            .padding(top = 8.dp)
-                            .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                    )
-
-                    Text(text = "Калории")
-                    TextField(
-                        value = dishCalories,
-                        onValueChange = { dishCalories = it },
-                        label = { Text("Введи калории") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(39.dp)
-                            .padding(top = 8.dp)
-                            .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            Text(text = "Белки")
-                            TextField(
-                                value = "",
-                                onValueChange = { /* Обработка белков */ },
-                                label = { Text("Белки") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(39.dp)
-                                    .padding(top = 8.dp)
-                                    .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                            )
-                        }
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            Text(text = "Жиры")
-                            TextField(
-                                value = "",
-                                onValueChange = { /* Обработка жиров */ },
-                                label = { Text("Жиры") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(39.dp)
-                                    .padding(top = 8.dp)
-                                    .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                            )
-                        }
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            Text(text = "Углеводы")
-                            TextField(
-                                value = "",
-                                onValueChange = { /* Обработка углеводов */ },
-                                label = { Text("Углеводы") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(39.dp)
-                                    .padding(top = 8.dp)
-                                    .border(width = 1.dp, color = Color(0xFF23252A), shape = RoundedCornerShape(15.dp))
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            // Обработка кнопки
-                            addDishFormState = false
-                            dishName = ""
-                            dishCalories = ""
-                            dishDescription = ""
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                    ) {
-                        Text(text = "Добавить")
-                    }
-                }
-            }
         }
     }
 }
@@ -372,8 +239,6 @@ private fun NutritionCard(
 @Composable
 private fun NutritionCardItem(
     dish: GetDish,
-    mealIndex: Int,
-    dishIndex: Int,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -471,23 +336,7 @@ private fun NutritionCardItem(
         Column(
             modifier = Modifier.width(19.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_unselected_checkbox),
-//                contentDescription = "Checkbox icon",
-//                modifier = Modifier.size(19.dp)
-//            )
-            Image(
-                painter = painterResource(id = R.drawable.ic_share),
-                contentDescription = "Share icon",
-                modifier = Modifier.size(19.dp)
-            )
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_trash),
-//                contentDescription = "Checkbox icon",
-//                modifier = Modifier.size(19.dp)
-//            )
-        }
+        ){}
     }
 }
 

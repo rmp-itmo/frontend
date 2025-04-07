@@ -39,6 +39,7 @@ fun RefreshedAppScreen(
     rightComposable: @Composable (RowScope.() -> Unit) = {},
     swipeRefreshState: SwipeRefreshState,
     onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable (BoxScope.() -> Unit) = {},
 ) {
     val topAppBarState = rememberTopAppBarState()
@@ -87,7 +88,7 @@ fun RefreshedAppScreen(
             },
             content = { padding ->
                 Box(
-                    modifier = Modifier
+                    modifier = modifier
                         .padding(padding)
                         .pointerInput(Unit) {
                             detectTapGestures {

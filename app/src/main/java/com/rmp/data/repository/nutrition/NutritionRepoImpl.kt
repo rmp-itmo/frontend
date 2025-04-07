@@ -14,8 +14,8 @@ class NutritionRepoImpl : NutritionRepository {
         return response.successOr(null)
     }
 
-    override suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenuResponse? {
-        val response = ApiClient.authorizedRequest<GeneratedMenuResponse>(
+    override suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenu? {
+        val response = ApiClient.authorizedRequest<GeneratedMenu>(
             ApiClient.Method.POST,
             "paprika/calculate",
             date
@@ -34,8 +34,8 @@ class NutritionRepoImpl : NutritionRepository {
         return response.successOr(null)
     }
 
-    override suspend fun getMenu(): GetMenuResponse? {
-        val response = ApiClient.authorizedRequest<GetMenuResponse>(
+    override suspend fun getMenu(): Menu? {
+        val response = ApiClient.authorizedRequest<Menu>(
             ApiClient.Method.GET,
             "/users/menu"
         )
@@ -63,8 +63,8 @@ class NutritionRepoImpl : NutritionRepository {
         return response.successOr(null)
     }
 
-    override suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistoryStatResponse? {
-        val response = ApiClient.authorizedRequest<NutritionHistoryStatResponse>(
+    override suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistory? {
+        val response = ApiClient.authorizedRequest<NutritionHistory>(
             ApiClient.Method.POST,
             "users/stat/menu",
             date

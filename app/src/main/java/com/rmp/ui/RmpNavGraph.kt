@@ -167,11 +167,11 @@ fun RmpNavGraph(
                 route = RmpDestinations.NUTRITION_ROUTE,
             ) { _ ->
                 val nutritionViewModel: NutritionViewModel = viewModel(
-                    factory = NutritionViewModel.factory(appContainer)
+                    factory = NutritionViewModel.factory(appContainer.nutritionRepository)
                 )
+
                 NutritionRoute(
-                    nutritionViewModel = nutritionViewModel,
-                    onBackClick = { navController.navigate(RmpDestinations.HELLO_ROUTE) }
+                    nutritionViewModel = nutritionViewModel
                 )
             }
             composable(
