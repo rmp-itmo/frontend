@@ -18,8 +18,9 @@ object RmpDestinations {
     const val TRAIN_ROUTE = "train"
     const val ACHIEVEMENT_ROUTE = "achievement"
     const val SETTINGS_ROUTE = "settings"
-    const val FEED_ROUTE = "feed"
     const val SLEEP_HISTORY_ROUTE = "sleep_history"
+
+    const val FEED_ROUTE = "feed"
 }
 
 /**
