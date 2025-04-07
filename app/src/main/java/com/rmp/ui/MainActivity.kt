@@ -18,9 +18,10 @@ import com.rmp.RmpApplication
 import com.rmp.services.HealthConnectForegroundService
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
-import androidx.core.content.edit
+import com.rmp.data.sharedPreference.PreferenceManager
 
 class MainActivity : ComponentActivity() {
+
     private val healthConnectPermissions = setOf(
         HealthPermission.getReadPermission(HeartRateRecord::class),
         HealthPermission.getWritePermission(HeartRateRecord::class),
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkHealthConnectPermissions() {
+        val preferenceManager = PreferenceManager(this)
         val healthConnectClient = getOrCreate(this)
 
         lifecycleScope.launch {
@@ -59,15 +61,14 @@ class MainActivity : ComponentActivity() {
                     startHealthService()
                 } else {
                     Log.d("HealthPermissions", "Not all permissions granted, requesting")
-                    val sharedPref = getSharedPreferences("app_prefs", MODE_PRIVATE)
-                    val isFirstRun = sharedPref.getBoolean("is_first_run", true)
+                    val isFirstRun = preferenceManager.getIsFirstRun()
 
                     if (isFirstRun) {
                         val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                         intent.data = "package:$packageName".toUri()
                         startActivity(intent)
 
-                        sharedPref.edit { putBoolean("is_first_run", false) }
+                        preferenceManager.setIsFirstRunToFalse()
                     } else {
                         requestPermissions.launch(healthConnectPermissions.toTypedArray())
                     }

@@ -1,5 +1,7 @@
 package com.rmp.data.repository.sleep
 
+import com.rmp.data.repository.heart.GraphConfigurationDto
+import com.rmp.data.repository.heart.GraphOutputDto
 import kotlinx.serialization.Serializable
 
 
@@ -41,4 +43,5 @@ data class SleepHistoryResponseDto(
 interface SleepRepository {
     suspend fun logSleep(sleep: SleepUploadDto): SleepResponseDto?
     suspend fun getSleepHistory(date: SleepGetHistoryDto): SleepHistoryResponseDto?
+    suspend fun getGraphSleep(graphConfigurationDto: GraphConfigurationDto): GraphOutputDto?
 }

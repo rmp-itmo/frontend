@@ -1,10 +1,7 @@
 package com.rmp.ui.heart
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,12 +12,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rmp.R
-import com.rmp.ui.components.AppScreen
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -29,104 +20,21 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.rmp.ui.LocalNavController
-import com.rmp.ui.RmpDestinations
-import com.rmp.ui.components.buttons.BackButton
+import com.rmp.ui.components.GraphScreen
+import com.rmp.ui.components.GraphType
 import kotlin.math.ceil
 import kotlin.math.floor
-import kotlin.math.roundToInt
 
 @Composable
 fun HeartScreen(
     heartViewModel: HeartViewModel
 )
 {
-    val uiState by heartViewModel.uiState.collectAsStateWithLifecycle()
-
-    AppScreen(
-        leftComposable = { BackButton() }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = stringResource(R.string.heart),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            PeriodSelector(
-                selectedPeriod = uiState.selectedPeriod,
-                onPeriodSelected = { newPeriod ->
-                    heartViewModel.updatePeriod(newPeriod)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            var lastHeartValue = 0F
-            if (uiState.heartData.chartPoints.isNotEmpty()) {
-                lastHeartValue = uiState.heartData.chartPoints.last().second
-            }
-            HeartRateChart(lastHeartValue.roundToInt(), uiState.heartData.chartPoints)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            HeartStats(uiState)
-        }
-    }
-}
-
-@Composable
-private fun PeriodSelector(
-    selectedPeriod: HeartViewPeriod,
-    onPeriodSelected: (HeartViewPeriod) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        HeartViewPeriod.entries.forEach { period ->
-            var textWidth by remember { mutableIntStateOf(0) }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clickable { onPeriodSelected(period) }
-            ) {
-                Text(
-                    text = when (period) {
-                        HeartViewPeriod.DAY -> stringResource(R.string.day)
-                        HeartViewPeriod.MONTH -> stringResource(R.string.month)
-                        HeartViewPeriod.YEAR -> stringResource(R.string.year)
-                    },
-                    color = if (period == selectedPeriod) colorResource(R.color.pink_antique) else colorResource(R.color.black),
-                    fontWeight = if (period == selectedPeriod) FontWeight.Bold else FontWeight.Normal,
-                    onTextLayout = { textLayoutResult ->
-                        textWidth = textLayoutResult.size.width
-                    }
-                )
-
-                if (period == selectedPeriod) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Box(
-                        modifier = Modifier
-                            .height(2.dp)
-                            .width(with(LocalDensity.current) { textWidth.toDp() + 8.dp })
-                            .background(colorResource(R.color.pink_antique))
-                    )
-                }
-            }
-        }
-    }
+    GraphScreen(
+        GraphType.HEART,
+        { value, dataPoints -> HeartRateChart(value, dataPoints) },
+        heartViewModel
+    )
 }
 
 /*private fun generateSampleData(currentValue: Int): List<Pair<Float, Float>> {
@@ -143,7 +51,7 @@ private fun PeriodSelector(
 @Composable
 private fun HeartRateChart(
     value: Int,
-    dataPoints: List<Pair<Float, Float>>,
+    dataPoints: List<Pair<String, Float>>,
     tickValues: List<Float> = calculateTickValues(dataPoints),
     allTickValues: List<Float> = calculateAllTickValues(dataPoints)
 ) {
@@ -232,69 +140,84 @@ private fun HeartRateChart(
                     )
                 }
 
-                if (dataPoints.isNotEmpty()) {
-                    val minX = dataPoints.minOf { it.first }
-                    val maxX = dataPoints.maxOf { it.first }
-                    val rangeX = maxX - minX
-
-                    fun toScreenX(x: Float) = paddingLeft + ((x - minX) / rangeX) * drawWidth
-
-                    fun toScreenY(y: Float) = size.height - paddingBottom - ((y - minY) / rangeY) * drawHeight
-
-                    val path = Path().apply {
-                        val firstPoint = dataPoints.first()
-                        moveTo(toScreenX(firstPoint.first), toScreenY(firstPoint.second))
-
-                        for (i in 1 until dataPoints.size) {
-                            val prev = dataPoints[i-1]
-                            val curr = dataPoints[i]
-
-                            val control1 = Offset(
-                                toScreenX(prev.first) + (toScreenX(curr.first) - toScreenX(prev.first)) * 0.3f,
-                                toScreenY(prev.second)
-                            )
-                            val control2 = Offset(
-                                toScreenX(curr.first) - (toScreenX(curr.first) - toScreenX(prev.first)) * 0.3f,
-                                toScreenY(curr.second)
-                            )
-
-                            cubicTo(
-                                control1.x, control1.y,
-                                control2.x, control2.y,
-                                toScreenX(curr.first), toScreenY(curr.second)
-                            )
+                when {
+                    dataPoints.isEmpty() -> {
+                        val noDataPaint = android.graphics.Paint().apply {
+                            color = textColor.toArgb()
+                            textSize = 32f
+                            textAlign = android.graphics.Paint.Align.CENTER
                         }
-                    }
 
-                    drawPath(
-                        path = path,
-                        color = lineColor,
-                        style = Stroke(
-                            width = 3f,
-                            cap = StrokeCap.Round,
-                            join = StrokeJoin.Round
+                        drawContext.canvas.nativeCanvas.drawText(
+                            "Нет данных",
+                            size.width / 2f,
+                            size.height / 2f,
+                            noDataPaint
                         )
-                    )
-                } else {
-                    val noDataPaint = android.graphics.Paint().apply {
-                        color = textColor.toArgb()
-                        textSize = 32f
-                        textAlign = android.graphics.Paint.Align.CENTER
                     }
+                    dataPoints.size == 1 -> {
+                        val singleValue = dataPoints.first().second
+                        val yPos = size.height - paddingBottom - ((singleValue - minY) / rangeY * drawHeight)
 
-                    drawContext.canvas.nativeCanvas.drawText(
-                        "Нет данных",
-                        size.width / 2f,
-                        size.height / 2f,
-                        noDataPaint
-                    )
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(paddingLeft, yPos),
+                            end = Offset(paddingLeft + drawWidth, yPos),
+                            strokeWidth = 3f,
+                            cap = StrokeCap.Round
+                        )
+                    }
+                    else -> {
+                        val minX = dataPoints.minOf { it.first }
+                        val maxX = dataPoints.maxOf { it.first }
+                        val rangeX = maxX.toFloat() - minX.toFloat()
+
+                        fun toScreenX(x: Float) = paddingLeft + ((x.toFloat() - minX.toFloat()) / rangeX) * drawWidth
+
+                        fun toScreenY(y: Float) = size.height - paddingBottom - ((y - minY) / rangeY) * drawHeight
+
+                        val path = Path().apply {
+                            val firstPoint = dataPoints.first()
+                            moveTo(toScreenX(firstPoint.first.toFloat()), toScreenY(firstPoint.second))
+
+                            for (i in 1 until dataPoints.size) {
+                                val prev = dataPoints[i-1]
+                                val curr = dataPoints[i]
+
+                                val control1 = Offset(
+                                    toScreenX(prev.first.toFloat()) + (toScreenX(curr.first.toFloat()) - toScreenX(prev.first.toFloat())) * 0.3f,
+                                    toScreenY(prev.second)
+                                )
+                                val control2 = Offset(
+                                    toScreenX(curr.first.toFloat()) - (toScreenX(curr.first.toFloat()) - toScreenX(prev.first.toFloat())) * 0.3f,
+                                    toScreenY(curr.second)
+                                )
+
+                                cubicTo(
+                                    control1.x, control1.y,
+                                    control2.x, control2.y,
+                                    toScreenX(curr.first.toFloat()), toScreenY(curr.second)
+                                )
+                            }
+                        }
+
+                        drawPath(
+                            path = path,
+                            color = lineColor,
+                            style = Stroke(
+                                width = 3f,
+                                cap = StrokeCap.Round,
+                                join = StrokeJoin.Round
+                            )
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-private fun calculateTickValues(dataPoints: List<Pair<Float, Float>>): List<Float> {
+private fun calculateTickValues(dataPoints: List<Pair<String, Float>>): List<Float> {
     if (dataPoints.isEmpty()) return listOf(60f, 80f, 100f, 120f)
 
     val values = dataPoints.map { it.second }
@@ -307,7 +230,7 @@ private fun calculateTickValues(dataPoints: List<Pair<Float, Float>>): List<Floa
         .toList()
 }
 
-private fun calculateAllTickValues(dataPoints: List<Pair<Float, Float>>): List<Float> {
+private fun calculateAllTickValues(dataPoints: List<Pair<String, Float>>): List<Float> {
     if (dataPoints.isEmpty()) return listOf(40f, 60f, 80f, 100f, 120f)
 
     val values = dataPoints.map { it.second }
@@ -317,74 +240,4 @@ private fun calculateAllTickValues(dataPoints: List<Pair<Float, Float>>): List<F
     return generateSequence(min) { it + 20f }
         .takeWhile { it <= max }
         .toList()
-}
-
-    @Composable
-private fun HeartStats(uiState: HeartUiState) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        HeartStatItem(
-            label = stringResource(R.string.average),
-            value = uiState.heartData.average ?: 0,
-            modifier = Modifier.weight(1f)
-        )
-        HeartStatItem(
-            label = stringResource(R.string.min),
-            value = uiState.heartData.minimum ?: 0,
-            modifier = Modifier.weight(1f)
-        )
-        HeartStatItem(
-            label = stringResource(R.string.max),
-            value = uiState.heartData.maximum ?: 0,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun HeartStatItem(
-    label: String,
-    value: Int,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.white)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = label,
-                fontSize = 14.sp,
-                color = colorResource(R.color.black),
-                fontWeight = FontWeight.Bold
-            )
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "$value ",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(R.color.black)
-                )
-                Text(
-                    text = stringResource(R.string.pulse),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.Black
-                )
-            }
-        }
-    }
 }

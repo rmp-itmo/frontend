@@ -19,7 +19,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TimePickerDialog
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -106,6 +109,40 @@ fun DropDown(
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 )
             }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimePicker(
+    label: String,
+    onTimeSelected: (Pair<Int, Int>) -> Unit
+) {
+    var show by remember { mutableStateOf(false) }
+    val state = rememberTimePickerState()
+
+    state.is24hour = true
+
+    TextButton(onClick = { show = true }) {
+        Text(label)
+    }
+
+    if (show) {
+        TimePickerDialog(
+            onDismissRequest = { show = false },
+            title = { Text(label) },
+            confirmButton = {
+                TextButton(onClick = {
+                    onTimeSelected(state.hour to state.minute)
+                    show = false
+                }) {
+                    Text("Выбрать")
+                }
+            }
+        ) {
+            androidx.compose.material3.TimePicker(state)
         }
     }
 }
