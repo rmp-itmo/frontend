@@ -57,8 +57,8 @@ fun SettingsScreen(
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isLoading)
 
     RefreshedAppScreen(
-        leftComposable = { BackButton() },
-        rightComposable = { SignOutButton(onSignOutClick)},
+        leftComposable = { SignOutButton(onSignOutClick) },
+        rightComposable = { BackButton()},
         swipeRefreshState = swipeRefreshState,
         onRefresh = onRefresh
     ) {
