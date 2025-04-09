@@ -165,7 +165,7 @@ data class FilterDto(
     @SerialName("nameFilter")
     val nameFilter: String,
     @SerialName("typeId")
-    val typeId: Int
+    val typeId: Long
 )
 
 
@@ -210,6 +210,12 @@ data class AddMenuItem(
 )
 
 @Serializable
+data class AddMenuItemFromDish(
+    val mealId: Long,
+    val dishId: Long
+)
+
+@Serializable
 data class AddMenuDish(
     val name: String,
     val description: String,
@@ -224,6 +230,12 @@ data class AddMenuDish(
     val typeId: Long = 0L
 )
 
+@Serializable
+data class MenuItemAdded(
+    val calories: Float,
+    val newDish: GetDish
+)
+
 interface NutritionRepository {
     suspend fun loadDailyStats(date: NutritionStatRequest): NutritionStatResponse?
     suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenu?
@@ -231,7 +243,8 @@ interface NutritionRepository {
     suspend fun getMenu(): Menu?
     suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): AddRemoveSelectResponse?
     suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): AddRemoveSelectResponse?
-    suspend fun addMenuItem(date: AddMenuItem): AddRemoveSelectResponse?
+    suspend fun addMenuItem(data: AddMenuItem): MenuItemAdded?
+    suspend fun addMenuItem(data: AddMenuItemFromDish): MenuItemAdded?
     suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistory?
     suspend fun getDish(filter: FilterDto): SearchResultDto?
 }

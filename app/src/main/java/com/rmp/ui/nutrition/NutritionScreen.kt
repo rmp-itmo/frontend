@@ -4,18 +4,19 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import android.webkit.WebView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,26 +30,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import coil.compose.SubcomposeAsyncImage
 import com.rmp.R
 import com.rmp.ui.components.AccentButton
-import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.rmp.data.UploadedImage
 import com.rmp.data.repository.nutrition.AddMenuDish
 import com.rmp.data.repository.nutrition.AddMenuItem
+import com.rmp.data.repository.nutrition.AddMenuItemFromDish
 import com.rmp.data.repository.nutrition.GetDish
 import com.rmp.data.repository.nutrition.GetMeal
 import com.rmp.ui.components.RefreshedAppScreen
 import com.rmp.ui.components.buttons.BackButton
+import okhttp3.internal.format
 
 @Composable
 fun NutritionScreen(
@@ -56,7 +61,9 @@ fun NutritionScreen(
     onSwitchDishCheckbox: (Long, Boolean) -> Unit,
     onRemoveItem: (Long) -> Unit,
     onCalendarClick: () -> Unit,
-    onDishAdd: (AddMenuItem) -> Unit,
+    onCustomDishAdd: (AddMenuItem) -> Unit,
+    onDishAdd: (AddMenuItemFromDish) -> Unit,
+    onFindDish: (Long, String) -> Unit,
     onGenerateMenu: () -> Unit
 ) {
     val state = rememberSwipeRefreshState(false)
@@ -82,10 +89,12 @@ fun NutritionScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(1f)) {
                 NutritionCardsList(
-                    uiState, {},
-                    meals = uiState.menu?.meals ?: listOf(),
+                    uiState,
+                    onFindDish,
+                    meals = uiState.menu?.meals?.sortedBy { mapTypeNameToId(it.name) } ?: listOf(),
                     onSwitchDishCheckbox = onSwitchDishCheckbox,
                     onRemoveItem = onRemoveItem,
+                    onCustomDishAdd = onCustomDishAdd,
                     onDishAdd = onDishAdd
                 )
             }
@@ -121,7 +130,9 @@ private fun NutritionHeader(
             fontWeight = FontWeight.Bold
         )
 
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = "%.1f ккал / %.1f ккал".format(currentAmount, dailyGoal),
                 fontSize = 16.sp
@@ -140,29 +151,41 @@ private fun NutritionHeader(
 @Composable
 private fun NutritionCardsList(
     uiState: NutritionUiState,
-    findDish: () -> Unit,
+    findDish: (Long, String) -> Unit,
     meals: List<GetMeal>,
     onSwitchDishCheckbox: (Long, Boolean) -> Unit,
     onRemoveItem: (Long) -> Unit,
-    onDishAdd: (AddMenuItem) -> Unit) {
+    onCustomDishAdd: (AddMenuItem) -> Unit,
+    onDishAdd: (AddMenuItemFromDish) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(meals) { meal ->
             NutritionCard(
-                uiState, findDish,
+                uiState,
+                findDish = {
+                    findDish(mapTypeNameToId(meal.name), it)
+                },
                 mealName = meal.name,
                 dishes = meal.dishes,
                 onSwitchDishCheckbox = onSwitchDishCheckbox,
                 onRemoveItem = onRemoveItem,
-                onDishAdd = {
-                    onDishAdd(
+                onCustomDishAdd = {
+                    onCustomDishAdd(
                         AddMenuItem(
                             mealId = meal.mealId,
                             newDish = it.copy(
                                 typeId = mapTypeNameToId(meal.name)
                             )
+                        )
+                    )
+                },
+                onDishAdd = {
+                    onDishAdd(
+                        AddMenuItemFromDish(
+                            mealId = meal.mealId,
+                            dishId = it
                         )
                     )
                 }
@@ -174,12 +197,13 @@ private fun NutritionCardsList(
 @Composable
 private fun NutritionCard(
     uiState: NutritionUiState,
-    findDish: () -> Unit,
+    findDish: (String) -> Unit,
     mealName: String,
     dishes: List<GetDish>,
     onSwitchDishCheckbox: (Long, Boolean) -> Unit,
     onRemoveItem: (Long) -> Unit,
-    onDishAdd: (AddMenuDish) -> Unit
+    onCustomDishAdd: (AddMenuDish) -> Unit,
+    onDishAdd: (Long) -> Unit
 ) {
     var addDishFormState by remember { mutableStateOf(false) }
 
@@ -195,7 +219,7 @@ private fun NutritionCard(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .padding(top = 12.dp, start = 12.dp, end = 12.dp),
+                .padding(top = 12.dp, start = 20.dp, end = 20.dp),
             horizontalAlignment = Alignment.Start
         ) {
             Text(
@@ -249,8 +273,8 @@ private fun NutritionCard(
                 DishForm(
                     uiState,
                     findDish,
-                    onNewDishCreated = onDishAdd,
-                    onDishSelected = {}
+                    onNewDishCreated = onCustomDishAdd,
+                    onDishSelected = onDishAdd
                 )
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -704,7 +728,7 @@ fun NewDishForm(
 @Composable
 fun FindDishForm(
     uiState: NutritionUiState,
-    findDish: () -> Unit,
+    findDish: (String) -> Unit,
     onDishSelected: (Long) -> Unit
 ) {
     val searchInput by remember { mutableStateOf("") }
@@ -726,7 +750,7 @@ fun FindDishForm(
 @Composable
 fun DishForm(
     uiState: NutritionUiState,
-    findDish: () -> Unit,
+    findDish: (String) -> Unit,
     onNewDishCreated: (AddMenuDish) -> Unit,
     onDishSelected: (Long) -> Unit
 ) {
@@ -802,164 +826,193 @@ private fun NutritionCardItem(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable(
-                    onClick = { showDescription = !showDescription },
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ),
-
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
-            val painter = rememberAsyncImagePainter(
-                model = dish.imageUrl ?: R.drawable.ic_eggs,
-                error = painterResource(id = R.drawable.ic_eggs)
-            )
+            Column {
+                SubcomposeAsyncImage(
+                    model = "${dish.imageUrl}",
+                    contentDescription = "Dish image",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp)),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(modifier = Modifier.width(130.dp).height(130.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    },
+                    success = { state ->
+                        val intrinsicSize = state.painter.intrinsicSize
+                        val aspectRatio = intrinsicSize.width / intrinsicSize.height
 
-        Image(
-            painter = painter,
-            contentDescription = "Item image",
-            modifier = Modifier
-                .size(130.dp)
-                .padding(horizontal = 15.dp)
-        )
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 15.dp)
+                                .width(130.dp)
+                                .aspectRatio(aspectRatio)
+                                .clip(RoundedCornerShape(20.dp))
+                        ) {
+                            Image(
+                                painter = state.painter,
+                                contentDescription = "Item image",
+                            )
+                        }
+                    },
+                    error = {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Error loading image")
+                        }
+                    }
+                )
+            }
 
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 8.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = dish.name,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = dish.name.capitalize(),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(15.dp))
+
+                    Row(
+                        modifier = Modifier.width(200.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Белки",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = String.format("%.1f", dish.protein),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Normal,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Жиры",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = String.format("%.1f", dish.fat),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Normal,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Углеводы",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = String.format("%.1f", dish.calories),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Normal,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+            }
+
+            var showRemoveDialog by remember { mutableStateOf(false) }
+
+            if (showRemoveDialog)
+                ApproveRemove(dish.name, {
+                    onRemoveItem(dish.menuItemId)
+                    showRemoveDialog = false
+                }) {
+                    showRemoveDialog = false
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Белки",
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = String.format("%.1f", dish.protein),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Normal,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Жиры",
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = String.format("%.1f", dish.fat),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Normal,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Углеводы",
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = String.format("%.1f", dish.calories),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Normal,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-
-        var showRemoveDialog by remember { mutableStateOf(false) }
-
-        if (showRemoveDialog)
-            ApproveRemove(dish.name, {
-                onRemoveItem(dish.menuItemId)
-                showRemoveDialog = false
-            }) {
-                showRemoveDialog = false
-            }
-
-        Column(
-            modifier = Modifier.width(19.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            IconButton(
-                onClick = {
-                    onSwitchDishCheckbox(
-                        dish.menuItemId,
-                        !dish.checked
-                    )
-                },
-                modifier = Modifier.size(20.dp)
-            ) {
-                Icon(
-                    painter = painterResource(
-                        id = if (dish.checked) R.drawable.ic_selected_checkbox
-                        else R.drawable.ic_unselected_checkbox
-                    ),
-                    contentDescription = "Checkbox icon",
-                    modifier = Modifier.size(19.dp)
-                )
-            }
-            IconButton(
-                onClick = {
-                    showRemoveDialog = true
-                },
-                modifier = Modifier.size(20.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_trash),
-                    contentDescription = "Trash icon",
-                    modifier = Modifier.size(19.dp)
-                )
-            }
-        }
-
-        if (showDescription) {
-            AndroidView(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                factory = { context ->
-                    WebView(context).apply {
-                        loadDataWithBaseURL(null, dish.description, "text/html", "UTF-8", null)
-                    }
+                            .width(19.dp)
+                            .weight(0.1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                IconButton(
+                    onClick = {
+                        onSwitchDishCheckbox(
+                            dish.menuItemId,
+                            !dish.checked
+                        )
+                    },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (dish.checked) R.drawable.ic_selected_checkbox
+                            else R.drawable.ic_unselected_checkbox
+                        ),
+                        contentDescription = "Checkbox icon",
+                        modifier = Modifier.size(19.dp)
+                    )
                 }
-            )
+                IconButton(
+                    onClick = {
+                        showRemoveDialog = true
+                    },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_trash),
+                        contentDescription = "Trash icon",
+                        modifier = Modifier.size(19.dp)
+                    )
+                }
+            }
         }
-    }
+        Row {
+            TextButton(onClick = { showDescription = !showDescription }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Рецепт", modifier = Modifier.padding(end = 5.dp))
+                    if (showDescription)
+                        Icon(Icons.Filled.KeyboardArrowUp, null)
+                    else
+                        Icon(Icons.Filled.KeyboardArrowDown, null)
+                }
+            }
+        }
+        if (showDescription) {
+            Row {
+                Text(
+                    text = AnnotatedString.fromHtml(
+                        htmlString = dish.description
+                    )
+                )
+            }
+        }
     }
 }

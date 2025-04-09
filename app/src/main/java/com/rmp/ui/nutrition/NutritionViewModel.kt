@@ -7,7 +7,10 @@ import com.rmp.R
 import com.rmp.data.ErrorMessage
 import com.rmp.data.getCurrentDateAsNumber
 import com.rmp.data.repository.nutrition.AddMenuItem
+import com.rmp.data.repository.nutrition.AddMenuItemFromDish
+import com.rmp.data.repository.nutrition.FilterDto
 import com.rmp.data.repository.nutrition.GeneratedMenuRequest
+import com.rmp.data.repository.nutrition.GetDish
 import com.rmp.data.repository.nutrition.MealRequest
 import com.rmp.data.repository.nutrition.Menu
 import com.rmp.data.repository.nutrition.NutritionHistory
@@ -264,8 +267,83 @@ class NutritionViewModel(
         }
     }
 
-    fun addMenuItem(addMenuItem: AddMenuItem) {
-
+    private fun appendDish(dish: GetDish) {
+        _uiState.update {
+            it.copy(
+                menu = it.menu?.copy(
+                    meals = it.menu.meals?.map { meal ->
+                        if (mapTypeNameToId(meal.name) == dish.typeId) {
+                            meal.copy(dishes = meal.dishes + dish)
+                        } else meal
+                    }
+                )
+            )
+        }
     }
 
+    fun addMenuItem(addMenuItem: AddMenuItem) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isLoading = true)
+            }
+
+            val dishCreated = async { nutritionRepository.addMenuItem(addMenuItem) }.await() ?: run {
+                stopWithError()
+                return@launch
+            }
+
+            appendDish(dishCreated.newDish)
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    currentCalories = dishCreated.calories
+                )
+            }
+        }
+    }
+
+    fun addMenuItem(addMenuItem: AddMenuItemFromDish) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
+
+            val dishAdded = async { nutritionRepository.addMenuItem(addMenuItem) }.await() ?: run {
+                stopWithError()
+                return@launch
+            }
+
+            appendDish(dishAdded.newDish)
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    currentCalories = dishAdded.calories
+                )
+            }
+        }
+    }
+
+    fun findDish(typeId: Long, query: String) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isLoading = false)
+            }
+
+            val found = async { nutritionRepository.getDish(FilterDto(query, typeId)) }.await() ?: run {
+                stopWithError()
+                return@launch
+            }
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    searchResult = found
+                )
+            }
+        }
+    }
 }
