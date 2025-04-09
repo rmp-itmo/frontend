@@ -214,7 +214,7 @@ private fun NutritionCard(
                             dish = dish,
                             onSwitchDishCheckbox = onSwitchDishCheckbox,
                             onRemoveItem = onRemoveItem,
-                            onDishAdd = null
+                            onAddItem = null
                         )
 
                         if (index < dishes.lastIndex) {
@@ -976,64 +976,80 @@ private fun NutritionCardItem(
                 }
             }
 
-        var showRemoveDialog by remember { mutableStateOf(false) }
+            if (onAddItem == null) {
+                var showRemoveDialog by remember { mutableStateOf(false) }
 
-        if (showRemoveDialog)
-            ApproveRemove(dish.name, {
-                onRemoveItem?.invoke(dish.menuItemId)
-                showRemoveDialog = false
-            }) {
-                showRemoveDialog = false
-            }
+                if (showRemoveDialog)
+                    ApproveRemove(dish.name, {
+                        onRemoveItem?.invoke(dish.menuItemId)
+                        showRemoveDialog = false
+                    }) {
+                        showRemoveDialog = false
+                    }
 
-        Column(
-            modifier = Modifier.width(19.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            IconButton(
-                onClick = {
-                    onSwitchDishCheckbox?.invoke(
-                        dish.menuItemId,
-                        !dish.checked
-                    )
-                },
-                modifier = Modifier.size(20.dp)
-            ) {
-                Icon(
-                    painter = painterResource(
-                        id = if (dish.checked) R.drawable.ic_selected_checkbox
-                        else R.drawable.ic_unselected_checkbox
-                    ),
-                    contentDescription = "Checkbox icon",
-                    modifier = Modifier.size(19.dp)
-                )
-            }
-            IconButton(
-                onClick = {
-                    showRemoveDialog = true
-                },
-                modifier = Modifier.size(20.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_trash),
-                    contentDescription = "Trash icon",
-                    modifier = Modifier.size(19.dp)
-                )
-            }
-        }
-
-        if (showDescription) {
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                factory = { context ->
-                    WebView(context).apply {
-                        loadDataWithBaseURL(null, dish.description, "text/html", "UTF-8", null)
+                Column(
+                    modifier = Modifier.width(19.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    IconButton(
+                        onClick = {
+                            onSwitchDishCheckbox?.invoke(
+                                dish.menuItemId,
+                                !dish.checked
+                            )
+                        },
+                        modifier = Modifier.size(20.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (dish.checked) R.drawable.ic_selected_checkbox
+                                else R.drawable.ic_unselected_checkbox
+                            ),
+                            contentDescription = "Checkbox icon",
+                            modifier = Modifier.size(19.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            showRemoveDialog = true
+                        },
+                        modifier = Modifier.size(20.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_trash),
+                            contentDescription = "Trash icon",
+                            modifier = Modifier.size(19.dp)
+                        )
                     }
                 }
-            )
+            } else {
+                IconButton(
+                    onClick = {
+                         onAddItem(dish.menuItemId)
+                    },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = "Add icon",
+                        modifier = Modifier.size(19.dp)
+                    )
+                }
+            }
+
+
+            if (showDescription) {
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    factory = { context ->
+                        WebView(context).apply {
+                            loadDataWithBaseURL(null, dish.description, "text/html", "UTF-8", null)
+                        }
+                    }
+                )
+            }
         }
-    }
     }
 }
