@@ -43,8 +43,8 @@ class NutritionRepoImpl : NutritionRepository {
         return response.successOr(null)
     }
 
-    override suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): SwitchDishCheckboxResponse? {
-        val response = ApiClient.authorizedRequest<SwitchDishCheckboxResponse>(
+    override suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): AddRemoveSelectResponse? {
+        val response = ApiClient.authorizedRequest<AddRemoveSelectResponse>(
             ApiClient.Method.POST,
             "/users/log/dish",
             date
@@ -53,8 +53,8 @@ class NutritionRepoImpl : NutritionRepository {
         return response.successOr(null)
     }
 
-    override suspend fun removeMenuItem(date: RemoveMenuItemRequest): RemoveMenuItemResponse? {
-        val response = ApiClient.authorizedRequest<RemoveMenuItemResponse>(
+    override suspend fun removeMenuItem(date: RemoveMenuItemRequest): AddRemoveSelectResponse? {
+        val response = ApiClient.authorizedRequest<AddRemoveSelectResponse>(
             ApiClient.Method.DELETE,
             "/users/menu",
             date
@@ -67,6 +67,16 @@ class NutritionRepoImpl : NutritionRepository {
         val response = ApiClient.authorizedRequest<NutritionHistoryStatResponse>(
             ApiClient.Method.POST,
             "users/stat/menu",
+            date
+        )
+
+        return response.successOr(null)
+    }
+
+    override suspend fun addMenuItem(date: AddMenuItemRequest): AddRemoveSelectResponse? {
+        val response = ApiClient.authorizedRequest<AddRemoveSelectResponse>(
+            ApiClient.Method.PATCH,
+            "/users/menu",
             date
         )
 

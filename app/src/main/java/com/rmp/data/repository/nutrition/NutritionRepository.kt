@@ -1,5 +1,6 @@
 package com.rmp.data.repository.nutrition
 
+import android.net.Uri
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -23,23 +24,18 @@ data class NutritionStatResponse(
 
 @Serializable
 data class SwitchDishCheckboxRequest(
-    val menuItemId: Int,
+    val menuItemId: Long,
     val check: Boolean
 )
 
 @Serializable
-data class SwitchDishCheckboxResponse(
+data class AddRemoveSelectResponse(
     val calories: Float
 )
 
 @Serializable
 data class RemoveMenuItemRequest(
-    val menuItemId: Int,
-)
-
-@Serializable
-data class RemoveMenuItemResponse(
-    val calories: Float,
+    val menuItemId: Long,
 )
 
 @Serializable
@@ -51,7 +47,7 @@ data class SaveMenuRequest(
 @Serializable
 data class SaveMenuMeal(
     val name: String,
-    val dishes: List<Int>
+    val dishes: List<Long>
 )
 
 @Serializable
@@ -76,7 +72,7 @@ data class GetMeal(
 
 @Serializable
 data class GetDish(
-    val id: Int,
+    val id: Long,
     val name: String,
     val description: String,
     val imageUrl: String?,
@@ -85,15 +81,15 @@ data class GetDish(
     val protein: Double,
     val fat: Double,
     val carbohydrates: Double,
-    val timeToCook: Int,
-    val typeId: Int,
-    val menuItemId: Int,
+    val timeToCook: Long,
+    val typeId: Long,
+    val menuItemId: Long,
     val checked: Boolean
 )
 
 @Serializable
 data class GeneratedMenuRequest(
-    val calories: Int,
+    val calories: Float,
     val meals: List<MealRequest>
 )
 
@@ -121,15 +117,15 @@ data class GeneratedMeal(
 
 @Serializable
 data class GeneratedDish(
-    val id: Int,
+    val id: Long,
     val name: String,
     val logo: String?,
     val calories: Double,
     val protein: Double,
     val fat: Double,
     val carbohydrates: Double,
-    val timeToCook: Int,
-    val typeId: Int
+    val timeToCook: Long,
+    val typeId: Long
 )
 
 @Serializable
@@ -158,13 +154,34 @@ data class NutritionHistoryStatResponse(
     val dishes: Map<String, List<GetDish>>
 )
 
+@Serializable
+data class AddMenuItemRequest(
+    val mealId: Long,
+    val newDish: AddMenuDish
+)
+
+@Serializable
+data class AddMenuDish(
+    val name: String,
+    val description: String,
+    val image: String?,
+    val imageName: String?,
+    val portionsCount: Int,
+    val calories: Double,
+    val protein: Double,
+    val fat: Double,
+    val carbohydrates: Double,
+    val timeToCook: Long,
+    val typeId: Long
+)
 
 interface NutritionRepository {
     suspend fun loadDailyStats(date: NutritionStatRequest): NutritionStatResponse?
     suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenuResponse?
     suspend fun saveGeneratedMenu(date: SaveMenuRequest): SaveMenuResponse?
     suspend fun getMenu(): GetMenuResponse?
-    suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): SwitchDishCheckboxResponse?
-    suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): RemoveMenuItemResponse?
+    suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): AddRemoveSelectResponse?
+    suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): AddRemoveSelectResponse?
     suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistoryStatResponse?
+    suspend fun addMenuItem(date: AddMenuItemRequest): AddRemoveSelectResponse?
 }

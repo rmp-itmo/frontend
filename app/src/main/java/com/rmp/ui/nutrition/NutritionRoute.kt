@@ -28,10 +28,12 @@ fun NutritionRoute(
             onBackClick = onBackClick,
             onSwitchDishCheckbox = nutritionViewModel::switchDishCheckbox,
             onRemoveItem = nutritionViewModel::removeMenuItem,
+            onDishAdd = nutritionViewModel::addMenuItem,
             onCalendarClick = { showHistory = true },
             firstEntrance = firstEntrance,
             onGenerateMenu = {
-                nutritionViewModel.generateMenu(2000)
+//                nutritionViewModel.generateMenu(uiState.caloriesTarget) //TODO change
+                nutritionViewModel.generateMenu(2000f)
                 firstEntrance = false
             }
         )
