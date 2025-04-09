@@ -286,6 +286,7 @@ fun NewDishForm(
     var protein by remember { mutableFloatStateOf(0f) }
     var carbohydrates by remember { mutableFloatStateOf(0f) }
     var timeToCook by remember { mutableIntStateOf(0) }
+    var isNameEmpty by remember { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -304,19 +305,23 @@ fun NewDishForm(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "Название")
+            Text(
+                text = "Название",
+                fontSize = 14.sp
+            )
             OutlinedTextField(
                 value = name,
                 onValueChange = {
                     name = it
+                    isNameEmpty = name.isEmpty()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = if (name.isEmpty()) Color.Red else Color(0xFFDFE2E5),
-                    unfocusedBorderColor = if (name.isEmpty()) Color.Red else Color(0xFFDFE2E5),
+                    focusedBorderColor = if (isNameEmpty) Color.Red else Color(0xFFDFE2E5),
+                    unfocusedBorderColor = if (isNameEmpty) Color.Red else Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -329,7 +334,7 @@ fun NewDishForm(
                     )
                 },
                 singleLine = true,
-                isError = name.isEmpty()
+                isError = isNameEmpty
             )
         }
 
@@ -339,7 +344,10 @@ fun NewDishForm(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "Изображение")
+            Text(
+                text = "Изображение",
+                fontSize = 14.sp
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -377,7 +385,10 @@ fun NewDishForm(
         }
     }
 
-    Text(text = "Описание")
+    Text(
+        text = "Описание",
+        fontSize = 14.sp
+    )
     OutlinedTextField(
         value = description,
         onValueChange = { description = it },
@@ -412,7 +423,7 @@ fun NewDishForm(
         ) {
             Text(
                 text = "Время приготовления",
-                fontSize = 14.sp,
+                fontSize = 14.sp
             )
             OutlinedTextField(
                 value = timeToCook.toString(),
@@ -422,7 +433,11 @@ fun NewDishForm(
 
                     val parts = formattedText.split('.')
                     if (parts.size <= 2) {
-                        timeToCook = input.toInt()
+                        timeToCook = try {
+                            input.toInt()
+                        } catch (_: Exception) {
+                            if (input == "") 0 else timeToCook
+                        }
                     }
                 },
                 modifier = Modifier
@@ -430,6 +445,8 @@ fun NewDishForm(
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFDFE2E5),
+                    unfocusedBorderColor = Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -452,14 +469,22 @@ fun NewDishForm(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "Калории")
+            Text(
+                text = "Калории",
+                fontSize = 14.sp
+            )
             OutlinedTextField(
                 value = calories.toString(),
                 onValueChange = { input ->
                     val filteredText = input.replace(Regex("[^0-9.,]"), "")
-                    val formattedText = filteredText.replace(',', '.')
+                    var formattedText = filteredText.replace(',', '.')
+
+                    if (calories == 0f) {
+                        formattedText = formattedText.substring(3)
+                    }
 
                     val parts = formattedText.split('.')
+
                     if (parts.size <= 2) {
                         calories = try {
                             input.toFloat()
@@ -473,6 +498,8 @@ fun NewDishForm(
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFDFE2E5),
+                    unfocusedBorderColor = Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -498,7 +525,10 @@ fun NewDishForm(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "Белки")
+            Text(
+                text = "Белки",
+                fontSize = 14.sp
+            )
             OutlinedTextField(
                 value = protein.toString(),
                 onValueChange = { input ->
@@ -507,7 +537,11 @@ fun NewDishForm(
 
                     val parts = formattedText.split('.')
                     if (parts.size <= 2) {
-                        protein = input.toFloat()
+                        protein = try {
+                            input.toFloat()
+                        } catch (_: Exception) {
+                            if (input == "") 0f else protein
+                        }
                     }
                 },
                 modifier = Modifier
@@ -515,6 +549,8 @@ fun NewDishForm(
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFDFE2E5),
+                    unfocusedBorderColor = Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -537,7 +573,10 @@ fun NewDishForm(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "Жиры")
+            Text(
+                text = "Жиры",
+                fontSize = 14.sp
+            )
             OutlinedTextField(
                 value = fats.toString(),
                 onValueChange = { input ->
@@ -546,7 +585,11 @@ fun NewDishForm(
 
                     val parts = formattedText.split('.')
                     if (parts.size <= 2) {
-                        fats = input.toFloat()
+                        fats = try {
+                            input.toFloat()
+                        } catch (_: Exception) {
+                            if (input == "") 0f else fats
+                        }
                     }
                 },
                 modifier = Modifier
@@ -554,6 +597,8 @@ fun NewDishForm(
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFDFE2E5),
+                    unfocusedBorderColor = Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -576,7 +621,10 @@ fun NewDishForm(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "Углеводы")
+            Text(
+                text = "Углеводы",
+                fontSize = 14.sp
+            )
             OutlinedTextField(
                 value = carbohydrates.toString(),
                 onValueChange = { input ->
@@ -585,7 +633,11 @@ fun NewDishForm(
 
                     val parts = formattedText.split('.')
                     if (parts.size <= 2) {
-                        carbohydrates = input.toFloat()
+                        carbohydrates = try {
+                            input.toFloat()
+                        } catch (_: Exception) {
+                            if (input == "") 0f else carbohydrates
+                        }
                     }
                 },
                 modifier = Modifier
@@ -593,6 +645,8 @@ fun NewDishForm(
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFDFE2E5),
+                    unfocusedBorderColor = Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
