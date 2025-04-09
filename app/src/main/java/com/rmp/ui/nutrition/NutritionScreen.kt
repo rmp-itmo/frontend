@@ -213,7 +213,8 @@ private fun NutritionCard(
                         NutritionCardItem(
                             dish = dish,
                             onSwitchDishCheckbox = onSwitchDishCheckbox,
-                            onRemoveItem = onRemoveItem
+                            onRemoveItem = onRemoveItem,
+                            onDishAdd = null
                         )
 
                         if (index < dishes.lastIndex) {
@@ -252,18 +253,24 @@ private fun NutritionCard(
                     onNewDishCreated = onDishAdd,
                     onDishSelected = {}
                 )
+
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    IconButton(
-                        onClick = { addDishFormState = false },
-                        modifier = Modifier.size(48.dp)
+                    Box(
+                        modifier = Modifier
+                            .width(70.dp)
+                            .height(50.dp)
+                            .padding(bottom = 8.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { addDishFormState = false },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_back),
-                            contentDescription = "Назад",
-                            modifier = Modifier.size(50.dp)
+                        Text(
+                            text = "Назад",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
                         )
                     }
                 }
@@ -707,20 +714,80 @@ fun FindDishForm(
     findDish: () -> Unit,
     onDishSelected: (Long) -> Unit
 ) {
-    val searchInput by remember { mutableStateOf("") }
+    var searchInput by remember { mutableStateOf("") }
+    var showDishList by remember { mutableStateOf(false) }
+    var dishes by remember { mutableStateOf<List<GetDish>>(emptyList()) }
+
+    Text(
+        text = "Поиск",
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold
+    )
 
     OutlinedTextField(
         value = searchInput,
-        onValueChange = {  },
-        shape = RoundedCornerShape(size = 50.dp),
+        onValueChange = { searchInput = it },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+            .padding(top = 8.dp, bottom = 8.dp),
+        shape = RoundedCornerShape(15.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Black,
-            unfocusedBorderColor = Color.Red,
-            unfocusedContainerColor = Color.Magenta,
-            focusedContainerColor = Color.Green,
-            focusedLabelColor = Color.Magenta
+            focusedBorderColor = Color(0xFFDFE2E5),
+            unfocusedBorderColor = Color(0xFFDFE2E5),
+            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            focusedPlaceholderColor = Color(0xFFDFE2E5)
         ),
+        placeholder = {
+            Text(
+                text = "Введите название",
+                color = Color(0xFFDFE2E5),
+                fontSize = 16.sp
+            )
+        },
+        trailingIcon = {
+            IconButton(
+                onClick = { /* Действие при клике */ },
+                modifier = Modifier.size(30.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_search),
+                    contentDescription = "Search icon",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        },
+        singleLine = true
     )
+
+    if (showDishList) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            dishes.forEachIndexed { index, dish ->
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    NutritionCardItem(
+                        dish = dish,
+                        onSwitchDishCheckbox = null,
+                        onRemoveItem = null,
+                        onAddItem = onDishSelected
+                    )
+
+                    if (index < dishes.lastIndex) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(2.dp)
+                                .background(Color(0xFF23252A))
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -734,15 +801,21 @@ fun DishForm(
     Spacer(modifier = Modifier.height(16.dp))
 
 
-    if (formSelector) {
-        FindDishForm(
-            uiState,
-            findDish,
-            onDishSelected
-        )
-    } else {
-        NewDishForm(onNewDishCreated)
-    }
+    FindDishForm(
+        uiState,
+        findDish,
+        onDishSelected
+    )
+
+//    if (formSelector) {
+//        FindDishForm(
+//            uiState,
+//            findDish,
+//            onDishSelected
+//        )
+//    } else {
+//        NewDishForm(onNewDishCreated)
+//    }
 
 
 }
@@ -792,8 +865,9 @@ private fun ApproveRemove(
 @Composable
 private fun NutritionCardItem(
     dish: GetDish,
-    onSwitchDishCheckbox: (Long, Boolean) -> Unit,
-    onRemoveItem: (Long) -> Unit
+    onSwitchDishCheckbox: ((Long, Boolean) -> Unit)?,
+    onRemoveItem: ((Long) -> Unit)?,
+    onAddItem: ((Long) -> Unit)?
 ) {
     var showDescription by remember { mutableStateOf(false) }
 
@@ -817,13 +891,13 @@ private fun NutritionCardItem(
                 error = painterResource(id = R.drawable.ic_eggs)
             )
 
-        Image(
-            painter = painter,
-            contentDescription = "Item image",
-            modifier = Modifier
-                .size(130.dp)
-                .padding(horizontal = 15.dp)
-        )
+            Image(
+                painter = painter,
+                contentDescription = "Item image",
+                modifier = Modifier
+                    .size(130.dp)
+                    .padding(horizontal = 15.dp)
+            )
 
             Column(
                 modifier = Modifier
@@ -906,7 +980,7 @@ private fun NutritionCardItem(
 
         if (showRemoveDialog)
             ApproveRemove(dish.name, {
-                onRemoveItem(dish.menuItemId)
+                onRemoveItem?.invoke(dish.menuItemId)
                 showRemoveDialog = false
             }) {
                 showRemoveDialog = false
@@ -918,7 +992,7 @@ private fun NutritionCardItem(
         ) {
             IconButton(
                 onClick = {
-                    onSwitchDishCheckbox(
+                    onSwitchDishCheckbox?.invoke(
                         dish.menuItemId,
                         !dish.checked
                     )
