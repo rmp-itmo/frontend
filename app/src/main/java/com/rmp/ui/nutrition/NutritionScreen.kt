@@ -735,7 +735,6 @@ fun FindDishForm(
     onDishSelected: (Long) -> Unit
 ) {
     var searchInput by remember { mutableStateOf("") }
-    var showDishList by remember { mutableStateOf(false) }
     val dishes = uiState.searchResult?.dishes ?: emptyList()
 
     Text(
@@ -781,29 +780,27 @@ fun FindDishForm(
         singleLine = true
     )
 
-    if (showDishList) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            dishes.forEachIndexed { index, dish ->
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    NutritionCardItem(
-                        dish = dish,
-                        onSwitchDishCheckbox = null,
-                        onRemoveItem = null,
-                        onAddItem = onDishSelected
-                    )
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        dishes.forEachIndexed { index, dish ->
+            Column(modifier = Modifier.fillMaxWidth()) {
+                NutritionCardItem(
+                    dish = dish,
+                    onSwitchDishCheckbox = null,
+                    onRemoveItem = null,
+                    onAddItem = onDishSelected
+                )
 
-                    if (index < dishes.lastIndex) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(2.dp)
-                                .background(Color(0xFF23252A))
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                    }
+                if (index < dishes.lastIndex) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(2.dp)
+                            .background(Color(0xFF23252A))
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }
@@ -910,7 +907,10 @@ private fun NutritionCardItem(
                         .clip(RoundedCornerShape(20.dp)),
                     contentScale = ContentScale.Crop,
                     loading = {
-                        Box(modifier = Modifier.width(130.dp).height(130.dp), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.width(130.dp).height(130.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             CircularProgressIndicator()
                         }
                     },
@@ -944,126 +944,142 @@ private fun NutritionCardItem(
                     .weight(1f)
                     .padding(horizontal = 8.dp)
             ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = dish.name.replaceFirstChar { it.uppercaseChar() },
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(15.dp))
-
-                    Row(
-                        modifier = Modifier.width(200.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "Белки",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                text = String.format("%.1f", dish.protein),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Normal,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "Жиры",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                text = String.format("%.1f", dish.fat),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Normal,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "Углеводы",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                text = String.format("%.1f", dish.calories),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Normal,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-            }
-
-            var showRemoveDialog by remember { mutableStateOf(false) }
-
-            if (showRemoveDialog)
-                ApproveRemove(dish.name, {
-                    onRemoveItem?.invoke(dish.menuItemId)
-                    showRemoveDialog = false
-                }) {
-                    showRemoveDialog = false
-                }
-
-            Column(
-                modifier = Modifier
-                            .width(19.dp)
-                            .weight(0.1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.End
-            ) {
-                IconButton(
-                    onClick = {
-                        onSwitchDishCheckbox?.invoke(
-                            dish.menuItemId,
-                            !dish.checked
-                        )
-                    },
-                    modifier = Modifier.size(20.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon(
-                        painter = painterResource(
-                            id = if (dish.checked) R.drawable.ic_selected_checkbox
-                            else R.drawable.ic_unselected_checkbox
-                        ),
-                        contentDescription = "Checkbox icon",
-                        modifier = Modifier.size(19.dp)
+                    Text(
+                        text = dish.name.replaceFirstChar { it.uppercaseChar() },
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
                     )
                 }
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Row(
+                    modifier = Modifier.width(200.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Белки",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = String.format("%.1f", dish.protein),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Жиры",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = String.format("%.1f", dish.fat),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Углеводы",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = String.format("%.1f", dish.calories),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            if (onAddItem == null) {
+                var showRemoveDialog by remember { mutableStateOf(false) }
+
+                if (showRemoveDialog)
+                    ApproveRemove(dish.name, {
+                        onRemoveItem?.invoke(dish.menuItemId)
+                        showRemoveDialog = false
+                    }) {
+                        showRemoveDialog = false
+                    }
+
+                Column(
+                    modifier = Modifier
+                        .width(19.dp)
+                        .weight(0.1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    IconButton(
+                        onClick = {
+                            onSwitchDishCheckbox?.invoke(
+                                dish.menuItemId,
+                                !dish.checked
+                            )
+                        },
+                        modifier = Modifier.size(20.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (dish.checked) R.drawable.ic_selected_checkbox
+                                else R.drawable.ic_unselected_checkbox
+                            ),
+                            contentDescription = "Checkbox icon",
+                            modifier = Modifier.size(19.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            showRemoveDialog = true
+                        },
+                        modifier = Modifier.size(20.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_trash),
+                            contentDescription = "Trash icon",
+                            modifier = Modifier.size(19.dp)
+                        )
+                    }
+                }
+            } else {
                 IconButton(
                     onClick = {
-                        showRemoveDialog = true
+                        onAddItem(dish.id)
                     },
                     modifier = Modifier.size(20.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_trash),
-                        contentDescription = "Trash icon",
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = "Add icon",
                         modifier = Modifier.size(19.dp)
                     )
                 }
             }
         }
+
         Row {
             TextButton(onClick = { showDescription = !showDescription }) {
                 Row(
@@ -1077,6 +1093,7 @@ private fun NutritionCardItem(
                 }
             }
         }
+
         if (showDescription) {
             Row {
                 Text(
