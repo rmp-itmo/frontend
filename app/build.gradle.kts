@@ -88,6 +88,8 @@ dependencies {
 
     implementation(libs.coil.kt.compose)
 
+//    implementation(libs.androidx.compose.ui.viewinterop)
+
 
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.foundation.layout)

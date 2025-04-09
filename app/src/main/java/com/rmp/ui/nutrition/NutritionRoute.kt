@@ -26,6 +26,7 @@ fun NutritionRoute(
             uiState = uiState,
             onSwitchDishCheckbox = nutritionViewModel::switchCheckBox,
             onRemoveItem = nutritionViewModel::removeMenuItem,
+            onDishAdd = nutritionViewModel::addMenuItem,
             onCalendarClick = { showHistory = true },
             onGenerateMenu = nutritionViewModel::generateMenu
         )

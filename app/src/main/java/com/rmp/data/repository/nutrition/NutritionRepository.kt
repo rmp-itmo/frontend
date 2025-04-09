@@ -31,18 +31,13 @@ data class SwitchDishCheckboxRequest(
 )
 
 @Serializable
-data class SwitchDishCheckboxResponse(
+data class AddRemoveSelectResponse(
     val calories: Float
 )
 
 @Serializable
 data class RemoveMenuItemRequest(
     val menuItemId: Long,
-)
-
-@Serializable
-data class RemoveMenuItemResponse(
-    val calories: Float,
 )
 
 @Serializable
@@ -54,7 +49,7 @@ data class SaveMenuRequest(
 @Serializable
 data class SaveMenuMeal(
     val name: String,
-    val dishes: List<Int>
+    val dishes: List<Long>
 )
 
 @Serializable
@@ -78,9 +73,11 @@ data class GetMeal(
     val params: Params
 )
 
+
+
 @Serializable
 data class GetDish(
-    val id: Int,
+    val id: Long,
     val name: String,
     val description: String,
     val imageUrl: String?,
@@ -89,8 +86,8 @@ data class GetDish(
     val protein: Double,
     val fat: Double,
     val carbohydrates: Double,
-    val timeToCook: Int,
-    val typeId: Int,
+    val timeToCook: Long,
+    val typeId: Long,
     //Default values for history fetch request
     val menuItemId: Long = 0L,
     val checked: Boolean = false
@@ -126,15 +123,15 @@ data class GeneratedMeal(
 
 @Serializable
 data class GeneratedDish(
-    val id: Int,
+    val id: Long,
     val name: String,
     val logo: String?,
     val calories: Double,
     val protein: Double,
     val fat: Double,
     val carbohydrates: Double,
-    val timeToCook: Int,
-    val typeId: Int
+    val timeToCook: Long,
+    val typeId: Long
 )
 
 @Serializable
@@ -206,13 +203,35 @@ data class SearchResultDto(
     )
 }
 
+@Serializable
+data class AddMenuItem(
+    val mealId: Long,
+    val newDish: AddMenuDish
+)
+
+@Serializable
+data class AddMenuDish(
+    val name: String,
+    val description: String,
+    val image: String?,
+    val imageName: String?,
+    val portionsCount: Int,
+    val calories: Double,
+    val protein: Double,
+    val fat: Double,
+    val carbohydrates: Double,
+    val timeToCook: Long,
+    val typeId: Long = 0L
+)
+
 interface NutritionRepository {
     suspend fun loadDailyStats(date: NutritionStatRequest): NutritionStatResponse?
     suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenu?
     suspend fun saveGeneratedMenu(date: SaveMenuRequest): SaveMenuResponse?
     suspend fun getMenu(): Menu?
-    suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): SwitchDishCheckboxResponse?
-    suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): RemoveMenuItemResponse?
+    suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): AddRemoveSelectResponse?
+    suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): AddRemoveSelectResponse?
+    suspend fun addMenuItem(date: AddMenuItem): AddRemoveSelectResponse?
     suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistory?
     suspend fun getDish(filter: FilterDto): SearchResultDto?
 }

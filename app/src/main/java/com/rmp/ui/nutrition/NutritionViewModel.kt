@@ -4,11 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rmp.R
-import com.rmp.data.AppContainer
 import com.rmp.data.ErrorMessage
 import com.rmp.data.getCurrentDateAsNumber
-import com.rmp.data.repository.forum.ForumRepository
-import com.rmp.data.repository.nutrition.GeneratedMenu
+import com.rmp.data.repository.nutrition.AddMenuItem
 import com.rmp.data.repository.nutrition.GeneratedMenuRequest
 import com.rmp.data.repository.nutrition.MealRequest
 import com.rmp.data.repository.nutrition.Menu
@@ -27,6 +25,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+fun mapTypeNameToId(name: String): Long = when (name) {
+    "Завтрак" -> 1
+    "Обед" -> 2
+    "Ужин" -> 3
+    "Перекус" -> 4
+    else -> 4
+}
 
 /*
 interface NutritionUiState {
@@ -103,7 +109,7 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
                         )
                     )
                     Log.d("LoadNutritionData",
-                        "caloriesTarget: ${response.caloriesTarget}" +
+                        "caloriesTarget: ${response.caloriesTarget} " +
                                 "caloriesCurrent: ${response.caloriesCurrent}"
                     )
                 } else {
@@ -155,7 +161,7 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    fun switchDishCheckbox(mealId: Int, dishId: Int, menuItemId: Int, check: Boolean) {
+    fun switchDishCheckbox(mealId: Int, dishId: Int, menuItemId: Long, check: Boolean) {
         viewModelScope.launch {
             try {
                 val date = SwitchDishCheckboxRequest(menuItemId, !check)
@@ -204,7 +210,7 @@ class NutritionViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    fun removeMenuItem(mealId: Int, dishId: Int, menuItemId: Int) {
+    fun removeMenuItem(mealId: Int, dishId: Int, menuItemId: Long) {
         viewModelScope.launch {
             try {
                 val date = RemoveMenuItemRequest(menuItemId)
@@ -624,4 +630,7 @@ class NutritionViewModel(
 
         }
     }
+
+    fun addMenuItem(addMenuItem: AddMenuItem) {}
+
 }
