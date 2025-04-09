@@ -8,17 +8,25 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 import com.rmp.R
 import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -56,7 +64,7 @@ fun NutritionHistoryScreen(
                 carbohydrates = dishes.sumOf { it.carbohydrates }
             )
         )
-    } ?: listOf()
+    }?.sortedBy { mapTypeNameToId(it.name) } ?: listOf()
     fun LocalDate.getAsInt(): Int {
         fun Int.fixDate(): String = if (this < 10L) "0$this" else "$this"
         val y = year.fixDate()
@@ -169,8 +177,7 @@ private fun NutritionCardsList(
         items(meals) { meal ->
             NutritionCard(
                 mealName = meal.name,
-                dishes = meal.dishes,
-                mealIndex = meals.indexOf(meal)
+                dishes = meal.dishes
             )
         }
     }
@@ -179,8 +186,7 @@ private fun NutritionCardsList(
 @Composable
 private fun NutritionCard(
     mealName: String,
-    dishes: List<GetDish>,
-    mealIndex: Int
+    dishes: List<GetDish>
 ) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -240,103 +246,153 @@ private fun NutritionCard(
 private fun NutritionCardItem(
     dish: GetDish,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+
+    var showDescription by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        val painter = rememberAsyncImagePainter(
-            model = dish.imageUrl ?: R.drawable.ic_eggs,
-            error = painterResource(id = R.drawable.ic_eggs)
-        )
-
-        Image(
-            painter = painter,
-            contentDescription = "Item image",
-            modifier = Modifier.size(70.dp)
-        )
-
-        Column(
+        Row(
             modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = dish.name,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.weight(1f)
+            Column {
+                SubcomposeAsyncImage(
+                    model = "${dish.imageUrl}",
+                    contentDescription = "Dish image",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp)),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(modifier = Modifier.width(130.dp).height(130.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    },
+                    success = { state ->
+                        val intrinsicSize = state.painter.intrinsicSize
+                        val aspectRatio = intrinsicSize.width / intrinsicSize.height
+
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 15.dp)
+                                .width(130.dp)
+                                .aspectRatio(aspectRatio)
+                                .clip(RoundedCornerShape(20.dp))
+                        ) {
+                            Image(
+                                painter = state.painter,
+                                contentDescription = "Item image",
+                            )
+                        }
+                    },
+                    error = {
+                        Box(modifier = Modifier.width(130.dp).height(130.dp), contentAlignment = Alignment.Center) {
+                            Text("Изображения нет")
+                        }
+                    }
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 8.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Белки",
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = String.format("%.1f", dish.protein),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Center
+                        text = dish.name.capitalize(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Жиры",
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = String.format("%.1f", dish.fat),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                Spacer(modifier = Modifier.height(15.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier.width(200.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "Углеводы",
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = String.format("%.1f", dish.calories),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Center
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Белки",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = String.format("%.1f", dish.protein),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Жиры",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = String.format("%.1f", dish.fat),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Углеводы",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = String.format("%.1f", dish.calories),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
-
-        Column(
-            modifier = Modifier.width(19.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ){}
+        Row {
+            TextButton(onClick = { showDescription = !showDescription }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Рецепт", modifier = Modifier.padding(end = 5.dp))
+                    if (showDescription)
+                        Icon(Icons.Filled.KeyboardArrowUp, null)
+                    else
+                        Icon(Icons.Filled.KeyboardArrowDown, null)
+                }
+            }
+        }
+        if (showDescription) {
+            Row {
+                Text(
+                    text = AnnotatedString.fromHtml(
+                        htmlString = dish.description
+                    )
+                )
+            }
+        }
     }
 }
 

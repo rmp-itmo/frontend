@@ -165,48 +165,28 @@ data class FilterDto(
     @SerialName("nameFilter")
     val nameFilter: String,
     @SerialName("typeId")
-    val typeId: Int
+    val typeId: Long
 )
 
 
 @Serializable
 data class SearchResultDto(
     @SerialName("dishes")
-    val dishes: List<Dish>,
+    val dishes: List<GetDish>,
     @SerialName("filter")
     val filter: FilterDto
-) {
-    @Serializable
-    data class Dish(
-        @SerialName("calories")
-        val calories: Double,
-        @SerialName("carbohydrates")
-        val carbohydrates: Double,
-        @SerialName("description")
-        val description: String,
-        @SerialName("fat")
-        val fat: Double,
-        @SerialName("id")
-        val id: Long,
-        @SerialName("imageUrl")
-        val imageUrl: String,
-        @SerialName("name")
-        val name: String,
-        @SerialName("portionsCount")
-        val portionsCount: Int,
-        @SerialName("protein")
-        val protein: Double,
-        @SerialName("timeToCook")
-        val timeToCook: Int,
-        @SerialName("typeId")
-        val typeId: Int
-    )
-}
+)
 
 @Serializable
 data class AddMenuItem(
     val mealId: Long,
     val newDish: AddMenuDish
+)
+
+@Serializable
+data class AddMenuItemFromDish(
+    val mealId: Long,
+    val dishId: Long
 )
 
 @Serializable
@@ -224,6 +204,12 @@ data class AddMenuDish(
     val typeId: Long = 0L
 )
 
+@Serializable
+data class MenuItemAdded(
+    val calories: Float,
+    val newDish: GetDish
+)
+
 interface NutritionRepository {
     suspend fun loadDailyStats(date: NutritionStatRequest): NutritionStatResponse?
     suspend fun getGeneratedMenu(date: GeneratedMenuRequest): GeneratedMenu?
@@ -231,7 +217,8 @@ interface NutritionRepository {
     suspend fun getMenu(): Menu?
     suspend fun switchDishCheckbox(date: SwitchDishCheckboxRequest): AddRemoveSelectResponse?
     suspend fun removeMenuItem(menuItemId: RemoveMenuItemRequest): AddRemoveSelectResponse?
-    suspend fun addMenuItem(date: AddMenuItem): AddRemoveSelectResponse?
+    suspend fun addMenuItem(data: AddMenuItem): MenuItemAdded?
+    suspend fun addMenuItem(data: AddMenuItemFromDish): MenuItemAdded?
     suspend fun getMenuStats(date: NutritionStatRequest): NutritionHistory?
     suspend fun getDish(filter: FilterDto): SearchResultDto?
 }

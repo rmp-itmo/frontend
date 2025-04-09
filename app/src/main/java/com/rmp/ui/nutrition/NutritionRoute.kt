@@ -26,9 +26,11 @@ fun NutritionRoute(
             uiState = uiState,
             onSwitchDishCheckbox = nutritionViewModel::switchCheckBox,
             onRemoveItem = nutritionViewModel::removeMenuItem,
+            onCustomDishAdd = nutritionViewModel::addMenuItem,
             onDishAdd = nutritionViewModel::addMenuItem,
             onCalendarClick = { showHistory = true },
-            onGenerateMenu = nutritionViewModel::generateMenu
+            onGenerateMenu = nutritionViewModel::generateMenu,
+            onFindDish = nutritionViewModel::findDish
         )
     }
 }

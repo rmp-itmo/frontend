@@ -73,11 +73,21 @@ class NutritionRepoImpl : NutritionRepository {
         return response.successOr(null)
     }
 
-    override suspend fun addMenuItem(date: AddMenuItem): AddRemoveSelectResponse? {
-        val response = ApiClient.authorizedRequest<AddRemoveSelectResponse>(
+    override suspend fun addMenuItem(data: AddMenuItem): MenuItemAdded? {
+        val response = ApiClient.authorizedRequest<MenuItemAdded>(
             ApiClient.Method.PATCH,
             "/users/menu",
-            date
+            data
+        )
+
+        return response.successOr(null)
+    }
+
+    override suspend fun addMenuItem(data: AddMenuItemFromDish): MenuItemAdded? {
+        val response = ApiClient.authorizedRequest<MenuItemAdded>(
+            ApiClient.Method.PATCH,
+            "/users/menu",
+            data
         )
 
         return response.successOr(null)
