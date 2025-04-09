@@ -2,6 +2,7 @@ package com.rmp.ui.nutrition
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -311,12 +312,19 @@ fun NewDishForm(
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var photo by remember { mutableStateOf<UploadedImage?>(null) }
-    var calories by remember { mutableFloatStateOf(0f) }
-    var fats by remember { mutableFloatStateOf(0f) }
-    var protein by remember { mutableFloatStateOf(0f) }
-    var carbohydrates by remember { mutableFloatStateOf(0f) }
-    var timeToCook by remember { mutableIntStateOf(0) }
+    var calories by remember { mutableStateOf("") }
+    var fats by remember { mutableStateOf("") }
+    var protein by remember { mutableStateOf("") }
+    var carbohydrates by remember { mutableStateOf("") }
+    var timeToCook by remember { mutableStateOf("") }
+
     var isNameEmpty by remember { mutableStateOf(false) }
+    var isPhotoEmpty by remember { mutableStateOf(false) }
+    var isCaloriesEmpty by remember { mutableStateOf(false) }
+    var isFatsEmpty by remember { mutableStateOf(false) }
+    var isProteinEmpty by remember { mutableStateOf(false) }
+    var isCarbohydratesEmpty by remember { mutableStateOf(false) }
+    var isTimeToCookEmpty by remember { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -324,6 +332,7 @@ fun NewDishForm(
         uri?.let {
             val uploaded = UploadedImage.buildFromUri(ctx, it)
             photo = uploaded
+            isPhotoEmpty = false
         }
     }
 
@@ -384,7 +393,7 @@ fun NewDishForm(
                     .height(55.dp)
                     .border(
                         width = 1.dp,
-                        color = Color(0xFFDFE2E5),
+                        color = if (isPhotoEmpty) Color.Red else Color(0xFFDFE2E5),
                         shape = RoundedCornerShape(15.dp)
                     )
                     .clickable { imagePickerLauncher.launch("image/*") }
@@ -456,27 +465,24 @@ fun NewDishForm(
                 fontSize = 14.sp
             )
             OutlinedTextField(
-                value = timeToCook.toString(),
+                value = timeToCook,
                 onValueChange = { input ->
                     val filteredText = input.replace(Regex("[^0-9.,]"), "")
                     val formattedText = filteredText.replace(',', '.')
 
                     val parts = formattedText.split('.')
                     if (parts.size <= 2) {
-                        timeToCook = try {
-                            input.toInt()
-                        } catch (_: Exception) {
-                            if (input == "") 0 else timeToCook
-                        }
+                        timeToCook = formattedText
                     }
+                    isTimeToCookEmpty = timeToCook.isEmpty()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFFDFE2E5),
-                    unfocusedBorderColor = Color(0xFFDFE2E5),
+                    focusedBorderColor = if (isTimeToCookEmpty) Color.Red else Color(0xFFDFE2E5),
+                    unfocusedBorderColor = if (isTimeToCookEmpty) Color.Red else Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -504,32 +510,24 @@ fun NewDishForm(
                 fontSize = 14.sp
             )
             OutlinedTextField(
-                value = calories.toString(),
+                value = calories,
                 onValueChange = { input ->
                     val filteredText = input.replace(Regex("[^0-9.,]"), "")
                     var formattedText = filteredText.replace(',', '.')
 
-                    if (calories == 0f) {
-                        formattedText = formattedText.substring(3)
-                    }
-
                     val parts = formattedText.split('.')
-
                     if (parts.size <= 2) {
-                        calories = try {
-                            input.toFloat()
-                        } catch (_: Exception) {
-                            if (input == "") 0f else calories
-                        }
+                        calories = formattedText
                     }
+                    isCaloriesEmpty = calories.isEmpty()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFFDFE2E5),
-                    unfocusedBorderColor = Color(0xFFDFE2E5),
+                    focusedBorderColor = if (isCaloriesEmpty) Color.Red else Color(0xFFDFE2E5),
+                    unfocusedBorderColor = if (isCaloriesEmpty) Color.Red else Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -567,20 +565,17 @@ fun NewDishForm(
 
                     val parts = formattedText.split('.')
                     if (parts.size <= 2) {
-                        protein = try {
-                            input.toFloat()
-                        } catch (_: Exception) {
-                            if (input == "") 0f else protein
-                        }
+                        protein = formattedText
                     }
+                    isProteinEmpty = protein.isEmpty()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFFDFE2E5),
-                    unfocusedBorderColor = Color(0xFFDFE2E5),
+                    focusedBorderColor = if (isProteinEmpty) Color.Red else Color(0xFFDFE2E5),
+                    unfocusedBorderColor = if (isProteinEmpty) Color.Red else Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -615,20 +610,17 @@ fun NewDishForm(
 
                     val parts = formattedText.split('.')
                     if (parts.size <= 2) {
-                        fats = try {
-                            input.toFloat()
-                        } catch (_: Exception) {
-                            if (input == "") 0f else fats
-                        }
+                        fats = formattedText
                     }
+                    isFatsEmpty = fats.isEmpty()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFFDFE2E5),
-                    unfocusedBorderColor = Color(0xFFDFE2E5),
+                    focusedBorderColor = if (isFatsEmpty) Color.Red else Color(0xFFDFE2E5),
+                    unfocusedBorderColor = if (isFatsEmpty) Color.Red else Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -663,20 +655,18 @@ fun NewDishForm(
 
                     val parts = formattedText.split('.')
                     if (parts.size <= 2) {
-                        carbohydrates = try {
-                            input.toFloat()
-                        } catch (_: Exception) {
-                            if (input == "") 0f else carbohydrates
-                        }
+                        carbohydrates = formattedText
                     }
+
+                    isCarbohydratesEmpty = carbohydrates.isEmpty()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFFDFE2E5),
-                    unfocusedBorderColor = Color(0xFFDFE2E5),
+                    focusedBorderColor = if (isCarbohydratesEmpty) Color.Red else Color(0xFFDFE2E5),
+                    unfocusedBorderColor = if (isCarbohydratesEmpty) Color.Red else Color(0xFFDFE2E5),
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     focusedPlaceholderColor = Color(0xFFDFE2E5)
@@ -702,7 +692,9 @@ fun NewDishForm(
     ) {
         Button(
             onClick = {
-                onAddDish(
+                val dto = try {
+                    if (isPhotoEmpty || isNameEmpty || isProteinEmpty || isCaloriesEmpty || isCarbohydratesEmpty || isTimeToCookEmpty || isFatsEmpty) throw Exception()
+
                     AddMenuDish(
                         name = name,
                         description = description,
@@ -715,7 +707,12 @@ fun NewDishForm(
                         carbohydrates = carbohydrates.toDouble(),
                         timeToCook = timeToCook.toLong(),
                     )
-                )
+                } catch (_: Exception) {
+                    Toast.makeText(ctx, "Ошибка! Проверьте заполнение полей", Toast.LENGTH_LONG).show()
+                    null
+                }
+                if (dto != null)
+                    onAddDish(dto)
             },
             modifier = Modifier
                 .width(156.dp)
@@ -830,6 +827,8 @@ fun DishForm(
         onDishSelected
     )
 
+    NewDishForm(onNewDishCreated)
+
 //    if (formSelector) {
 //        FindDishForm(
 //            uiState,
@@ -933,8 +932,8 @@ private fun NutritionCardItem(
                         }
                     },
                     error = {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Error loading image")
+                        Box(modifier = Modifier.width(130.dp).height(130.dp), contentAlignment = Alignment.Center) {
+                            Text("Изображения нет")
                         }
                     }
                 )
