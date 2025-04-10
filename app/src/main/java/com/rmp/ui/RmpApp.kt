@@ -19,7 +19,7 @@ fun RmpApp(
             if (appContainer.database.authTokenDao().getTokens().accessToken == "") {
                 RmpDestinations.HELLO_ROUTE
             } else {
-                RmpDestinations.NUTRITION_ROUTE
+                RmpDestinations.HOME_ROUTE
             }
         }
 
