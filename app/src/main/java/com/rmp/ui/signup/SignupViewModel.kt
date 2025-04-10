@@ -106,30 +106,30 @@ sealed interface SignupUiState {
     open class WelcomeState(
         override val step: SignupState,
         override val errors: MutableList<ErrorMessage> = mutableListOf(),
-        var name: String = "123",
+        var name: String = "",
         var sex: String = "true",
-        var age: String = "123"
+        var age: String = ""
     ): SignupUiState
 
     open class ParamsState(
         step: SignupState,
         errors: MutableList<ErrorMessage> = mutableListOf(),
-        name: String = "123",
+        name: String = "",
         sex: String = "true",
-        age: String = "123",
-        var height: String = "123",
-        var weight: String = "123",
+        age: String = "",
+        var height: String = "",
+        var weight: String = "",
         var activityLevel: ActivityLevel = ActivityLevel.MIDDLE
     ): WelcomeState(step, errors, name, sex, age)
 
     open class TargetState(
         step: SignupState,
         errors: MutableList<ErrorMessage> = mutableListOf(),
-        name: String = "123",
+        name: String = "",
         sex: String = "true",
-        age: String = "123",
-        height: String = "123",
-        weight: String = "123",
+        age: String = "",
+        height: String = "",
+        weight: String = "",
         activityLevel: ActivityLevel = ActivityLevel.MIDDLE,
         var weightTarget: WeightTarget = WeightTarget.GAIN
     ): ParamsState(step, errors, name, sex, age, height, weight, activityLevel)
@@ -137,15 +137,15 @@ sealed interface SignupUiState {
     open class LoginDataState(
         step: SignupState,
         errors: MutableList<ErrorMessage> = mutableListOf(),
-        name: String = "123",
+        name: String = "",
         sex: String = "true",
-        age: String = "123",
-        height: String = "123",
-        weight: String = "123",
+        age: String = "",
+        height: String = "",
+        weight: String = "",
         activityLevel: ActivityLevel = ActivityLevel.MIDDLE,
         weightTarget: WeightTarget = WeightTarget.STAY,
-        var email: String = "123@test.test",
-        var pass: String = "123",
+        var email: String = "",
+        var pass: String = "",
     ): TargetState(step, errors, name, sex, age, height, weight, activityLevel, weightTarget)
 }
 
@@ -167,15 +167,15 @@ fun validateWelcome(uiState: SignupUiState.WelcomeState): Boolean {
 
 private data class SignupViewModelState(
     val step: SignupState = SignupState.WELCOME,
-    val name: String = "123",
+    val name: String = "",
     val sex: String = "true",
-    val age: String = "123",
-    val height: String = "123",
-    val weight: String = "123",
+    val age: String = "",
+    val height: String = "",
+    val weight: String = "",
     val activityLevel: ActivityLevel? = null,
     val weightTarget: WeightTarget? = null,
-    val email: String = "123@test.test",
-    val pass: String = "123",
+    val email: String = "",
+    val pass: String = "",
     val errors: List<ErrorMessage> = emptyList()
 ) {
     fun toUiState(): SignupUiState =
