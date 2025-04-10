@@ -377,7 +377,9 @@ fun SignupScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
-                            SignupState.SUCCESS -> {}
+                            SignupState.SUCCESS -> {
+                                Row{}
+                            }
                         }
                     }
                 }
