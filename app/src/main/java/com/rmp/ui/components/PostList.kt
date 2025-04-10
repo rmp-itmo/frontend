@@ -136,7 +136,7 @@ fun PostCard(
                         if (post.upVoted) MaterialTheme.colorScheme.primary else Color.Black,
                         RoundedCornerShape(5.dp))
                     .clickable {
-                        upvoted(post.id, post.upVoted)
+                        upvoted(post.id, !post.upVoted)
                     }
                     .clip(RoundedCornerShape(5.dp)),
             ) {
