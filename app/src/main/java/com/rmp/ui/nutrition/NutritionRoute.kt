@@ -1,6 +1,5 @@
 package com.rmp.ui.nutrition
 
-import android.util.Log //TODO временно, потом убрать
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,29 +9,28 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun NutritionRoute(
-    nutritionViewModel: NutritionViewModel,
+    nutritionViewModel: NutritionViewModel
 ) {
     val uiState by nutritionViewModel.uiState.collectAsStateWithLifecycle()
     var showHistory by remember { mutableStateOf(false) }
-    var firstEntrance by remember { mutableStateOf(true) }
 
     if (showHistory) {
         NutritionHistoryScreen(
-            viewModel = nutritionViewModel,
-            uiState.dailyGoal,
+            uiState = uiState,
+            fetchHistory = nutritionViewModel::fetchHistory,
+            uiState.history?.caloriesTarget ?: 0f,
             onBackClick = { showHistory = false }
         )
     } else {
         NutritionScreen(
             uiState = uiState,
-            onSaveMenu = { Log.d("SaveMenu", "Сохранить меню!!!!!!") },
-            onAddNutrition = { amount -> nutritionViewModel.addNutritionRecord(amount) },
+            onSwitchDishCheckbox = nutritionViewModel::switchCheckBox,
+            onRemoveItem = nutritionViewModel::removeMenuItem,
+            onCustomDishAdd = nutritionViewModel::addMenuItem,
+            onDishAdd = nutritionViewModel::addMenuItem,
             onCalendarClick = { showHistory = true },
-            firstEntrance = firstEntrance,
-            onGenerateMenu = {
-                nutritionViewModel.generateMenu(2000)
-                firstEntrance = false
-            }
+            onGenerateMenu = nutritionViewModel::generateMenu,
+            onFindDish = nutritionViewModel::findDish
         )
     }
 }

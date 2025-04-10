@@ -109,7 +109,7 @@
 
     <!-- Nutrition Screen -->
     <string name="generate_menu">Сгенерировать меню</string>
-    <string name="save_menu">Сохранить меню</string>
+    <string name="add">Добавить</string>
 
     <!-- Settings Screen  -->
     <string name="invalid_height">Некорректный рост. Укажите значение от 50 до 250 см.</string>

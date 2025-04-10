@@ -86,6 +86,11 @@ dependencies {
     implementation(libs.ktor.client.serialization.json)
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(libs.coil.kt.compose)
+
+//    implementation(libs.androidx.compose.ui.viewinterop)
+
+
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.material.iconsExtended)
