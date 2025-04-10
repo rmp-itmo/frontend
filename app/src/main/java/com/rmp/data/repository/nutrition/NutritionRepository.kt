@@ -207,7 +207,7 @@ data class AddMenuDish(
 @Serializable
 data class MenuItemAdded(
     val calories: Float,
-    val newDish: GetDish
+    val dish: GetDish
 )
 
 interface NutritionRepository {

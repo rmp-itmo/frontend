@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -156,7 +158,9 @@ private fun NutritionCardsList(
     onSwitchDishCheckbox: (Long, Boolean) -> Unit,
     onRemoveItem: (Long) -> Unit,
     onCustomDishAdd: (AddMenuItem) -> Unit,
-    onDishAdd: (AddMenuItemFromDish) -> Unit) {
+    onDishAdd: (AddMenuItemFromDish) -> Unit
+) {
+    var currentOpenForm by remember { mutableStateOf("") }
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -188,7 +192,16 @@ private fun NutritionCardsList(
                             dishId = it
                         )
                     )
-                }
+                },
+                onFormTriggered = { it ->
+                    currentOpenForm = if (it) meal.name
+                    else ""
+                    findDish(-1L, "")
+                    if (currentOpenForm != "") {
+                        findDish(mapTypeNameToId(currentOpenForm), "")
+                    }
+                },
+                formOpen = currentOpenForm == meal.name
             )
         }
     }
@@ -203,9 +216,10 @@ private fun NutritionCard(
     onSwitchDishCheckbox: (Long, Boolean) -> Unit,
     onRemoveItem: (Long) -> Unit,
     onCustomDishAdd: (AddMenuDish) -> Unit,
-    onDishAdd: (Long) -> Unit
+    onDishAdd: (Long) -> Unit,
+    onFormTriggered: (Boolean) -> Unit,
+    formOpen: Boolean,
 ) {
-    var addDishFormState by remember { mutableStateOf(false) }
 
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -255,14 +269,16 @@ private fun NutritionCard(
                 }
             }
 
-            if (!addDishFormState) {
+            if (!formOpen) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    IconButton(onClick = { addDishFormState = true }) {
+                    IconButton(onClick = {
+                        onFormTriggered(true)
+                    }) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_add),
                             contentDescription = "Add dish icon",
@@ -288,7 +304,7 @@ private fun NutritionCard(
                             .height(50.dp)
                             .padding(bottom = 8.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .clickable { addDishFormState = false },
+                            .clickable { onFormTriggered(false) },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -781,26 +797,38 @@ fun FindDishForm(
     )
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().heightIn(max = 500.dp).verticalScroll(rememberScrollState()),
     ) {
-        dishes.forEachIndexed { index, dish ->
-            Column(modifier = Modifier.fillMaxWidth()) {
-                NutritionCardItem(
-                    dish = dish,
-                    onSwitchDishCheckbox = null,
-                    onRemoveItem = null,
-                    onAddItem = onDishSelected
-                )
-
-                if (index < dishes.lastIndex) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(2.dp)
-                            .background(Color(0xFF23252A))
+        if (uiState.searchLoading) {
+            Box(
+                modifier = Modifier
+                    .width(130.dp)
+                    .height(130.dp)
+                    .align(Alignment.CenterHorizontally),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            dishes.forEachIndexed { index, dish ->
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    NutritionCardItem(
+                        dish = dish,
+                        onSwitchDishCheckbox = null,
+                        onRemoveItem = null,
+                        onAddItem = onDishSelected
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (index < dishes.lastIndex) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(2.dp)
+                                .background(Color(0xFF23252A))
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
         }
@@ -901,14 +929,16 @@ private fun NutritionCardItem(
         ) {
             Column {
                 SubcomposeAsyncImage(
-                    model = "${dish.imageUrl}",
+                    model = getDishUrl("${dish.imageUrl}"),
                     contentDescription = "Dish image",
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp)),
                     contentScale = ContentScale.Crop,
                     loading = {
                         Box(
-                            modifier = Modifier.width(130.dp).height(130.dp),
+                            modifier = Modifier
+                                .width(130.dp)
+                                .height(130.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator()
@@ -932,7 +962,9 @@ private fun NutritionCardItem(
                         }
                     },
                     error = {
-                        Box(modifier = Modifier.width(130.dp).height(130.dp), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier
+                            .width(130.dp)
+                            .height(130.dp), contentAlignment = Alignment.Center) {
                             Text("Изображения нет")
                         }
                     }
@@ -1015,24 +1047,24 @@ private fun NutritionCardItem(
                 }
             }
 
-            if (onAddItem == null) {
-                var showRemoveDialog by remember { mutableStateOf(false) }
+            Column(
+                modifier = Modifier
+                    .width(19.dp)
+                    .weight(0.1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                if (onAddItem == null) {
+                    var showRemoveDialog by remember { mutableStateOf(false) }
 
-                if (showRemoveDialog)
-                    ApproveRemove(dish.name, {
-                        onRemoveItem?.invoke(dish.menuItemId)
-                        showRemoveDialog = false
-                    }) {
-                        showRemoveDialog = false
-                    }
+                    if (showRemoveDialog)
+                        ApproveRemove(dish.name, {
+                            onRemoveItem?.invoke(dish.menuItemId)
+                            showRemoveDialog = false
+                        }) {
+                            showRemoveDialog = false
+                        }
 
-                Column(
-                    modifier = Modifier
-                        .width(19.dp)
-                        .weight(0.1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.End
-                ) {
                     IconButton(
                         onClick = {
                             onSwitchDishCheckbox?.invoke(
@@ -1064,18 +1096,19 @@ private fun NutritionCardItem(
                         )
                     }
                 }
-            } else {
-                IconButton(
-                    onClick = {
-                        onAddItem(dish.id)
-                    },
-                    modifier = Modifier.size(20.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = "Add icon",
-                        modifier = Modifier.size(19.dp)
-                    )
+                else {
+                    IconButton(
+                        onClick = {
+                            onAddItem(dish.id)
+                        },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_add),
+                            contentDescription = "Add icon",
+                            modifier = Modifier.size(25.dp)
+                        )
+                    }
                 }
             }
         }

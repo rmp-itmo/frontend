@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rmp.R
 import com.rmp.data.ErrorMessage
+import com.rmp.data.baseUrl
 import com.rmp.data.getCurrentDateAsNumber
 import com.rmp.data.repository.nutrition.AddMenuItem
 import com.rmp.data.repository.nutrition.AddMenuItemFromDish
@@ -37,6 +38,10 @@ fun mapTypeNameToId(name: String): Long = when (name) {
     else -> 4
 }
 
+fun getDishUrl(url: String): String =
+    if (url.first() == 'h') url
+    else "$baseUrl/files/$url"
+
 data class NutritionUiState(
     val isLoading: Boolean = false,
     val errors: List<ErrorMessage> = emptyList(),
@@ -47,6 +52,7 @@ data class NutritionUiState(
 
     val history: NutritionHistory? = null,
 
+    val searchLoading: Boolean = false,
     val searchResult: SearchResultDto? = null
 )
 
@@ -78,6 +84,7 @@ class NutritionViewModel(
         _uiState.update {
             it.copy(
                 isLoading = false,
+                searchLoading = false,
                 errors = listOf(ErrorMessage(null, R.string.error_load_data))
             )
         }
@@ -292,7 +299,7 @@ class NutritionViewModel(
                 return@launch
             }
 
-            appendDish(dishCreated.newDish)
+            appendDish(dishCreated.dish)
 
             _uiState.update {
                 it.copy(
@@ -316,7 +323,7 @@ class NutritionViewModel(
                 return@launch
             }
 
-            appendDish(dishAdded.newDish)
+            appendDish(dishAdded.dish)
 
             _uiState.update {
                 it.copy(
@@ -330,7 +337,15 @@ class NutritionViewModel(
     fun findDish(typeId: Long, query: String) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isLoading = false)
+                it.copy(searchLoading = true)
+            }
+
+            if (typeId == -1L) {
+                _uiState.update {
+                    it.copy(searchLoading = false, searchResult = SearchResultDto(emptyList(),
+                        FilterDto(query, typeId)))
+                }
+                return@launch
             }
 
             val found = async { nutritionRepository.getDish(FilterDto(query, typeId)) }.await() ?: run {
@@ -340,7 +355,7 @@ class NutritionViewModel(
 
             _uiState.update {
                 it.copy(
-                    isLoading = false,
+                    searchLoading = false,
                     searchResult = found
                 )
             }
