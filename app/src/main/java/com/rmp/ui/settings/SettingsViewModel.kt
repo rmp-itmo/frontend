@@ -137,11 +137,19 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
                 Log.d("response", response.toString())
 
+                fun parseMessage(msg: String): String = when(msg) {
+                    "User already exists" -> "Такой email уже используется"
+                    "This nickname already in use" -> "Такое имя пользователя уже используется"
+                    "Invalid activity level type provided" -> "Некорректный уровень активности"
+                    "Invalid goal type provided" -> "Некорректная цель"
+                    else -> "0_0"
+                }
+
                 if (response.second != null) {
                     if (response.second!!.code != 200) {
                         _state.update {
                             it.copy(
-                                errorMessage = response.second!!.message
+                                errorMessage = parseMessage(response.second!!.message)
                             )
                         }
                     }
@@ -155,14 +163,14 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = "Settings successfully changed"
+                                errorMessage = "Настройки успешно сохранены"
                             )
                         }
                     } else {
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = "Error on saving messages"
+                                errorMessage = "Ошибка при сохранении настроек"
                             )
                         }
                     }
@@ -173,7 +181,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error on saving settings: ${e.message}"
+                        errorMessage = "Ошибка при сохранении: ${e.message}"
                     )
                 }
             }

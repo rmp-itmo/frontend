@@ -399,61 +399,59 @@ fun SignupScreen(
 
                 val errorString = stringResource(R.string.error_check_fields)
 
+                fun <T> showErrorToast(): T? {
+                    Toast.makeText(
+                        context,
+                        errorString,
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    return null
+                }
+
                 AccentButton(stringResource(text)) {
                     Log.d("tag", "next triggered")
                     when (uiState.step) {
                         SignupState.WELCOME -> {
                             val state = try {
                                 uiState as SignupUiState.ParamsState
-                            } catch (_: Exception) { null } ?: return@AccentButton
+                            } catch (_: Exception) { showErrorToast() } ?: return@AccentButton
 
                             if (validateWelcome(state)) {
                                 nextPage(SignupState.PARAMS, false)
                             } else {
-                                Toast.makeText(
-                                    context,
-                                    errorString,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                showErrorToast()
                             }
                             return@AccentButton
                         }
                         SignupState.PARAMS -> {
                             val state = try {
                                 uiState as SignupUiState.TargetState
-                            } catch (_: Exception) { null } ?: return@AccentButton
+                            } catch (_: Exception) { showErrorToast() } ?: return@AccentButton
 
                             if (validateParams(state)) {
                                 nextPage(SignupState.TARGET, false)
                             } else {
-                                Toast.makeText(
-                                    context,
-                                    errorString,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                showErrorToast()
                             }
                             return@AccentButton
                         }
                         SignupState.TARGET -> {
                             val state = try {
                                 uiState as SignupUiState.LoginDataState
-                            } catch (_: Exception) { null } ?: return@AccentButton
+                            } catch (_: Exception) { showErrorToast() } ?: return@AccentButton
 
                             if (validateTarget(state)) {
                                 nextPage(SignupState.LOGIN_DATA, false)
                             } else {
-                                Toast.makeText(
-                                    context,
-                                    errorString,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                showErrorToast()
                             }
                             return@AccentButton
                         }
                         SignupState.LOGIN_DATA -> {
                             val state = try {
                                 uiState as SignupUiState.LoginDataState
-                            } catch (_: Exception) { null } ?: return@AccentButton
+                            } catch (_: Exception) { showErrorToast() } ?: return@AccentButton
 
                             if (validateLoginData(state)) {
                                 nextPage(SignupState.LOGIN_DATA, true)
@@ -461,11 +459,7 @@ fun SignupScreen(
                                 if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) {
                                     emailError = true
                                 }
-                                Toast.makeText(
-                                    context,
-                                    errorString,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                showErrorToast()
                             }
 
                             return@AccentButton
