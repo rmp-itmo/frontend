@@ -32,9 +32,14 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import com.rmp.R
 import com.rmp.data.baseUrl
 import com.rmp.data.repository.forum.PostDto
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun PostList(
@@ -44,7 +49,9 @@ fun PostList(
 ) {
     LazyVerticalGrid(
         GridCells.Fixed(1),
-        modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 15.dp, end = 15.dp),
         verticalArrangement = Arrangement.Center,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -68,8 +75,6 @@ fun PostCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(16.dp),
     ) {
-
-
         Row(
             modifier = Modifier
                 .padding(start = 22.dp, top = 18.dp)
@@ -126,10 +131,14 @@ fun PostCard(
         ) {
             Row(
                 modifier = Modifier
-                    .border(1.dp, Color.Black, RoundedCornerShape(5.dp))
-                    .clickable { upvoted(post.id, true) }
+                    .border(
+                        1.dp,
+                        if (post.upVoted) MaterialTheme.colorScheme.primary else Color.Black,
+                        RoundedCornerShape(5.dp))
+                    .clickable {
+                        upvoted(post.id, post.upVoted)
+                    }
                     .clip(RoundedCornerShape(5.dp)),
-
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -137,24 +146,17 @@ fun PostCard(
                     Icon(
                         painter = painterResource(R.drawable.up),
                         contentDescription = stringResource(R.string.menu),
+                        tint = if (post.upVoted) MaterialTheme.colorScheme.primary else Color.Black,
                         modifier = Modifier.size(35.dp)
                     )
 
                     Text(
                         "${post.upVotes}",
+                        color = if (post.upVoted) MaterialTheme.colorScheme.primary else Color.Black,
                         modifier = Modifier.padding(end = 10.dp)
                         )
                 }
             }
-
-            Icon(
-                painter = painterResource(R.drawable.down),
-                contentDescription = (stringResource(R.string.menu)),
-                modifier = Modifier
-                    .size(35.dp)
-                    .align(Alignment.CenterVertically)
-                    .clickable { upvoted(post.id, false) }
-            )
         }
     }
 }
