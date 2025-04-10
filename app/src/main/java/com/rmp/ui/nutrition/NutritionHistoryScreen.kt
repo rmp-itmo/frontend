@@ -147,22 +147,6 @@ fun NutritionHistoryScreen(
                     )
                 }
             }
-
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_back),
-                        contentDescription = "Назад",
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-            }
         }
     }
 }

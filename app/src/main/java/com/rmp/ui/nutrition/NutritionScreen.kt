@@ -5,10 +5,13 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,8 +26,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -843,30 +844,112 @@ fun DishForm(
     onDishSelected: (Long) -> Unit
 ) {
     var formSelector by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { formSelector = false }
+                    )
+            ) {
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (!formSelector) MaterialTheme.colorScheme.primary
+                    else Color.Transparent,
+                    animationSpec = tween(durationMillis = 300)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            backgroundColor,
+                            RoundedCornerShape(10.dp)
+                        )
+                ) {
+                    val textColor by animateColorAsState(
+                        targetValue = if (!formSelector) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurface,
+                        animationSpec = tween(durationMillis = 300)
+                    )
+
+                    Text(
+                        text = "Свой рецепт",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = textColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { formSelector = true }
+                    )
+            ) {
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (formSelector) MaterialTheme.colorScheme.primary
+                    else Color.Transparent,
+                    animationSpec = tween(durationMillis = 300)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            backgroundColor,
+                            RoundedCornerShape(10.dp)
+                        )
+                ) {
+                    val textColor by animateColorAsState(
+                        targetValue = if (formSelector) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurface,
+                        animationSpec = tween(durationMillis = 300)
+                    )
+
+                    Text(
+                        text = "Выбрать из готовых",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = textColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+
     Spacer(modifier = Modifier.height(16.dp))
 
-
-    FindDishForm(
-        uiState,
-        findDish,
-        onDishSelected
-    )
-
-    NewDishForm(onNewDishCreated)
-
-//    if (formSelector) {
-//        FindDishForm(
-//            uiState,
-//            findDish,
-//            onDishSelected
-//        )
-//    } else {
-//        NewDishForm(onNewDishCreated)
-//    }
-
-
+    if (formSelector) {
+        FindDishForm(uiState, findDish, onDishSelected)
+    } else {
+        NewDishForm(onNewDishCreated)
+    }
 }
-
 
 @Composable
 private fun ApproveRemove(
