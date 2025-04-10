@@ -198,7 +198,7 @@ fun DynamicImage(post: PostDto) {
             },
             error = {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Error loading image")
+                    Text("Ошибка загрузки изображения")
                 }
             }
         )
