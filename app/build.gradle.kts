@@ -71,6 +71,7 @@ android {
 dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.protolite.well.known.types)
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -130,6 +131,12 @@ dependencies {
     implementation(libs.androidx.connect.client)
     implementation(libs.kotlinx.coroutines.android)
 
+    implementation(libs.firebase.messaging.ktx)
+
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx.v271)
+    implementation(libs.okhttp.v493)
+    implementation(libs.gson)
 
     implementation(libs.accompanist.swiperefresh.v0320)
 
