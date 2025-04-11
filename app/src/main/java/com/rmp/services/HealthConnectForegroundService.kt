@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
@@ -15,13 +14,6 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.work.Constraints
-import androidx.work.CoroutineWorker
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.WorkerParameters
 import com.rmp.R
 import com.rmp.data.repository.heart.HeartRateLogDto
 import com.rmp.data.repository.heart.HeartRepoImpl
@@ -33,19 +25,18 @@ import com.rmp.data.repository.steps.StepsRepoImpl
 import com.rmp.data.repository.steps.StepsRepository
 import com.rmp.data.repository.steps.UserStepsLogDto
 import com.rmp.ui.MainActivity
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
-import java.util.concurrent.TimeUnit
+import java.time.temporal.ChronoUnit
+
 
 class HealthConnectForegroundService : Service() {
     private lateinit var healthConnectClient: HealthConnectClient
@@ -116,7 +107,13 @@ class HealthConnectForegroundService : Service() {
         serviceScope.launch {
             while (isRunning) {
                 try {
-                    updateNotification("Последнее обновление: ${Instant.now()}")
+                    val instant = Instant.now()
+                    val ldt = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+
+                    val formatter = DateTimeFormatter.ofPattern("HH:mm")
+                    val formattedTime = ldt.format(formatter)
+
+                    updateNotification("Последнее обновление: $formattedTime")
                     delay(2 * 60 * 1000)
 
                     fetchStepCountData()

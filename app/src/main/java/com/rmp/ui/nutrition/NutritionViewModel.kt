@@ -1,5 +1,6 @@
 package com.rmp.ui.nutrition
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -17,6 +18,7 @@ import com.rmp.data.repository.nutrition.Menu
 import com.rmp.data.repository.nutrition.NutritionHistory
 import com.rmp.data.repository.nutrition.NutritionRepository
 import com.rmp.data.repository.nutrition.NutritionStatRequest
+import com.rmp.data.repository.nutrition.NutritionStatResponse
 import com.rmp.data.repository.nutrition.RemoveMenuItemRequest
 import com.rmp.data.repository.nutrition.SaveMenuMeal
 import com.rmp.data.repository.nutrition.SaveMenuRequest
@@ -77,8 +79,13 @@ class NutritionViewModel(
         }
     }
 
-    private suspend fun getMenu(scope: CoroutineScope) =
+    private suspend fun getMenu(scope: CoroutineScope): Menu? =
         scope.async { nutritionRepository.getMenu() }.await()
+
+    private suspend fun getStats(scope: CoroutineScope): NutritionStatResponse? =
+        scope.async { nutritionRepository.loadDailyStats(NutritionStatRequest(
+            date = getCurrentDateAsNumber()
+        )) }.await()
 
     private fun stopWithError() {
         _uiState.update {
@@ -97,9 +104,7 @@ class NutritionViewModel(
             }
 
             val userMenu = getMenu(this)
-            val caloriesData = async { nutritionRepository.loadDailyStats(NutritionStatRequest(
-                date = getCurrentDateAsNumber()
-            )) }.await()
+            val caloriesData = getStats(this)
 
             if (userMenu == null || caloriesData == null) {
                 _uiState.update {
@@ -214,10 +219,15 @@ class NutritionViewModel(
             }
 
 
+            val stats = getStats(this) ?: run {
+                stopWithError()
+                return@launch
+            }
+
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    currentCalories = removeResult.calories,
+                    currentCalories = stats.caloriesCurrent,
                     menu = it.menu?.let {
                         it.copy(
                             meals = it.meals?.map { meal ->
@@ -241,7 +251,7 @@ class NutritionViewModel(
                 )
             }
 
-            val removeResult = async {
+            async {
                 nutritionRepository.switchDishCheckbox(SwitchDishCheckboxRequest(menuItemId, check))
             }.await() ?: run {
                 stopWithError()
@@ -249,10 +259,15 @@ class NutritionViewModel(
             }
 
 
+            val stats = getStats(this) ?: run {
+                stopWithError()
+                return@launch
+            }
+
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    currentCalories = removeResult.calories,
+                    currentCalories = stats.caloriesCurrent,
                     menu = it.menu?.let {
                         it.copy(
                             meals = it.meals?.map { meal ->
@@ -301,10 +316,15 @@ class NutritionViewModel(
 
             appendDish(dishCreated.dish)
 
+            val stats = getStats(this) ?: run {
+                stopWithError()
+                return@launch
+            }
+
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    currentCalories = dishCreated.calories
+                    currentCalories = stats.caloriesCurrent
                 )
             }
         }
@@ -325,10 +345,15 @@ class NutritionViewModel(
 
             appendDish(dishAdded.dish)
 
+            val stats = getStats(this) ?: run {
+                stopWithError()
+                return@launch
+            }
+
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    currentCalories = dishAdded.calories
+                    currentCalories = stats.caloriesCurrent
                 )
             }
         }

@@ -346,7 +346,7 @@ private fun NutritionCardItem(
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = String.format("%.1f", dish.calories),
+                            text = String.format("%.1f", dish.carbohydrates),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
                             textAlign = TextAlign.Center

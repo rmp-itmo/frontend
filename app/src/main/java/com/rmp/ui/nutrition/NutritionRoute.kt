@@ -24,6 +24,7 @@ fun NutritionRoute(
     } else {
         NutritionScreen(
             uiState = uiState,
+            onFetchMenu = nutritionViewModel::fetchMenu,
             onSwitchDishCheckbox = nutritionViewModel::switchCheckBox,
             onRemoveItem = nutritionViewModel::removeMenuItem,
             onCustomDishAdd = nutritionViewModel::addMenuItem,

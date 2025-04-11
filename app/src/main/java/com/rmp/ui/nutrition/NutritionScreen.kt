@@ -61,6 +61,7 @@ import com.rmp.ui.components.buttons.BackButton
 @Composable
 fun NutritionScreen(
     uiState: NutritionUiState,
+    onFetchMenu: () -> Unit,
     onSwitchDishCheckbox: (Long, Boolean) -> Unit,
     onRemoveItem: (Long) -> Unit,
     onCalendarClick: () -> Unit,
@@ -73,7 +74,7 @@ fun NutritionScreen(
 
     RefreshedAppScreen(
         leftComposable = { BackButton() },
-        onRefresh = {},
+        onRefresh = onFetchMenu,
         swipeRefreshState = state,
         modifier = Modifier.blur(if (!uiState.isMenuGenerated) 8.dp else 0.dp)
     ) {
@@ -1121,7 +1122,7 @@ private fun NutritionCardItem(
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = String.format("%.1f", dish.calories),
+                            text = String.format("%.1f", dish.carbohydrates),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
                             textAlign = TextAlign.Center
